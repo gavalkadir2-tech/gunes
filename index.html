@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#d97706">
+<title>Güneş Mobilya — Muhasebe</title>
+<style>
+:root{
+  --bg:#f6f3ee; --kart:#ffffff; --yazi:#1f1d1a; --soluk:#6b645a; --cizgi:#e4ddd2;
+  --ana:#d97706; --ana-koyu:#b45309;
+  --giris:#15803d; --giris-acik:#dcfce7;
+  --cikis:#b91c1c; --cikis-acik:#fee2e2;
+  --borc:#1d4ed8; --borc-acik:#dbeafe;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;}
+body{background:var(--bg);color:var(--yazi);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:19px;line-height:1.4;padding-bottom:96px;}
+button,input,select,textarea{font:inherit;color:inherit;}
+button{cursor:pointer;}
+.ust{background:var(--ana);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.ust h1{font-size:22px;margin:0;flex:1;font-weight:700;}
+.ust .geri{background:rgba(255,255,255,.2);border:0;color:#fff;border-radius:12px;padding:8px 14px;font-size:18px;font-weight:600;}
+.sayfa{max-width:720px;margin:0 auto;padding:16px;}
+.kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:18px;padding:18px;margin-bottom:14px;}
+.baslik{font-size:17px;color:var(--soluk);margin:0 0 6px;font-weight:600;}
+.buyuk-sayi{font-size:38px;font-weight:800;letter-spacing:-.5px;margin:0;}
+.alt-bilgi{color:var(--soluk);font-size:16px;margin-top:6px;}
+.iki{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ozet{border-radius:16px;padding:14px;}
+.ozet .baslik{margin:0;}
+.ozet .deger{font-size:26px;font-weight:800;}
+.yesil{background:var(--giris-acik);color:var(--giris);}
+.kirmizi{background:var(--cikis-acik);color:var(--cikis);}
+.mavi{background:var(--borc-acik);color:var(--borc);}
+.ozet .baslik{color:inherit;opacity:.85;}
+
+.dev-buton{display:flex;align-items:center;gap:16px;width:100%;border:0;border-radius:20px;padding:22px 20px;font-size:24px;font-weight:800;color:#fff;margin-bottom:14px;text-align:left;box-shadow:0 3px 0 rgba(0,0,0,.18);}
+.dev-buton:active{transform:translateY(2px);box-shadow:none;}
+.dev-buton .ikon{font-size:38px;line-height:1;width:48px;text-align:center;}
+.dev-buton small{display:block;font-size:16px;font-weight:500;opacity:.9;}
+.bg-giris{background:var(--giris);} .bg-cikis{background:var(--cikis);} .bg-borc{background:var(--borc);} .bg-ana{background:var(--ana);}
+
+.buton{display:block;width:100%;border:0;border-radius:16px;padding:18px;font-size:22px;font-weight:800;color:#fff;background:var(--ana);margin-top:8px;}
+.buton:active{filter:brightness(.92);}
+.buton.ikincil{background:#fff;color:var(--yazi);border:2px solid var(--cizgi);font-weight:700;}
+.buton.tehlike{background:#fff;color:var(--cikis);border:2px solid var(--cikis);}
+
+label.etiket{display:block;font-weight:700;margin:18px 0 8px;font-size:19px;}
+.kutu{width:100%;border:2px solid var(--cizgi);border-radius:14px;padding:14px 16px;background:#fff;font-size:20px;}
+.kutu:focus{outline:none;border-color:var(--ana);box-shadow:0 0 0 4px rgba(217,119,6,.2);}
+.tutar-kutu{font-size:40px;font-weight:800;text-align:center;padding:16px;}
+.secenekler{display:flex;flex-wrap:wrap;gap:10px;}
+.secenek{border:2px solid var(--cizgi);background:#fff;border-radius:14px;padding:12px 16px;font-size:18px;font-weight:600;min-height:52px;}
+.secenek.secili{border-color:var(--ana);background:#fff7ed;color:var(--ana-koyu);box-shadow:inset 0 0 0 1px var(--ana);}
+.hata{color:var(--cikis);font-weight:700;margin-top:10px;min-height:1em;}
+
+.satir{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--cizgi);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;}
+.satir:last-child{border-bottom:0;}
+.satir .ikon{font-size:26px;width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.satir .orta{flex:1;min-width:0;}
+.satir .ust-yazi{font-weight:700;}
+.satir .alt-yazi{color:var(--soluk);font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.satir .tutar{font-weight:800;font-size:20px;white-space:nowrap;}
+.t-giris{color:var(--giris);} .t-cikis{color:var(--cikis);} .t-borc{color:var(--borc);}
+.gun-baslik{display:flex;justify-content:space-between;font-weight:700;color:var(--soluk);font-size:16px;margin:18px 4px 6px;}
+
+.ay-sec{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;}
+.ay-sec button{border:2px solid var(--cizgi);background:#fff;border-radius:14px;width:56px;height:56px;font-size:26px;font-weight:800;}
+.ay-sec strong{font-size:22px;}
+
+.cubuk-satir{margin:12px 0;}
+.cubuk-ust{display:flex;justify-content:space-between;font-weight:600;margin-bottom:5px;}
+.cubuk-yol{height:14px;background:#f1ece4;border-radius:4px;overflow:hidden;}
+.cubuk{height:100%;border-radius:4px;}
+
+.alt-menu{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--cizgi);display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 8px rgba(0,0,0,.06);}
+.alt-menu button{flex:1;border:0;background:none;padding:10px 4px 12px;font-size:15px;font-weight:700;color:var(--soluk);display:flex;flex-direction:column;align-items:center;gap:2px;}
+.alt-menu button .ikon{font-size:28px;line-height:1.1;}
+.alt-menu button.aktif{color:var(--ana-koyu);background:#fff7ed;}
+
+.bos{text-align:center;color:var(--soluk);padding:30px 10px;}
+.bos .ikon{font-size:48px;display:block;margin-bottom:8px;}
+.ara{margin-bottom:14px;}
+
+.bildirim{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:#1f1d1a;color:#fff;padding:16px 26px;border-radius:16px;font-size:20px;font-weight:700;z-index:50;box-shadow:0 6px 20px rgba(0,0,0,.3);animation:gel .2s ease;max-width:90vw;text-align:center;}
+@keyframes gel{from{opacity:0;transform:translate(-50%,10px);}to{opacity:1;transform:translate(-50%,0);}}
+.perde{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px;}
+.pencere{background:#fff;border-radius:20px;padding:24px;max-width:440px;width:100%;}
+.pencere p{font-size:21px;font-weight:700;margin:0 0 18px;text-align:center;}
+.pencere .iki .buton{margin:0;}
+.uyari{background:#fff7ed;border:2px solid #fdba74;color:#7c2d12;border-radius:16px;padding:14px 16px;margin-bottom:14px;font-weight:600;}
+.tel{display:inline-block;margin-top:8px;color:var(--borc);font-weight:700;text-decoration:none;font-size:19px;}
+@media(max-width:380px){body{font-size:18px;}.buyuk-sayi{font-size:32px;}.dev-buton{font-size:21px;padding:18px 16px;}.ozet .deger{font-size:21px;}}
+</style>
+</head>
+<body>
+<div id="uygulama"></div>
+<nav class="alt-menu" id="altMenu">
+  <button data-git="ana"><span class="ikon">🏠</span>Ana Sayfa</button>
+  <button data-git="musteriler"><span class="ikon">👥</span>Müşteriler</button>
+  <button data-git="gecmis"><span class="ikon">📋</span>Kayıtlar</button>
+  <button data-git="rapor"><span class="ikon">📊</span>Rapor</button>
+</nav>
+
+<script>
+"use strict";
+/* ================= VERİ ================= */
+var ANAHTAR = "gunes_muhasebe_v1";
+var GIRIS_TURLERI = ["Satış", "Peşinat", "Tahsilat", "Diğer"];
+var CIKIS_TURLERI = ["Malzeme", "Kira", "Maaş", "Elektrik / Su", "Nakliye", "Yemek", "Vergi", "Diğer"];
+var ODEME = ["Nakit", "Kart", "Havale"];
+var AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+
+var veri = yukle();
+
+function yukle(){
+  try{
+    var v = JSON.parse(localStorage.getItem(ANAHTAR));
+    if(v && Array.isArray(v.hareketler) && Array.isArray(v.musteriler)) return v;
+  }catch(e){}
+  return {hareketler:[], musteriler:[], sonYedek:null};
+}
+function kaydet(){
+  try{ localStorage.setItem(ANAHTAR, JSON.stringify(veri)); return true; }
+  catch(e){ alert("Kayıt yapılamadı! Lütfen yedek alın."); return false; }
+}
+function yeniId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* ================= YARDIMCI ================= */
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function para(n){
+  var neg = n < 0; n = Math.abs(Math.round(n*100)/100);
+  var tam = Math.floor(n), kurus = Math.round((n - tam)*100);
+  var s = tam.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  if(kurus) s += "," + (kurus < 10 ? "0" : "") + kurus;
+  return (neg ? "-" : "") + s + " ₺";
+}
+/* "12.500" , "12500,50" , "12.500,50" , "12500.5" hepsini anlar */
+function sayiOku(s){
+  s = String(s || "").replace(/[₺\s]/g, "");
+  if(!s) return NaN;
+  if(s.indexOf(",") >= 0){ s = s.replace(/\./g, "").replace(",", "."); }
+  else if(/^\d{1,3}(\.\d{3})+$/.test(s)){ s = s.replace(/\./g, ""); }
+  return Number(s);
+}
+function bugun(){ return tarihStr(new Date()); }
+function tarihStr(d){ return d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2) + "-" + ("0"+d.getDate()).slice(-2); }
+function tarihYaz(t){
+  if(t === bugun()) return "Bugün";
+  var d = new Date(); d.setDate(d.getDate()-1);
+  if(t === tarihStr(d)) return "Dün";
+  var p = t.split("-"); return Number(p[2]) + " " + AYLAR[Number(p[1])-1] + " " + p[0];
+}
+function musteriBul(id){ for(var i=0;i<veri.musteriler.length;i++) if(veri.musteriler[i].id === id) return veri.musteriler[i]; return null; }
+function musteriBorcu(id){
+  var t = 0;
+  veri.hareketler.forEach(function(h){
+    if(h.musteriId !== id) return;
+    if(h.tur === "borc") t += h.tutar;
+    else if(h.tur === "giris") t -= h.tutar;
+  });
+  return t;
+}
+function kasa(){
+  var nakit = 0, banka = 0;
+  veri.hareketler.forEach(function(h){
+    if(h.tur === "borc") return;
+    var k = h.tur === "giris" ? h.tutar : -h.tutar;
+    if(h.odeme === "Nakit") nakit += k; else banka += k;
+  });
+  return {nakit:nakit, banka:banka, toplam:nakit+banka};
+}
+function sirali(liste){
+  return liste.slice().sort(function(a,b){ return a.tarih < b.tarih ? 1 : a.tarih > b.tarih ? -1 : (b.olusma||0) - (a.olusma||0); });
+}
+
+/* ================= BİLDİRİM & ONAY ================= */
+function bildir(yazi){
+  var e = document.createElement("div"); e.className = "bildirim"; e.textContent = yazi;
+  document.body.appendChild(e); setTimeout(function(){ e.remove(); }, 2200);
+}
+function onayla(soru, evetYazi, evet){
+  var p = document.createElement("div"); p.className = "perde";
+  p.innerHTML = '<div class="pencere"><p>' + esc(soru) + '</p><div class="iki">' +
+    '<button class="buton ikincil" data-c="hayir">Vazgeç</button>' +
+    '<button class="buton" style="background:var(--cikis)" data-c="evet">' + esc(evetYazi) + '</button></div></div>';
+  p.addEventListener("click", function(e){
+    var c = e.target.getAttribute("data-c");
+    if(c === "evet"){ p.remove(); evet(); }
+    else if(c === "hayir" || e.target === p) p.remove();
+  });
+  document.body.appendChild(p);
+}
+
+/* ================= YÖNLENDİRME ================= */
+// Telefonun "geri" tuşu çalışsın diye adres çubuğundaki # kullanılır.
+function git(yer){ location.hash = yer; }
+function geri(){ if(history.length > 1) history.back(); else git("ana"); }
+window.addEventListener("hashchange", ciz);
+document.getElementById("altMenu").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(b) git(b.getAttribute("data-git"));
+});
+
+var ayGoster = bugun().slice(0,7);   // Kayıtlar ve Rapor için seçili ay
+var filtre = "hepsi";
+var aramaYazi = "";
+
+function ciz(){
+  var h = (location.hash || "#ana").slice(1).split("/");
+  var ekran = h[0], id = h[1] ? decodeURIComponent(h[1]) : null;
+  var sayfalar = {
+    ana: ekranAna, giris: function(){ return ekranPara("giris"); }, cikis: function(){ return ekranPara("cikis"); },
+    musteriler: ekranMusteriler, musteri: function(){ return ekranMusteri(id); }, yenimusteri: function(){ return ekranMusteriForm(id); },
+    borc: function(){ return ekranBorc(id); }, tahsilat: function(){ return ekranTahsilat(id); },
+    gecmis: ekranGecmis, kayit: function(){ return ekranKayit(id); }, rapor: ekranRapor, ayarlar: ekranAyarlar
+  };
+  var f = sayfalar[ekran] || ekranAna;
+  var sonuc = f();
+  document.getElementById("uygulama").innerHTML =
+    '<header class="ust">' + (sonuc.geri ? '<button class="geri" onclick="geri()">‹ Geri</button>' : '<span style="font-size:28px">☀️</span>') +
+    '<h1>' + esc(sonuc.baslik) + '</h1>' +
+    (ekran === "ana" ? '<button class="geri" onclick="git(\'ayarlar\')" aria-label="Ayarlar">⚙️</button>' : '') +
+    '</header><main class="sayfa">' + sonuc.html + '</main>';
+  var anaSekme = {ana:"ana", giris:"ana", cikis:"ana", ayarlar:"ana", musteriler:"musteriler", musteri:"musteriler", yenimusteri:"musteriler", borc:"musteriler", tahsilat:"musteriler", gecmis:"gecmis", kayit:"gecmis", rapor:"rapor"}[ekran] || "ana";
+  document.querySelectorAll("#altMenu button").forEach(function(b){ b.classList.toggle("aktif", b.getAttribute("data-git") === anaSekme); });
+  if(sonuc.sonra) sonuc.sonra();
+  window.scrollTo(0,0);
+}
+
+/* ================= ANA SAYFA ================= */
+function ekranAna(){
+  var k = kasa(), bg = bugun(), gir = 0, cik = 0, alacak = 0;
+  veri.hareketler.forEach(function(h){
+    if(h.tarih !== bg) return;
+    if(h.tur === "giris") gir += h.tutar; else if(h.tur === "cikis") cik += h.tutar;
+  });
+  veri.musteriler.forEach(function(m){ var b = musteriBorcu(m.id); if(b > 0) alacak += b; });
+
+  var son = sirali(veri.hareketler).slice(0,5);
+  var html = yedekUyarisi() +
+    '<div class="kart"><p class="baslik">💰 Kasadaki Para</p><p class="buyuk-sayi">' + para(k.toplam) + '</p>' +
+    '<div class="alt-bilgi">Nakit: <b>' + para(k.nakit) + '</b> &nbsp;·&nbsp; Kart/Banka: <b>' + para(k.banka) + '</b></div></div>' +
+    '<div class="iki" style="margin-bottom:14px">' +
+      '<div class="ozet yesil"><p class="baslik">Bugün Giren</p><div class="deger">' + para(gir) + '</div></div>' +
+      '<div class="ozet kirmizi"><p class="baslik">Bugün Çıkan</p><div class="deger">' + para(cik) + '</div></div>' +
+    '</div>' +
+    '<button class="dev-buton bg-giris" onclick="git(\'giris\')"><span class="ikon">➕</span><span>PARA GİRDİ<small>Satış, peşinat, tahsilat</small></span></button>' +
+    '<button class="dev-buton bg-cikis" onclick="git(\'cikis\')"><span class="ikon">➖</span><span>PARA ÇIKTI<small>Malzeme, kira, maaş, fatura</small></span></button>' +
+    '<button class="dev-buton bg-borc" onclick="git(\'musteriler\')"><span class="ikon">📒</span><span>VERESİYE DEFTERİ<small>Müşterilerden alacak: ' + para(alacak) + '</small></span></button>';
+
+  html += '<div class="kart"><p class="baslik">Son Kayıtlar</p>' +
+    (son.length ? son.map(satirHareket).join("") : '<div class="bos">Henüz kayıt yok.<br>Yukarıdaki yeşil veya kırmızı butona basarak başlayın.</div>') +
+    (veri.hareketler.length > 5 ? '<button class="buton ikincil" onclick="git(\'gecmis\')">Tüm kayıtları gör</button>' : '') + '</div>';
+  return {baslik:"Güneş Mobilya", html:html};
+}
+
+function yedekUyarisi(){
+  if(!veri.hareketler.length) return "";
+  var ilk = Math.min.apply(null, veri.hareketler.map(function(h){ return h.olusma || Date.now(); }));
+  var gun = (Date.now() - (veri.sonYedek || ilk)) / 86400000;
+  if(gun < 7) return "";
+  return '<div class="uyari">⚠️ Uzun zamandır yedek alınmadı. <a href="#ayarlar" style="color:inherit;font-weight:800">Yedek almak için dokunun</a></div>';
+}
+
+function satirHareket(h, adGizle){
+  var m = h.musteriId && adGizle !== true ? musteriBul(h.musteriId) : null;
+  var ikon = h.tur === "giris" ? "➕" : h.tur === "cikis" ? "➖" : "📒";
+  var renk = h.tur === "giris" ? "yesil" : h.tur === "cikis" ? "kirmizi" : "mavi";
+  var isaret = h.tur === "giris" ? "+" : h.tur === "cikis" ? "-" : "";
+  var baslik = h.tur === "borc" ? "Veresiye satış" : h.kategori;
+  var alt = [m ? m.ad : "", h.aciklama, h.tur !== "borc" ? h.odeme : "", tarihYaz(h.tarih)].filter(Boolean).join(" · ");
+  return '<button class="satir" onclick="git(\'kayit/' + h.id + '\')"><span class="ikon ' + renk + '">' + ikon + '</span>' +
+    '<span class="orta"><div class="ust-yazi">' + esc(baslik) + '</div><div class="alt-yazi">' + esc(alt) + '</div></span>' +
+    '<span class="tutar t-' + h.tur + '">' + isaret + para(h.tutar) + '</span></button>';
+}
+
+/* ================= PARA GİRDİ / ÇIKTI ================= */
+var form = {};
+function secenekler(ad, liste, secili){
+  return '<div class="secenekler" data-ad="' + ad + '">' + liste.map(function(x){
+    return '<button type="button" class="secenek' + (x === secili ? ' secili' : '') + '" data-deger="' + esc(x) + '">' + esc(x) + '</button>';
+  }).join("") + '</div>';
+}
+function secenekBagla(){
+  document.querySelectorAll(".secenekler").forEach(function(grup){
+    grup.addEventListener("click", function(e){
+      var b = e.target.closest(".secenek"); if(!b) return;
+      grup.querySelectorAll(".secenek").forEach(function(x){ x.classList.remove("secili"); });
+      b.classList.add("secili");
+      form[grup.getAttribute("data-ad")] = b.getAttribute("data-deger");
+    });
+  });
+}
+function tutarAlani(){
+  return '<label class="etiket" for="tutar">Ne kadar?</label>' +
+    '<input id="tutar" class="kutu tutar-kutu" inputmode="decimal" autocomplete="off" placeholder="0 ₺">';
+}
+function tarihAlani(t){
+  return '<label class="etiket" for="tarih">Tarih</label><input id="tarih" type="date" class="kutu" value="' + (t || bugun()) + '">';
+}
+
+function ekranPara(tur){
+  var giris = tur === "giris";
+  form = {kategori: giris ? "Satış" : "Malzeme", odeme: "Nakit"};
+  var html = '<div class="kart">' + tutarAlani() +
+    '<label class="etiket">' + (giris ? "Ne için geldi?" : "Ne için çıktı?") + '</label>' + secenekler("kategori", giris ? GIRIS_TURLERI : CIKIS_TURLERI, form.kategori) +
+    '<label class="etiket">Nasıl ödendi?</label>' + secenekler("odeme", ODEME, "Nakit") +
+    '<label class="etiket" for="aciklama">Not <span style="font-weight:400;color:var(--soluk)">(isterseniz)</span></label>' +
+    '<input id="aciklama" class="kutu" placeholder="' + (giris ? "Örn: 3\'lü koltuk takımı" : "Örn: Sünger, kumaş") + '">' +
+    tarihAlani() +
+    '<div class="hata" id="hata"></div>' +
+    '<button class="buton" style="background:var(--' + tur + ')" onclick="paraKaydet(\'' + tur + '\')">✓ KAYDET</button></div>';
+  return {baslik: giris ? "Para Girdi" : "Para Çıktı", geri:true, html:html,
+    sonra:function(){ secenekBagla(); document.getElementById("tutar").focus(); }};
+}
+
+function tutarAl(alanId){
+  var v = sayiOku(document.getElementById(alanId).value);
+  if(!(v > 0)){ document.getElementById("hata").textContent = "Lütfen tutarı yazın."; document.getElementById(alanId).focus(); return null; }
+  return Math.round(v*100)/100;
+}
+
+function paraKaydet(tur){
+  var tutar = tutarAl("tutar"); if(tutar === null) return;
+  veri.hareketler.push({id:yeniId(), tur:tur, tutar:tutar, kategori:form.kategori, odeme:form.odeme,
+    aciklama:document.getElementById("aciklama").value.trim(), tarih:document.getElementById("tarih").value || bugun(), olusma:Date.now()});
+  if(kaydet()){ bildir("✓ Kaydedildi: " + para(tutar)); git("ana"); }
+}
+
+/* ================= KAYIT DETAYI ================= */
+function ekranKayit(id){
+  var h = null; veri.hareketler.forEach(function(x){ if(x.id === id) h = x; });
+  if(!h) return {baslik:"Kayıt", geri:true, html:'<div class="bos">Kayıt bulunamadı.</div>'};
+  var m = h.musteriId ? musteriBul(h.musteriId) : null;
+  var tip = h.tur === "giris" ? "Para Girdi" : h.tur === "cikis" ? "Para Çıktı" : "Veresiye Satış";
+  var bilgi = [["Tür", tip], ["Tutar", para(h.tutar)], ["Ne için", h.tur === "borc" ? "Veresiye" : h.kategori]];
+  if(h.tur !== "borc") bilgi.push(["Ödeme", h.odeme]);
+  if(m) bilgi.push(["Müşteri", m.ad]);
+  if(h.aciklama) bilgi.push(["Not", h.aciklama]);
+  bilgi.push(["Tarih", tarihYaz(h.tarih)]);
+  var html = '<div class="kart">' + bilgi.map(function(b){
+    return '<div style="display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--cizgi)"><span style="color:var(--soluk)">' + b[0] + '</span><b style="text-align:right">' + esc(b[1]) + '</b></div>';
+  }).join("") + '</div>' +
+  '<button class="buton tehlike" onclick="kayitSil(\'' + h.id + '\')">🗑️ Bu kaydı sil</button>';
+  return {baslik:tip, geri:true, html:html};
+}
+function kayitSil(id){
+  onayla("Bu kayıt silinsin mi?", "Evet, sil", function(){
+    veri.hareketler = veri.hareketler.filter(function(x){ return x.id !== id; });
+    kaydet(); bildir("Kayıt silindi"); geri();
+  });
+}
+
+/* ================= MÜŞTERİLER (VERESİYE) ================= */
+function ekranMusteriler(){
+  var liste = veri.musteriler.map(function(m){ return {m:m, borc:musteriBorcu(m.id)}; })
+    .sort(function(a,b){ return b.borc - a.borc || a.m.ad.localeCompare(b.m.ad, "tr"); });
+  var toplam = 0; liste.forEach(function(x){ if(x.borc > 0) toplam += x.borc; });
+  var html = '<div class="kart"><p class="baslik">📒 Müşterilerden alacağımız</p><p class="buyuk-sayi t-borc">' + para(toplam) + '</p></div>' +
+    '<button class="dev-buton bg-ana" onclick="git(\'yenimusteri\')"><span class="ikon">👤</span><span>YENİ MÜŞTERİ EKLE</span></button>';
+  if(liste.length > 5) html += '<input id="ara" class="kutu ara" placeholder="🔍 Müşteri ara..." value="' + esc(aramaYazi) + '">';
+  html += '<div class="kart" id="musteriListe">' + musteriListesi(liste) + '</div>';
+  return {baslik:"Müşteriler", html:html, sonra:function(){
+    var a = document.getElementById("ara");
+    if(a) a.addEventListener("input", function(){ aramaYazi = a.value; document.getElementById("musteriListe").innerHTML = musteriListesi(liste); });
+  }};
+}
+function musteriListesi(liste){
+  var q = aramaYazi.toLocaleLowerCase("tr");
+  var l = liste.filter(function(x){ return !q || x.m.ad.toLocaleLowerCase("tr").indexOf(q) >= 0 || (x.m.telefon||"").indexOf(q) >= 0; });
+  if(!liste.length) return '<div class="bos"><span class="ikon">👥</span>Henüz müşteri yok.</div>';
+  if(!l.length) return '<div class="bos">Bulunamadı.</div>';
+  return l.map(function(x){
+    return '<button class="satir" onclick="git(\'musteri/' + x.m.id + '\')"><span class="ikon mavi">👤</span>' +
+      '<span class="orta"><div class="ust-yazi">' + esc(x.m.ad) + '</div><div class="alt-yazi">' + esc(x.m.telefon || "") + '</div></span>' +
+      '<span class="tutar ' + (x.borc > 0 ? 't-borc' : '') + '" style="' + (x.borc > 0 ? '' : 'color:var(--soluk);font-size:17px') + '">' +
+      (x.borc > 0 ? para(x.borc) : x.borc < 0 ? "Fazla: " + para(-x.borc) : "Borcu yok ✓") + '</span></button>';
+  }).join("");
+}
+
+function ekranMusteriForm(id){
+  var m = id ? musteriBul(id) : null;
+  var html = '<div class="kart">' +
+    '<label class="etiket" for="ad">Adı Soyadı</label><input id="ad" class="kutu" value="' + esc(m ? m.ad : "") + '" placeholder="Örn: Ahmet Yılmaz">' +
+    '<label class="etiket" for="telefon">Telefon <span style="font-weight:400;color:var(--soluk)">(isterseniz)</span></label><input id="telefon" class="kutu" inputmode="tel" value="' + esc(m ? m.telefon : "") + '" placeholder="05xx xxx xx xx">' +
+    '<label class="etiket" for="adres">Adres / Not <span style="font-weight:400;color:var(--soluk)">(isterseniz)</span></label><input id="adres" class="kutu" value="' + esc(m ? m.adres : "") + '">' +
+    '<div class="hata" id="hata"></div><button class="buton" onclick="musteriKaydet(' + (m ? "'" + m.id + "'" : "null") + ')">✓ KAYDET</button></div>';
+  return {baslik: m ? "Müşteriyi Düzenle" : "Yeni Müşteri", geri:true, html:html, sonra:function(){ document.getElementById("ad").focus(); }};
+}
+function musteriKaydet(id){
+  var ad = document.getElementById("ad").value.trim();
+  if(!ad){ document.getElementById("hata").textContent = "Lütfen müşterinin adını yazın."; return; }
+  var tel = document.getElementById("telefon").value.trim(), adres = document.getElementById("adres").value.trim();
+  if(id){ var m = musteriBul(id); m.ad = ad; m.telefon = tel; m.adres = adres; kaydet(); bildir("✓ Kaydedildi"); geri(); return; }
+  var ayni = veri.musteriler.filter(function(x){ return x.ad.toLocaleLowerCase("tr") === ad.toLocaleLowerCase("tr"); })[0];
+  if(ayni){ document.getElementById("hata").textContent = "Bu isimde bir müşteri zaten var."; return; }
+  var yeni = {id:yeniId(), ad:ad, telefon:tel, adres:adres};
+  veri.musteriler.push(yeni); kaydet(); bildir("✓ Müşteri eklendi");
+  history.replaceState(null, "", "#musteri/" + yeni.id); ciz();
+}
+
+function ekranMusteri(id){
+  var m = musteriBul(id);
+  if(!m) return {baslik:"Müşteri", geri:true, html:'<div class="bos">Müşteri bulunamadı.</div>'};
+  var borc = musteriBorcu(id);
+  var hareket = sirali(veri.hareketler.filter(function(h){ return h.musteriId === id; }));
+  var html = '<div class="kart"><p class="baslik">' + esc(m.ad) + ' — kalan borcu</p>' +
+    '<p class="buyuk-sayi ' + (borc > 0 ? 't-borc' : 't-giris') + '">' + (borc > 0 ? para(borc) : borc < 0 ? "Fazla ödedi: " + para(-borc) : "Borcu yok ✓") + '</p>' +
+    (m.telefon ? '<a class="tel" href="tel:' + esc(m.telefon.replace(/\s/g,"")) + '">📞 ' + esc(m.telefon) + ' — Ara</a>' : '') +
+    (m.adres ? '<div class="alt-bilgi">' + esc(m.adres) + '</div>' : '') + '</div>' +
+    '<button class="dev-buton bg-borc" onclick="git(\'borc/' + id + '\')"><span class="ikon">🛋️</span><span>VERESİYE SATTIM<small>Borç yaz</small></span></button>' +
+    '<button class="dev-buton bg-giris" onclick="git(\'tahsilat/' + id + '\')"><span class="ikon">💵</span><span>ÖDEME ALDIM<small>Borçtan düş</small></span></button>' +
+    '<div class="kart"><p class="baslik">Hesap Geçmişi</p>' + (hareket.length ? hareket.map(function(h){ return satirHareket(h, true); }).join("") : '<div class="bos">Henüz hareket yok.</div>') + '</div>' +
+    '<div class="iki"><button class="buton ikincil" onclick="git(\'yenimusteri/' + id + '\')">✏️ Düzenle</button>' +
+    '<button class="buton tehlike" onclick="musteriSil(\'' + id + '\')">🗑️ Sil</button></div>';
+  return {baslik:m.ad, geri:true, html:html};
+}
+function musteriSil(id){
+  if(veri.hareketler.some(function(h){ return h.musteriId === id; })){
+    alert("Bu müşterinin kayıtları var. Önce kayıtlarını silmeniz gerekir.");
+    return;
+  }
+  onayla("Müşteri silinsin mi?", "Evet, sil", function(){
+    veri.musteriler = veri.musteriler.filter(function(x){ return x.id !== id; });
+    kaydet(); bildir("Müşteri silindi"); git("musteriler");
+  });
+}
+
+function ekranBorc(id){
+  var m = musteriBul(id); if(!m) return ekranMusteri(id);
+  form = {odeme:"Nakit"};
+  var html = '<div class="kart">' +
+    '<label class="etiket" for="tutar">Satışın toplam tutarı</label><input id="tutar" class="kutu tutar-kutu" inputmode="decimal" autocomplete="off" placeholder="0 ₺">' +
+    '<label class="etiket" for="pesin">Peşin aldığınız para <span style="font-weight:400;color:var(--soluk)">(yoksa boş bırakın)</span></label><input id="pesin" class="kutu" inputmode="decimal" autocomplete="off" placeholder="0 ₺">' +
+    '<div id="pesinOdeme" style="display:none"><label class="etiket">Peşinat nasıl ödendi?</label>' + secenekler("odeme", ODEME, "Nakit") + '</div>' +
+    '<div class="alt-bilgi" id="kalanYazi" style="font-size:19px;font-weight:700"></div>' +
+    '<label class="etiket" for="aciklama">Ne satıldı?</label><input id="aciklama" class="kutu" placeholder="Örn: Yatak odası takımı">' +
+    tarihAlani() + '<div class="hata" id="hata"></div>' +
+    '<button class="buton" style="background:var(--borc)" onclick="borcKaydet(\'' + id + '\')">✓ KAYDET</button></div>';
+  return {baslik:m.ad + " — Veresiye", geri:true, html:html, sonra:function(){
+    secenekBagla();
+    var t = document.getElementById("tutar"), p = document.getElementById("pesin");
+    function guncelle(){
+      var tv = sayiOku(t.value) || 0, pv = sayiOku(p.value) || 0;
+      document.getElementById("pesinOdeme").style.display = pv > 0 ? "block" : "none";
+      document.getElementById("kalanYazi").textContent = tv > 0 ? "Borca yazılacak: " + para(Math.max(tv - pv, 0)) : "";
+    }
+    t.addEventListener("input", guncelle); p.addEventListener("input", guncelle); t.focus();
+  }};
+}
+function borcKaydet(id){
+  var tutar = tutarAl("tutar"); if(tutar === null) return;
+  var pesin = sayiOku(document.getElementById("pesin").value) || 0;
+  if(pesin < 0 || pesin > tutar){ document.getElementById("hata").textContent = "Peşinat, toplam tutardan büyük olamaz."; return; }
+  var aciklama = document.getElementById("aciklama").value.trim(), tarih = document.getElementById("tarih").value || bugun(), simdi = Date.now();
+  veri.hareketler.push({id:yeniId(), tur:"borc", tutar:tutar, kategori:"Veresiye", musteriId:id, aciklama:aciklama, tarih:tarih, olusma:simdi});
+  if(pesin > 0) veri.hareketler.push({id:yeniId(), tur:"giris", tutar:Math.round(pesin*100)/100, kategori:"Peşinat", odeme:form.odeme, musteriId:id, aciklama:aciklama, tarih:tarih, olusma:simdi+1});
+  if(kaydet()){ bildir("✓ Borca yazıldı: " + para(tutar - pesin)); geri(); }
+}
+
+function ekranTahsilat(id){
+  var m = musteriBul(id); if(!m) return ekranMusteri(id);
+  form = {odeme:"Nakit", kategori:"Tahsilat"};
+  var borc = musteriBorcu(id);
+  var html = '<div class="kart"><p class="baslik">Kalan borcu</p><p class="buyuk-sayi t-borc">' + para(Math.max(borc,0)) + '</p></div>' +
+    '<div class="kart">' + tutarAlani() +
+    (borc > 0 ? '<button class="secenek" style="margin-top:10px" onclick="document.getElementById(\'tutar\').value=\'' + String(borc).replace(".", ",") + '\'">Borcun hepsini kapattı</button>' : '') +
+    '<label class="etiket">Nasıl ödedi?</label>' + secenekler("odeme", ODEME, "Nakit") +
+    '<label class="etiket" for="aciklama">Not <span style="font-weight:400;color:var(--soluk)">(isterseniz)</span></label><input id="aciklama" class="kutu">' +
+    tarihAlani() + '<div class="hata" id="hata"></div>' +
+    '<button class="buton" style="background:var(--giris)" onclick="tahsilatKaydet(\'' + id + '\')">✓ KAYDET</button></div>';
+  return {baslik:m.ad + " — Ödeme", geri:true, html:html, sonra:function(){ secenekBagla(); document.getElementById("tutar").focus(); }};
+}
+function tahsilatKaydet(id){
+  var tutar = tutarAl("tutar"); if(tutar === null) return;
+  veri.hareketler.push({id:yeniId(), tur:"giris", tutar:tutar, kategori:"Tahsilat", odeme:form.odeme, musteriId:id,
+    aciklama:document.getElementById("aciklama").value.trim(), tarih:document.getElementById("tarih").value || bugun(), olusma:Date.now()});
+  if(kaydet()){ bildir("✓ Ödeme alındı: " + para(tutar)); geri(); }
+}
+
+/* ================= KAYITLAR ================= */
+function aySecici(){
+  var p = ayGoster.split("-");
+  return '<div class="ay-sec"><button onclick="ayDegistir(-1)" aria-label="Önceki ay">‹</button><strong>' + AYLAR[Number(p[1])-1] + ' ' + p[0] + '</strong>' +
+    '<button onclick="ayDegistir(1)" aria-label="Sonraki ay">›</button></div>';
+}
+function ayDegistir(n){
+  var p = ayGoster.split("-"), d = new Date(Number(p[0]), Number(p[1]) - 1 + n, 1);
+  ayGoster = d.getFullYear() + "-" + ("0"+(d.getMonth()+1)).slice(-2); ciz();
+}
+function filtreSec(f){ filtre = f; ciz(); }
+
+function ekranGecmis(){
+  var ayKayit = veri.hareketler.filter(function(h){ return h.tarih.slice(0,7) === ayGoster; });
+  var liste = sirali(ayKayit.filter(function(h){ return filtre === "hepsi" || h.tur === filtre; }));
+  var html = aySecici() + '<div class="secenekler" style="margin-bottom:14px">' +
+    [["hepsi","Hepsi"],["giris","➕ Giren"],["cikis","➖ Çıkan"],["borc","📒 Veresiye"]].map(function(f){
+      return '<button class="secenek' + (filtre === f[0] ? " secili" : "") + '" onclick="filtreSec(\'' + f[0] + '\')">' + f[1] + '</button>';
+    }).join("") + '</div>';
+  if(!liste.length) return {baslik:"Kayıtlar", html: html + '<div class="kart bos"><span class="ikon">📋</span>Bu ayda kayıt yok.</div>'};
+  var gunler = {}, sira = [];
+  liste.forEach(function(h){ if(!gunler[h.tarih]){ gunler[h.tarih] = []; sira.push(h.tarih); } gunler[h.tarih].push(h); });
+  html += sira.map(function(t){
+    var net = 0; gunler[t].forEach(function(h){ if(h.tur === "giris") net += h.tutar; else if(h.tur === "cikis") net -= h.tutar; });
+    return '<div class="gun-baslik"><span>' + tarihYaz(t) + '</span><span>Gün: ' + (net >= 0 ? "+" : "") + para(net) + '</span></div>' +
+      '<div class="kart" style="padding:4px 14px">' + gunler[t].map(satirHareket).join("") + '</div>';
+  }).join("");
+  return {baslik:"Kayıtlar", html:html};
+}
+
+/* ================= RAPOR ================= */
+function ekranRapor(){
+  var gir = 0, cik = 0, veresiye = 0, giderler = {}, gelirler = {};
+  veri.hareketler.forEach(function(h){
+    if(h.tarih.slice(0,7) !== ayGoster) return;
+    if(h.tur === "giris"){ gir += h.tutar; gelirler[h.kategori] = (gelirler[h.kategori]||0) + h.tutar; }
+    else if(h.tur === "cikis"){ cik += h.tutar; giderler[h.kategori] = (giderler[h.kategori]||0) + h.tutar; }
+    else if(h.tur === "borc") veresiye += h.tutar;
+  });
+  var net = gir - cik;
+  var html = aySecici() +
+    '<div class="iki" style="margin-bottom:12px">' +
+      '<div class="ozet yesil"><p class="baslik">Giren Para</p><div class="deger">' + para(gir) + '</div></div>' +
+      '<div class="ozet kirmizi"><p class="baslik">Çıkan Para</p><div class="deger">' + para(cik) + '</div></div></div>' +
+    '<div class="kart"><p class="baslik">' + (net >= 0 ? "✅ Bu ay elde kalan" : "⚠️ Bu ay çıkan, girenden fazla") + '</p>' +
+      '<p class="buyuk-sayi ' + (net >= 0 ? "t-giris" : "t-cikis") + '">' + para(net) + '</p>' +
+      (veresiye ? '<div class="alt-bilgi">Bu ay veresiye satış: <b>' + para(veresiye) + '</b></div>' : '') + '</div>' +
+    cubuklar("Para nereye gitti?", giderler, cik, "var(--cikis)") +
+    cubuklar("Para nereden geldi?", gelirler, gir, "var(--giris)");
+  return {baslik:"Rapor", html:html};
+}
+function cubuklar(baslik, obj, toplam, renk){
+  var anahtar = Object.keys(obj).sort(function(a,b){ return obj[b] - obj[a]; });
+  if(!anahtar.length) return "";
+  var enBuyuk = obj[anahtar[0]];
+  return '<div class="kart"><p class="baslik">' + baslik + '</p>' + anahtar.map(function(k){
+    var yuzde = toplam ? Math.round(obj[k] / toplam * 100) : 0;
+    return '<div class="cubuk-satir" title="' + esc(k) + ': ' + para(obj[k]) + ' (%' + yuzde + ')"><div class="cubuk-ust"><span>' + esc(k) + '</span><span>' + para(obj[k]) +
+      ' <span style="color:var(--soluk);font-weight:500">%' + yuzde + '</span></span></div>' +
+      '<div class="cubuk-yol"><div class="cubuk" style="width:' + Math.max(obj[k] / enBuyuk * 100, 2) + '%;background:' + renk + '"></div></div></div>';
+  }).join("") + '</div>';
+}
+
+/* ================= AYARLAR / YEDEK ================= */
+function ekranAyarlar(){
+  var son = veri.sonYedek ? new Date(veri.sonYedek) : null;
+  var html = '<div class="kart"><p class="baslik">💾 Yedek</p>' +
+    '<p style="margin:0 0 6px">Bilgileriniz bu cihazda saklanır. Telefon bozulursa kaybolmasın diye <b>haftada bir yedek alın</b> ve dosyayı WhatsApp\'tan kendinize gönderin.</p>' +
+    '<div class="alt-bilgi">Son yedek: <b>' + (son ? tarihYaz(tarihStr(son)) : "Hiç alınmadı") + '</b></div>' +
+    '<button class="buton" onclick="yedekAl()">⬇️ Yedek Al</button>' +
+    '<button class="buton ikincil" onclick="document.getElementById(\'yedekDosya\').click()">⬆️ Yedekten Geri Yükle</button>' +
+    '<input type="file" id="yedekDosya" accept=".json,application/json" style="display:none" onchange="yedekYukle(this)"></div>' +
+    '<div class="kart"><p class="baslik">Bilgi</p><div>Toplam kayıt: <b>' + veri.hareketler.length + '</b></div><div>Toplam müşteri: <b>' + veri.musteriler.length + '</b></div></div>';
+  return {baslik:"Ayarlar", geri:true, html:html};
+}
+function yedekAl(){
+  veri.sonYedek = Date.now(); kaydet();
+  var blob = new Blob([JSON.stringify(veri, null, 1)], {type:"application/json"});
+  var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "gunes-mobilya-yedek-" + bugun() + ".json"; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  bildir("✓ Yedek dosyası indirildi"); ciz();
+}
+function yedekYukle(input){
+  var f = input.files[0]; if(!f) return;
+  var r = new FileReader();
+  r.onload = function(){
+    var v; try{ v = JSON.parse(r.result); }catch(e){}
+    input.value = "";
+    if(!v || !Array.isArray(v.hareketler) || !Array.isArray(v.musteriler)){ alert("Bu dosya bir yedek dosyası değil."); return; }
+    onayla("Şu anki bilgilerin yerine yedekteki " + v.hareketler.length + " kayıt yüklensin mi?", "Evet, yükle", function(){
+      veri = v; kaydet(); bildir("✓ Yedek yüklendi"); git("ana");
+    });
+  };
+  r.readAsText(f);
+}
+
+ciz();
+</script>
+</body>
+</html>
