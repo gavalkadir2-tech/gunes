@@ -35,3 +35,5 @@ create policy "giris yapanlar" on public.hareketler for all to authenticated usi
 
 -- Telefon ve bilgisayar birbirinin kaydını anında görsün.
 alter publication supabase_realtime add table public.musteriler, public.hareketler;
+
+-- Ardından supabase-guncelleme.sql dosyasını da çalıştırın (iş emirleri, faturalar, ayarlar).
