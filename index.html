@@ -1533,11 +1533,15 @@ function ekranAyarlar(){
       html += '<div class="kart"><div class="kart-baslik">Bu cihazdaki eski kayıtlar</div><div>Bu cihazda bulut öncesinden kalan <b>' + eski.hareketler.length + ' kayıt</b> ve <b>' + eski.musteriler.length + ' cari</b> var.</div>' +
         '<div class="hata" id="hata"></div><button class="buton" data-is="buluttaAktar">' + ik("bulut") + 'Buluta aktar</button></div>';
   } else html += '<div class="uyari">Bilgiler şu an <b>sadece bu cihazda</b> saklanıyor.</div>';
-  html += '<div class="kart"><div class="kart-baslik">Yedek</div><div>Tüm bilgileri bir dosya olarak indirir.</div>' +
+  html += '<div class="kart"><div class="kart-baslik">Yedek</div><div>Tüm kayıtları küçük bir dosya olarak indirir (fotoğraf ve videolar dahil değildir).</div>' +
     '<div class="alt-bilgi">Son yedek: <b>' + (son ? tarihYaz(tarihStr(new Date(son))) : "Hiç alınmadı") + '</b></div>' +
     '<div class="buton-sira" style="margin-top:16px"><button class="buton" data-is="yedekAl">' + ik("indir") + 'Yedek al</button>' +
     '<button class="buton ikincil" onclick="document.getElementById(\'yedekDosya\').click()">' + ik("yukle") + 'Geri yükle</button></div>' +
-    '<input type="file" id="yedekDosya" accept=".json,application/json" style="display:none" onchange="yedekYukle(this)"></div>' +
+    '<input type="file" id="yedekDosya" accept=".json,.zip,application/json,application/zip" style="display:none" onchange="yedekYukle(this)"></div>' +
+    (cevrimici ? '<div class="kart"><div class="kart-baslik">Dosyalı yedek (ZIP)</div><div>Kayıtlarla birlikte tüm fotoğraf ve belgeleri tek ZIP dosyası olarak indirir. “Geri yükle” bu ZIP\'i de kabul eder.</div>' +
+      '<div class="alt-bilgi">Şu an ' + veri.dosyalar.length + ' dosya (' + mbYaz(veri.dosyalar.reduce((t, d) => t + d.boyut, 0)) + ') var; ' + veri.dosyalar.filter(d => dosyaTuru(d) === "v").length + ' tanesi video.</div>' +
+      '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px"><input type="checkbox" id="videoDahil"> Videoları da dahil et <span class="ist" style="color:var(--soluk)">(dosya çok büyüyebilir)</span></label>' +
+      '<button class="buton ikincil" data-is="zipYedek">' + ik("indir") + 'Dosyalı yedek al (ZIP)</button></div>' : '') +
     '<div class="kart">' + bilgiSatir("Cari", veri.musteriler.length) + bilgiSatir("İş emri", veri.is_emirleri.length) + bilgiSatir("Fatura", veri.faturalar.length) + bilgiSatir("Kasa hareketi", veri.hareketler.length) + '</div>' +
     '</div><div>' + katKart("giris", "Gelir kategorileri") + katKart("cikis", "Gider kategorileri") +
     '<button class="buton ikincil" data-is="katSifirla">Kategorileri varsayılana döndür</button></div></div>';
@@ -1581,8 +1585,83 @@ function yedekGecerli(v){
 async function hepsiniKaydet(v){
   for(const t of TABLOLAR) await Depo.kaydet(t, v[t]);
 }
+const mbYaz = b => b >= 1073741824 ? (b / 1073741824).toFixed(1) + " GB" : Math.max(1, Math.round(b / 1048576)) + " MB";
+const guvenliAd = a => String(a).replace(/[\\/:*?"<>|]+/g, "_").trim().slice(0, 80) || "dosya";
+function jszipYukle(){
+  if(window.JSZip) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js";
+    sc.onload = res; sc.onerror = () => rej(new Error("ZIP aracı yüklenemedi; internet bağlantınızı kontrol edin.")); document.head.appendChild(sc);
+  });
+}
+EYLEM.zipYedek = () => {
+  const video = document.getElementById("videoDahil").checked;
+  const dl = veri.dosyalar.filter(d => video || dosyaTuru(d) !== "v"), atlanan = veri.dosyalar.length - dl.length;
+  onayla(dl.length + " dosya (" + mbYaz(dl.reduce((t, d) => t + d.boyut, 0)) + ") indirilecek",
+    (atlanan ? atlanan + " video dahil edilmiyor. " : "") + "Büyük yedeklerde Wi-Fi önerilir; bitene kadar sayfayı kapatmayın.", "Başlat", () => zipYedekYap(dl), false);
+};
+async function zipYedekYap(dl){
+  try{
+    await jszipYukle();
+    const zip = new JSZip(), v = {surum:3, tarih:new Date().toISOString()}, hata = [], tamam = [];
+    TABLOLAR.forEach(t => { if(t !== "dosyalar") v[t] = veri[t]; });
+    for(let i = 0; i < dl.length; i += 100) await urlleriGetir(dl.slice(i, i + 100));
+    for(let i = 0; i < dl.length; i++){
+      const d = dl[i], ie = bul("is_emirleri", d.isEmriId);
+      yuklemeGoster("Dosyalar indiriliyor " + (i + 1) + "/" + dl.length + "…");
+      try{
+        const u = urlOnbellek[d.yol]; if(!u) throw new Error("bağlantı alınamadı");
+        const r = await fetch(u.url); if(!r.ok) throw new Error("indirilemedi");
+        const yolu = "dosyalar/" + guvenliAd((ie ? ie.no + " " + ie.baslik : "silinmis-is")) + "/" + (i + 1) + "_" + guvenliAd(d.ad);
+        zip.file(yolu, await r.blob(), {compression:"STORE"});
+        tamam.push(Object.assign({}, d, {zip:yolu}));
+      }catch(e){ hata.push(d.ad); }
+    }
+    v.dosyalar = tamam;
+    zip.file("yedek.json", JSON.stringify(v, null, 1));
+    const blob = await zip.generateAsync({type:"blob", compression:"STORE", streamFiles:true}, m => yuklemeGoster("ZIP hazırlanıyor %" + Math.round(m.percent)));
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "gunes-mobilya-dosyali-yedek-" + bugun() + ".zip";
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 60000);
+    ayarYaz("sonYedek", Date.now()); yuklemeKapat();
+    bildir("Yedek indirildi (" + mbYaz(blob.size) + ")");
+    if(hata.length) uyar(hata.length + " dosya yedeğe alınamadı", hata.join("; "));
+  }catch(e){ yuklemeKapat(); uyar("Yedek alınamadı", hataMesaji(e)); }
+}
+async function zipGeriYukle(f){
+  try{
+    await jszipYukle();
+    const zip = await JSZip.loadAsync(f), e = zip.file("yedek.json");
+    if(!e) return uyar("Bu ZIP bir yedek dosyası değil", "İçinde yedek.json bulunamadı.");
+    let v = JSON.parse(await e.async("string"));
+    if(!yedekGecerli(v)) return uyar("Bu ZIP bir yedek dosyası değil", "");
+    if(!cevrimici) return uyar("Dosyalı yedek yüklenemedi", "Dosyaları yüklemek için bulut bağlantısı gerekir.");
+    const dosyalar = (Array.isArray(v.dosyalar) ? v.dosyalar : []).filter(d => d && d.zip && d.yol && zip.file(d.zip));
+    v = duzenle(v); v.hareketler.forEach(h => { h.tutar = Number(h.tutar); }); v.dosyalar = [];
+    onayla(v.hareketler.length + " kasa kaydı, " + v.faturalar.length + " fatura, " + v.musteriler.length + " cari ve " + dosyalar.length + " dosya yüklensin mi?",
+      "Yedekteki kayıtlar buluta eklenecek; aynı kayıtlar varsa üzerine yazılır.", "Yükle", () => islem(null, async () => {
+        try{
+          await hepsiniKaydet(v);
+          const tamam = [], hata = [];
+          for(let i = 0; i < dosyalar.length; i++){
+            const d = dosyalar[i]; yuklemeGoster("Dosyalar yükleniyor " + (i + 1) + "/" + dosyalar.length + "…");
+            try{
+              const blob = await zip.file(d.zip).async("blob");
+              const r = await sb.storage.from(BUCKET).upload(d.yol, new Blob([blob], {type:d.tur || "application/octet-stream"}), {contentType:d.tur || "application/octet-stream", upsert:true});
+              if(r.error) throw r.error;
+              const t = Object.assign({}, d); delete t.zip; tamam.push(t);
+            }catch(err){ hata.push(d.ad); }
+          }
+          await Depo.kaydet("dosyalar", tamam);
+          bildir("Yedek yüklendi (" + tamam.length + " dosya)");
+          if(hata.length) uyar(hata.length + " dosya yüklenemedi", hata.join("; "));
+          else git("ana");
+        } finally { yuklemeKapat(); }
+      }), false);
+  }catch(e){ uyar("ZIP açılamadı", hataMesaji(e)); }
+}
 function yedekYukle(input){
   const f = input.files[0]; if(!f) return;
+  if(/\.zip$/i.test(f.name)){ input.value = ""; return zipGeriYukle(f); }
   const r = new FileReader();
   r.onload = () => {
     let v; try{ v = JSON.parse(r.result); }catch(e){}

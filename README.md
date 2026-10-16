@@ -9,7 +9,7 @@ Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 - **Satış / alış faturası**: Kalem kalem, KDV hesaplı, yazdırılabilir; kısmi ödeme takibi
 - **Kasa**: Para girdi / çıktı (Nakit, Kart, Havale, Çek/Senet)
 - **Rapor**: Aylık giren/çıkan, fatura toplamları, gider dağılımı, en çok satış yapılan müşteriler
-- **Ayarlar**: Gelir/gider kategorilerini düzenleme, yedek alma / geri yükleme
+- **Ayarlar**: Gelir/gider kategorilerini düzenleme, yedek alma / geri yükleme; **dosyalı ZIP yedek** (fotoğraf ve belgeler iş emri klasörlerine ayrılır, videolar isteğe bağlı) ve ZIP ile geri yükleme
 
 Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 
