@@ -4,7 +4,8 @@ Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 
 ## Neler var?
 - **Cariler**: Müşteri ve tedarikçiler, bakiye (alacak/borç), hesap ekstresi
-- **İş emirleri**: Her sipariş için ayrı kayıt — ölçü/detay, teslim tarihi, durum (Teklif → Üretimde → Teslim), kapora; işe bağlı faturalar, ödemeler, maliyet ve kâr
+- **İş emirleri**: Sipariş kalemleri (ürün, ölçü, renk, adet), öncelik, sorumlu usta, teslimat adresi, üretim aşamaları (tek dokunuşla işaretlenir), notlar ve işlem geçmişi, **fotoğraf / video / dosya yükleme** (telefondan doğrudan kamera), kapora; işe bağlı faturalar, ödemeler, maliyet ve kâr; yazdırılabilir iş formu
+- **WhatsApp**: Müşteriye hazır mesaj şablonlarıyla (sipariş onayı, üretimde, hazır, teslim, ödeme hatırlatma) mesaj; cari ve fatura için de. Durum değişince "müşteriye haber verilsin mi?" diye sorar. Fotoğraf/videoyu telefondan doğrudan WhatsApp'a paylaşır. Mesaj WhatsApp'ta açılır, **Gönder**'e siz basarsınız (WhatsApp Business API gerekmez).
 - **Satış / alış faturası**: Kalem kalem, KDV hesaplı, yazdırılabilir; kısmi ödeme takibi
 - **Kasa**: Para girdi / çıktı (Nakit, Kart, Havale, Çek/Senet)
 - **Rapor**: Aylık giren/çıkan, fatura toplamları, gider dağılımı, en çok satış yapılan müşteriler
@@ -16,7 +17,7 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 
 ### 1. Veritabanı (Supabase, ücretsiz)
 1. https://supabase.com → **Start your project** → yeni proje açın (bölge: Frankfurt).
-2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde `supabase-guncelleme.sql` dosyasını çalıştırın.
+2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql` ve `supabase-guncelleme-2.sql` dosyalarını çalıştırın (ikincisi dosya deposunu da kurar).
    (Daha önce `supabase.sql` çalıştırıldıysa sadece `supabase-guncelleme.sql` yeterli.)
 3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" kapalı olsun.
 4. **Authentication → Users → Add user → Create new user**:
