@@ -189,7 +189,7 @@ button.satir:hover{background:var(--hafif);}
   .sayfa{padding:24px 28px;}
   .izgara.dort{grid-template-columns:repeat(4,1fr);}
   .izgara.uc{grid-template-columns:repeat(3,1fr);}
-  .hizli{grid-template-columns:repeat(5,1fr);}
+  .hizli{grid-template-columns:repeat(6,1fr);}
   .hizli > :last-child:nth-child(odd){grid-column:auto;}
   .iki-sutun{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
   .iki-sutun.genis{grid-template-columns:1.2fr 1fr;}
@@ -241,10 +241,14 @@ body.girissiz .menu{display:none;}
 .nokta-ince{width:8px;height:8px;border-radius:50%;background:#d6d3d1;margin-top:7px;flex-shrink:0}
 .nokta-ince.koyu{background:var(--ana)}
 .yukleme{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--yazi);color:#fff;padding:10px 16px;border-radius:11px;font-size:14px;z-index:80}
-.ikalem-alan{display:grid;grid-template-columns:1.2fr 1.2fr .6fr auto;gap:8px;margin-top:8px;align-items:end}
+.ikalem-alan{display:grid;grid-template-columns:1.2fr 1.2fr .6fr 1fr auto;gap:8px;margin-top:8px;align-items:end}
+.kalem-alt .baglanti{display:inline-flex;align-items:center;gap:4px;font-size:13px}
+.kalem-alt .baglanti svg{width:15px;height:15px}
 .ikalem-alan label{font-size:12px;color:var(--soluk);display:block}
 .ikalem-alan .kutu{padding:8px 10px;font-size:15px}
-@media(max-width:599px){.ikalem-alan{grid-template-columns:1fr 1fr}.ikalem-alan .ikon-buton{grid-column:1 / -1;justify-self:end}}
+.ikalem-alan.alan-3{grid-template-columns:2fr 1fr 1fr auto;margin-top:0}
+.ikalem-alan.alan-duvar{grid-template-columns:1fr 1fr 2fr auto;margin-top:0}
+@media(max-width:599px){.ikalem-alan,.ikalem-alan.alan-3,.ikalem-alan.alan-duvar{grid-template-columns:1fr 1fr}.ikalem-alan .ikon-buton{grid-column:1 / -1;justify-self:end}.ikalem-alan.alan-3 label:first-child,.ikalem-alan.alan-duvar label:last-of-type{grid-column:1 / -1}}
 @media(min-width:900px){.galeri{grid-template-columns:repeat(4,1fr)}}
 
 /* Katalog */
@@ -257,6 +261,7 @@ body.girissiz .menu{display:none;}
 .vitrin .buton{margin-top:0;flex:0 1 auto;width:auto;padding:12px 20px}
 @media(max-width:599px){.vitrin .buton{flex:1}}
 .buton.altin{background:#f59e0b;color:#1c1917}
+a.buton{text-decoration:none}
 .buton.saydam{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
 .kat-izgara{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
 .kat-kutu{position:relative;aspect-ratio:16/10;border:2px solid transparent;border-radius:14px;overflow:hidden;background:#e7e5e4;padding:0;text-align:left;color:#fff;box-shadow:var(--golge)}
@@ -380,6 +385,7 @@ const IK = {
   ekran:'<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
   bilgi:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
   dondur:'<path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/>',
+  cetvel:'<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/>',
   yildiz:'<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>'
 };
 const ik = ad => '<svg class="ik" viewBox="0 0 24 24" aria-hidden="true">' + IK[ad] + '</svg>';
@@ -399,19 +405,22 @@ const KAPALI_DURUM = {"Teslim edildi":1, "İptal":1};
 const KDV_ORANLARI = [0, 1, 10, 20];
 const AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 const YEREL_ANAHTAR = "gunes_muhasebe_v1";
-const FORM_EKRANLARI = {giris:1, cikis:1, "cari-form":1, "is-form":1, "fatura-form":1, "proje-form":1, ayarlar:1};
+const FORM_EKRANLARI = {giris:1, cikis:1, "cari-form":1, "is-form":1, "fatura-form":1, "proje-form":1, "paylas-form":1, kesif:1, malzemeler:1, ayarlar:1};
 const VARSAYILAN_KATALOG = ["Mutfak", "Banyo", "Gardırop", "TV ünitesi"];
 
 /* ================= VERİ & DEPO ================= */
 // Tablolar yabancı anahtar sırasıyla (önce cari, sonra iş, fatura, hareket).
-const TABLOLAR = ["musteriler", "is_emirleri", "is_notlari", "dosyalar", "faturalar", "hareketler", "ayarlar", "katalog", "katalog_gorseller"];
+const TABLOLAR = ["musteriler", "is_emirleri", "is_notlari", "dosyalar", "faturalar", "hareketler", "ayarlar", "katalog", "katalog_gorseller", "paylasimlar"];
 // Sonradan eklenen tablolar: Supabase'de henüz kurulmadıysa uygulama yine açılır.
-const SONRADAN = {is_notlari:1, dosyalar:1, katalog:1, katalog_gorseller:1};
+const SONRADAN = {is_notlari:1, dosyalar:1, katalog:1, katalog_gorseller:1, paylasimlar:1};
 const eksikTablo = {};
+// İş emrine sonradan eklenen sütunlar (supabase-guncelleme-4.sql). Kurulmadıysa kayıtta gönderilmez, iş emirleri yine kaydedilir.
+const SONRADAN_SUTUN = {teklif:1, kesif:1};
+let eksikSutun = false;
 const ALANLAR = {
   musteriler:  {id:"id", ad:"ad", tip:"tip", telefon:"telefon", adres:"adres", vergiNo:"vergi_no", olusma:"olusma"},
   is_emirleri: {id:"id", no:"no", musteriId:"musteri_id", baslik:"baslik", durum:"durum", teslimTarihi:"teslim_tarihi", tutar:"tutar", aciklama:"aciklama", olusma:"olusma",
-                oncelik:"oncelik", sorumlu:"sorumlu", adres:"adres", kalemler:"kalemler", asamalar:"asamalar"},
+                oncelik:"oncelik", sorumlu:"sorumlu", adres:"adres", kalemler:"kalemler", asamalar:"asamalar", teklif:"teklif", kesif:"kesif"},
   is_notlari:  {id:"id", isEmriId:"is_emri_id", metin:"metin", tur:"tur", yazan:"yazan", olusma:"olusma"},
   dosyalar:    {id:"id", isEmriId:"is_emri_id", ad:"ad", tur:"tur", boyut:"boyut", yol:"yol", yukleyen:"yukleyen", olusma:"olusma"},
   faturalar:   {id:"id", no:"no", tur:"tur", musteriId:"musteri_id", isEmriId:"is_emri_id", kategori:"kategori", tarih:"tarih", vade:"vade",
@@ -420,13 +429,16 @@ const ALANLAR = {
                 isEmriId:"is_emri_id", faturaId:"fatura_id", tarih:"tarih", olusma:"olusma"},
   ayarlar:     {anahtar:"anahtar", deger:"deger"},
   katalog:     {id:"id", baslik:"baslik", kategori:"kategori", aciklama:"aciklama", malzeme:"malzeme", olcu:"olcu", fiyat:"fiyat", olusma:"olusma"},
-  katalog_gorseller: {id:"id", projeId:"proje_id", ad:"ad", tur:"tur", boyut:"boyut", yol:"yol", sira:"sira", olusma:"olusma"}
+  katalog_gorseller: {id:"id", projeId:"proje_id", ad:"ad", tur:"tur", boyut:"boyut", yol:"yol", sira:"sira", olusma:"olusma"},
+  paylasimlar: {id:"id", baslik:"baslik", musteriId:"musteri_id", icerik:"icerik", bitis:"bitis", olusma:"olusma"}
 };
-const SAYISAL = {tutar:1, toplam:1, araToplam:1, kdvToplam:1, olusma:1, boyut:1, fiyat:1, sira:1};
-const JSONLI = {kalemler:1, asamalar:1};
+const SAYISAL = {tutar:1, toplam:1, araToplam:1, kdvToplam:1, olusma:1, boyut:1, fiyat:1, sira:1, bitis:1};
+const JSONLI = {kalemler:1, asamalar:1, teklif:1, kesif:1, icerik:1};
+const JSON_NESNE = {teklif:1, kesif:1, icerik:1};   // boşsa [] değil {} olur
+const bosJson = a => JSON_NESNE[a] ? {} : [];
 const BOSSA_NULL = {musteriId:1, isEmriId:1, faturaId:1, teslimTarihi:1, vade:1, odeme:1, deger:1};
 const anahtarAdi = t => t === "ayarlar" ? "anahtar" : "id";
-const bosVeri = () => ({musteriler:[], is_emirleri:[], is_notlari:[], dosyalar:[], faturalar:[], hareketler:[], ayarlar:[], katalog:[], katalog_gorseller:[]});
+const bosVeri = () => ({musteriler:[], is_emirleri:[], is_notlari:[], dosyalar:[], faturalar:[], hareketler:[], ayarlar:[], katalog:[], katalog_gorseller:[], paylasimlar:[]});
 
 const cevrimici = !!(BULUT.adres && BULUT.anahtar);
 const sb = cevrimici && window.supabase ? window.supabase.createClient(BULUT.adres, BULUT.anahtar) : null;
@@ -438,7 +450,8 @@ function duzenle(v){
   if(v) TABLOLAR.forEach(t => { if(Array.isArray(v[t])) d[t] = v[t]; });
   d.musteriler.forEach(m => { if(!m.tip) m.tip = "musteri"; });
   d.faturalar.forEach(f => { if(!Array.isArray(f.kalemler)) f.kalemler = []; });
-  d.is_emirleri.forEach(i => { if(!Array.isArray(i.kalemler)) i.kalemler = []; if(!Array.isArray(i.asamalar)) i.asamalar = []; if(!i.oncelik) i.oncelik = "Normal"; i.sorumlu = i.sorumlu || ""; i.adres = i.adres || ""; });
+  d.is_emirleri.forEach(i => { if(!Array.isArray(i.kalemler)) i.kalemler = []; if(!Array.isArray(i.asamalar)) i.asamalar = []; if(!i.oncelik) i.oncelik = "Normal"; i.sorumlu = i.sorumlu || ""; i.adres = i.adres || "";
+    if(!i.teklif || typeof i.teklif !== "object") i.teklif = {}; if(!i.kesif || typeof i.kesif !== "object") i.kesif = {}; });
   return d;
 }
 function yerelOku(){ try{ return duzenle(JSON.parse(localStorage.getItem(YEREL_ANAHTAR))); }catch(e){ return bosVeri(); } }
@@ -449,9 +462,10 @@ function ayarYaz(k, v){ try{ localStorage.setItem("gunes_" + k, v); }catch(e){} 
 function bulutaCevir(t, k){
   const r = {};
   for(const [a, b] of Object.entries(ALANLAR[t])){
+    if(t === "is_emirleri" && SONRADAN_SUTUN[a] && eksikSutun) continue;
     let v = k[a];
     if(BOSSA_NULL[a] && (v === "" || v === undefined)) v = null;
-    else if(v === undefined) v = SAYISAL[a] ? 0 : JSONLI[a] ? [] : "";
+    else if(v === undefined) v = SAYISAL[a] ? 0 : JSONLI[a] ? bosJson(a) : "";
     r[b] = v;
   }
   return r;
@@ -461,7 +475,7 @@ function buluttanCevir(t, r){
   for(const [a, b] of Object.entries(ALANLAR[t])){
     let v = r[b];
     if(SAYISAL[a]) v = Number(v) || 0;
-    else if(v == null && !BOSSA_NULL[a]) v = JSONLI[a] ? [] : "";
+    else if(v == null && !BOSSA_NULL[a]) v = JSONLI[a] ? bosJson(a) : "";
     k[a] = v;
   }
   if(t === "musteriler" && !k.tip) k.tip = "musteri";
@@ -490,6 +504,8 @@ const Depo = {
         if(r.data.length < 1000) break;
       }
     }
+    const r = await sb.from("is_emirleri").select("teklif,kesif").limit(1);
+    eksikSutun = !!r.error;
     veri = sonuc;
   },
   async kaydet(t, kayitlar){
@@ -515,7 +531,7 @@ const Depo = {
 function hataMesaji(e){
   const m = (e && (e.message || e.error_description)) || String(e);
   if(/does not exist|Could not find the table|schema cache|column .* not found/i.test(m))
-    return "Veritabanı güncellemesi gerekiyor: Supabase'de “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql” ve “supabase-guncelleme-3.sql” dosyalarını çalıştırın.";
+    return "Veritabanı güncellemesi gerekiyor: Supabase'de sırayla “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql”, “supabase-guncelleme-3.sql” ve “supabase-guncelleme-4.sql” dosyalarını çalıştırın.";
   if(/bucket not found/i.test(m)) return "Dosya deposu kurulmamış: Supabase'de “supabase-guncelleme-2.sql” dosyasını çalıştırın.";
   if(/fetch|network|Failed/i.test(m)) return "İnternet bağlantısı yok gibi görünüyor. Tekrar deneyin.";
   if(/JWT|row-level|permission/i.test(m)) return "Oturum süresi doldu. Lütfen tekrar giriş yapın.";
@@ -657,12 +673,13 @@ const yol = () => (location.hash || "#ana").slice(1).split("/").map(x => x && x 
 function ciz(){
   if(!hazir) return;
   document.body.classList.remove("girissiz");
-  const [ekran, a, b, c] = yol();
+  const [ekran, a, b, c, d] = yol();
   const sayfalar = {
     ana: ekranAna, kasa: ekranKasa, kayit: () => ekranKayit(a), rapor: ekranRapor, ayarlar: ekranAyarlar,
     giris: () => ekranPara("giris", a, b, c), cikis: () => ekranPara("cikis", a, b, c),
     cariler: ekranCariler, cari: () => ekranCari(a), "cari-form": () => ekranCariForm(a, b),
-    isler: ekranIsler, is: () => ekranIs(a), "is-form": () => ekranIsForm(a, b, c),
+    isler: ekranIsler, is: () => ekranIs(a), "is-form": () => ekranIsForm(a, b, c, d), kesif: () => ekranKesif(a),
+    paylasimlar: ekranPaylasimlar, "paylas-form": () => ekranPaylasForm(a, b), malzemeler: ekranMalzemeler,
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
     katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b)
   };
@@ -675,7 +692,7 @@ function ciz(){
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
-    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog"}[ekran] || ekran;
+    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", kesif:"isler", malzemeler:"ayarlar"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
   if(s.sonra) s.sonra();
   window.scrollTo(0, 0);
@@ -793,7 +810,7 @@ function ekranAna(){
     '<div class="hizli">' +
       hizliButon("giris", "r-giris", "asagi", "Para Girdi") + hizliButon("cikis", "r-cikis", "yukari", "Para Çıktı") +
       hizliButon("fatura-form/satis", "r-borc", "fatura", "Satış Faturası") + hizliButon("fatura-form/alis", "r-gri", "fatura", "Alış Faturası") +
-      hizliButon("is-form", "r-ana", "is", "Yeni İş Emri") +
+      hizliButon("is-form", "r-ana", "is", "Yeni İş Emri") + hizliButon("is-form/-/-/-/kesif", "r-borc", "cetvel", "Ölçü / Keşif") +
     '</div>' +
     '<div class="iki-sutun"><div>' +
       bolum("Açık iş emirleri (" + acikIsler.length + ")", '<button data-git="isler">Tümü</button>') +
@@ -1049,8 +1066,12 @@ function waIsSablonlari(ie, m){
     {ad:"Hazır", metin: bas + isAd + " siparişiniz hazır. Teslimat için uygun olduğunuz gün ve saati bildirir misiniz?" + (o.kalan > 0 ? "\nTeslimatta kalan ödeme: " + para(o.kalan) : "") + imza},
     {ad:"Teslim edildi", metin: bas + isAd + " siparişiniz teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz." + imza},
     {ad:"Ödeme hatırlatma", metin: bas + ie.no + " numaralı siparişinizle ilgili " + para(Math.max(o.kalan, 0)) + " tutarında ödemeniz bulunmaktadır. Uygun olduğunuzda bilgi verirseniz seviniriz." + imza},
-    {ad:"Fiyat teklifi", metin: bas + isAd + " için fiyat teklifimiz:" + ie.kalemler.map(k => "\n• " + k.ad + (k.olcu ? " (" + k.olcu + ")" : "") + (k.renk ? " — " + k.renk : "") + (k.adet > 1 ? " × " + k.adet : "")).join("") +
-      (o.fiyat ? "\nToplam: " + para(o.fiyat) : "") + "\nOnaylarsanız siparişinizi hemen üretime alabiliriz." + imza},
+    {ad:"Fiyat teklifi", metin: bas + isAd + " için fiyat teklifimiz:" + ie.kalemler.map(k => "\n• " + k.ad + (k.olcu ? " (" + k.olcu + ")" : "") + (k.renk ? " — " + k.renk : "") +
+        (k.adet > 1 ? " × " + k.adet : "") + (k.fiyat ? ": " + para(k.adet * k.fiyat) : "")).join("") +
+      (() => { if(!fiyatliMi(ie.kalemler)) return o.fiyat ? "\nToplam: " + para(o.fiyat) : "";
+        const h = isHesap(ie.kalemler, ie.teklif);
+        return (h.indirim ? "\nİndirim: −" + para(h.indirim) : "") + "\nKDV (%" + h.kdvOran + "): " + para(h.kdv) + "\nGenel toplam: " + para(h.toplam); })() +
+      (ie.teklif.gecerlilik ? "\nTeklif geçerlilik: " + tarihYaz(ie.teklif.gecerlilik) : "") + "\nOnaylarsanız siparişinizi hemen üretime alabiliriz." + imza},
     {ad:"Boş mesaj", metin: bas + imza}
   ];
 }
@@ -1118,11 +1139,36 @@ function ikalemHtml(k, i){
     '<div class="ikalem-alan"><label>Ölçü<input class="kutu k-olcu" maxlength="60" placeholder="220x240x60" value="' + esc(k.olcu) + '"></label>' +
     '<label>Renk / malzeme<input class="kutu k-renk" maxlength="60" placeholder="Ceviz, beyaz mat…" value="' + esc(k.renk) + '"></label>' +
     '<label>Adet<input class="kutu k-adet" inputmode="numeric" value="' + esc(k.adet) + '"></label>' +
-    '<button type="button" class="ikon-buton" data-is="ikalemSil" data-arg="' + i + '" aria-label="Kalemi sil">' + ik("x") + '</button></div></div>';
+    '<label>Birim fiyat<input class="kutu k-fiyat" inputmode="decimal" placeholder="KDV hariç" value="' + sayiYaz(k.fiyat) + '"></label>' +
+    '<button type="button" class="ikon-buton" data-is="ikalemSil" data-arg="' + i + '" aria-label="Kalemi sil">' + ik("x") + '</button></div>' +
+    '<div class="kalem-alt" style="justify-content:space-between;align-items:center"><button type="button" class="baglanti" data-is="kalemHesap" data-arg="' + i + '">' + ik("kasa") + ' Malzemeden hesapla</button>' +
+    '<span class="k-tutar">' + (k.fiyat ? 'Tutar: <b style="color:var(--yazi)">' + para((Number(k.adet) || 0) * k.fiyat) + '</b>' : '') + '</span></div></div>';
 }
-function ikalemleriCiz(){ document.getElementById("ikalemler").innerHTML = form.ikalemler.map(ikalemHtml).join(""); }
+function ikalemleriCiz(){ document.getElementById("ikalemler").innerHTML = form.ikalemler.map(ikalemHtml).join(""); isToplamGuncelle(); }
 EYLEM.ikalemEkle = () => { form.ikalemler.push(bosKalem()); ikalemleriCiz(); const s = document.querySelectorAll(".k-ad"); s[s.length - 1].focus(); };
 EYLEM.ikalemSil = (el, i) => { form.ikalemler.splice(Number(i), 1); if(!form.ikalemler.length) form.ikalemler.push(bosKalem()); ikalemleriCiz(); };
+// Kalem fiyatları KDV hariçtir; indirim KDV'den önce düşülür.
+function isHesap(kalemler, t){
+  const ara = yuvarla(kalemler.reduce((s, k) => s + (Number(k.adet) || 0) * (k.fiyat || 0), 0));
+  const indirim = Math.min(yuvarla(Number(t.indirim) || 0), ara), net = yuvarla(ara - indirim);
+  const kdvOran = t.kdv == null ? 20 : Number(t.kdv), kdv = yuvarla(net * kdvOran / 100);
+  const maliyet = yuvarla(kalemler.reduce((s, k) => s + (Number(k.adet) || 0) * (k.maliyet || 0), 0));
+  return {ara, indirim, net, kdvOran, kdv, toplam:yuvarla(net + kdv), maliyet};
+}
+const fiyatliMi = kalemler => kalemler.some(k => k.fiyat > 0);
+function isToplamGuncelle(){
+  const kutu = document.getElementById("isToplam"); if(!kutu) return;
+  const h = isHesap(form.ikalemler, {indirim:sayiOku(deger("indirim")) || 0, kdv:Number(deger("kdvOran"))});
+  const f = document.getElementById("fiyat"), not = document.getElementById("fiyatNot");
+  if(h.ara > 0){
+    kutu.innerHTML = bilgiSatir("Ara toplam", para(h.ara)) + (h.indirim ? bilgiSatir("İndirim", "−" + para(h.indirim)) : '') + bilgiSatir("KDV (%" + h.kdvOran + ")", para(h.kdv)) +
+      '<div class="bilgi-satir genel"><span style="color:var(--yazi)">Genel toplam</span><b>' + para(h.toplam) + '</b></div>' +
+      (h.maliyet ? '<div class="alt-bilgi">Tahmini maliyet <b>' + para(h.maliyet) + '</b> · tahmini kâr <b>' + para(h.net - h.maliyet) + '</b> (KDV hariç)</div>' : '');
+    f.value = sayiYaz(h.toplam); f.readOnly = true; not.textContent = "Kalem fiyatlarından hesaplandı (KDV dahil).";
+  } else {
+    kutu.innerHTML = ""; f.readOnly = false; not.textContent = "Kalemlere birim fiyat yazarsanız toplam otomatik hesaplanır.";
+  }
+}
 function asamaChipleri(){
   return form.asamaTum.map((a, i) => '<button type="button" class="secenek' + (form.asamaSecili.indexOf(a) >= 0 ? " secili" : "") + '" data-is="asamaSec" data-arg="' + i + '">' + esc(a) + '</button>').join("");
 }
@@ -1137,30 +1183,42 @@ EYLEM.asamaEkle = () => {
   if(form.asamaSecili.indexOf(ad) < 0) form.asamaSecili.push(ad);
   document.getElementById("asamaKutu").innerHTML = asamaChipleri(); document.getElementById("yeniAsama").value = "";
 };
-function ekranIsForm(id, cariId, projeId){
+const gunSonra = n => { const d = new Date(); d.setDate(d.getDate() + n); return tarihStr(d); };
+// sonra === "kesif": kayıttan sonra ölçü / keşif formu açılır
+function ekranIsForm(id, cariId, projeId, sonra){
   const ie = bul("is_emirleri", id), m0 = bul("musteriler", ie ? ie.musteriId : cariId);
   const pr = ie ? null : bul("katalog", projeId), prFoto = pr && cevrimici ? projeGorselleri(pr.id).length : 0;
-  const mevcut = ie ? ie.asamalar.map(a => a.ad) : ASAMALAR.slice();
-  form = {durum: ie ? ie.durum : pr ? "Teklif" : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit", projeId: pr ? pr.id : null,
+  const tk = ie ? ie.teklif : {}, mevcut = ie ? ie.asamalar.map(a => a.ad) : ASAMALAR.slice();
+  form = {durum: ie ? ie.durum : pr || sonra === "kesif" ? "Teklif" : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit", projeId: pr ? pr.id : null,
+    sonraKesif: !ie && sonra === "kesif",
     ikalemler: ie && ie.kalemler.length ? ie.kalemler.map(k => Object.assign({}, k)) :
       pr ? [{ad: pr.kategori ? pr.kategori + " — " + pr.baslik : pr.baslik, olcu:pr.olcu, renk:pr.malzeme, adet:1, katalogId:pr.id}] : [bosKalem()],
     asamaTum: ASAMALAR.concat(mevcut.filter(a => ASAMALAR.indexOf(a) < 0)), asamaSecili: mevcut};
+  const kdv = tk.kdv == null ? 20 : tk.kdv, gecerlilik = ie ? tk.gecerlilik || "" : gunSonra(firma().gecerlilik);
   const ustalar = Array.from(new Set(veri.is_emirleri.map(i => i.sorumlu).filter(Boolean)));
   const html = '<div class="kart form-kart">' +
     (pr ? '<div class="bilgi-kutu" style="margin:0 0 4px">Katalog projesinden: <b>' + esc(pr.baslik) + '</b>. Bilgiler aşağıya aktarıldı; fiyat isteğe bağlıdır, durum “Teklif” olarak açılır.</div>' : '') +
-    '<label class="etiket" for="cari"' + (pr ? '' : ' style="margin-top:0"') + '>Müşteri</label>' + cariSecici(ie ? ie.musteriId : cariId, true, "musteri") +
+    (form.sonraKesif ? '<div class="bilgi-kutu" style="margin:0 0 4px">Önce müşteriyi ve işin adını yazın; kaydedince ölçü / keşif formu açılır.</div>' : '') +
+    '<label class="etiket" for="cari"' + (pr || form.sonraKesif ? '' : ' style="margin-top:0"') + '>Müşteri</label>' + cariSecici(ie ? ie.musteriId : cariId, true, "musteri") +
     '<div class="alt-bilgi">Listede yoksa: <b data-git="cari-form/-/musteri" style="cursor:pointer;color:var(--borc)">+ Yeni müşteri ekle</b></div>' +
     '<label class="etiket" for="baslik">İş başlığı</label><input id="baslik" class="kutu" maxlength="120" value="' + esc(ie ? ie.baslik : pr ? pr.baslik : "") + '" placeholder="Örn: Yatak odası takımı">' +
     '<div class="form-bolum">Sipariş kalemleri</div><div id="ikalemler">' + form.ikalemler.map(ikalemHtml).join("") + '</div>' +
     '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="ikalemEkle">' + ik("arti") + 'Ürün ekle</button>' +
     '<label class="etiket" for="aciklama">Notlar / özel istekler <span class="ist">(kumaş, kulp, montaj detayı…)</span></label><textarea id="aciklama" class="kutu" maxlength="2000">' + esc(ie ? ie.aciklama : pr ? pr.aciklama : "") + '</textarea>' +
     (prFoto ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px"><input type="checkbox" id="fotoKopyala" checked> Projenin ' + prFoto + ' fotoğrafını iş emrine ekle</label>' : '') +
+    '<div class="form-bolum">Fiyat</div>' +
+    '<div class="iki-alan"><div><label class="etiket" for="indirim">İndirim <span class="ist">(₺, isteğe bağlı)</span></label><input id="indirim" class="kutu" inputmode="decimal" value="' + sayiYaz(tk.indirim) + '" placeholder="0 ₺"></div>' +
+    '<div><label class="etiket" for="kdvOran">KDV</label><select id="kdvOran" class="kutu">' + KDV_ORANLARI.map(o => '<option value="' + o + '"' + (o === kdv ? ' selected' : '') + '>%' + o + '</option>').join("") + '</select></div></div>' +
+    '<div class="toplamlar" id="isToplam"></div>' +
+    '<div class="iki-alan"><div><label class="etiket" for="fiyat">' + (pr || form.durum === "Teklif" ? 'Teklif fiyatı <span class="ist">(KDV dahil, isteğe bağlı)</span>' : 'Anlaşılan fiyat <span class="ist">(KDV dahil)</span>') + '</label>' +
+      '<input id="fiyat" class="kutu" inputmode="decimal" value="' + (ie ? sayiYaz(ie.tutar) : pr ? sayiYaz(pr.fiyat) : "") + '" placeholder="0 ₺"><div class="alt-bilgi" id="fiyatNot"></div></div>' +
+    '<div>' + tarihAlani("gecerlilik", "Teklif geçerlilik tarihi", gecerlilik, true) + '</div></div>' +
+    (eksikSutun && cevrimici ? '<div class="uyari" style="margin-top:12px">İndirim, KDV oranı ve geçerlilik tarihinin kaydedilmesi için Supabase\'de <b>supabase-guncelleme-4.sql</b> dosyasını çalıştırın.</div>' : '') +
     '<div class="form-bolum">Teslimat ve sorumlu</div>' +
-    '<div class="iki-alan"><div><label class="etiket" for="fiyat" style="margin-top:0">' + (pr ? 'Teklif fiyatı <span class="ist">(isteğe bağlı)</span>' : 'Anlaşılan fiyat') + '</label><input id="fiyat" class="kutu" inputmode="decimal" value="' + (ie ? sayiYaz(ie.tutar) : pr ? sayiYaz(pr.fiyat) : "") + '" placeholder="0 ₺"></div>' +
-    '<div>' + tarihAlani("teslim", "Teslim tarihi", ie ? ie.teslimTarihi : "", true) + '</div></div>' +
-    '<div class="iki-alan"><div><label class="etiket" for="sorumlu">Sorumlu usta <span class="ist">(isteğe bağlı)</span></label><input id="sorumlu" class="kutu" list="ustalar" maxlength="60" value="' + esc(ie ? ie.sorumlu : "") + '">' +
-    '<datalist id="ustalar">' + ustalar.map(u => '<option value="' + esc(u) + '">').join("") + '</datalist></div>' +
-    '<div><label class="etiket">Öncelik</label>' + secenekler("oncelik", ONCELIK, form.oncelik) + '</div></div>' +
+    '<div class="iki-alan"><div>' + tarihAlani("teslim", "Teslim tarihi", ie ? ie.teslimTarihi : "", true) + '</div>' +
+    '<div><label class="etiket" for="sorumlu">Sorumlu usta <span class="ist">(isteğe bağlı)</span></label><input id="sorumlu" class="kutu" list="ustalar" maxlength="60" value="' + esc(ie ? ie.sorumlu : "") + '">' +
+    '<datalist id="ustalar">' + ustalar.map(u => '<option value="' + esc(u) + '">').join("") + '</datalist></div></div>' +
+    '<label class="etiket">Öncelik</label>' + secenekler("oncelik", ONCELIK, form.oncelik) +
     '<label class="etiket" for="adres">Teslimat / montaj adresi <span class="ist">(isteğe bağlı)</span></label><textarea id="adres" class="kutu" maxlength="300" style="min-height:64px">' + esc(ie ? ie.adres : (m0 ? m0.adres : "")) + '</textarea>' +
     '<div class="form-bolum">Üretim aşamaları</div><div class="alt-bilgi" style="margin:0 0 8px">Bu işte olacak aşamaları seçin; işlerken tek dokunuşla işaretlersiniz.</div>' +
     '<div class="secenekler" id="asamaKutu">' + asamaChipleri() + '</div>' +
@@ -1168,14 +1226,22 @@ function ekranIsForm(id, cariId, projeId){
     '<label class="etiket">Durum</label>' + secenekler("durum", DURUMLAR, form.durum) +
     (ie ? '' : '<div class="form-bolum">Kapora</div><label class="etiket" for="kapora" style="margin-top:0">Alınan kapora / peşinat <span class="ist">(yoksa boş bırakın)</span></label>' +
       '<input id="kapora" class="kutu" inputmode="decimal" placeholder="0 ₺"><label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit")) +
-    '<div class="hata" id="hata"></div><button class="buton" data-is="isKaydet" data-arg="' + (ie ? ie.id : "") + '">' + ik("tamam") + 'Kaydet</button></div>';
-  return {baslik: ie ? "İş emrini düzenle" : "Yeni iş emri", geri:true, html, sonra(){
+    '<div class="hata" id="hata"></div><button class="buton" data-is="isKaydet" data-arg="' + (ie ? ie.id : "") + '">' + ik("tamam") + (form.sonraKesif ? 'Kaydet ve ölçüye geç' : 'Kaydet') + '</button></div>';
+  return {baslik: ie ? "İş emrini düzenle" : form.sonraKesif ? "Yeni ölçü / keşif" : "Yeni iş emri", geri:true, html, sonra(){
     secenekBagla();
-    document.getElementById("ikalemler").addEventListener("input", e => {
+    const kap = document.getElementById("ikalemler");
+    kap.addEventListener("input", e => {
       const d = e.target.closest(".kalem"); if(!d) return;
       const k = form.ikalemler[Number(d.getAttribute("data-i"))];
       k.ad = d.querySelector(".k-ad").value; k.olcu = d.querySelector(".k-olcu").value; k.renk = d.querySelector(".k-renk").value; k.adet = d.querySelector(".k-adet").value;
+      k.fiyat = Math.max(0, sayiOku(d.querySelector(".k-fiyat").value) || 0);
+      if(e.target.classList.contains("k-fiyat")) delete k.hesap;   // fiyat elle değiştiyse eski hesap geçersiz
+      d.querySelector(".k-tutar").innerHTML = k.fiyat ? 'Tutar: <b style="color:var(--yazi)">' + para((Number(k.adet) || 0) * k.fiyat) + '</b>' : '';
+      isToplamGuncelle();
     });
+    document.getElementById("indirim").addEventListener("input", isToplamGuncelle);
+    document.getElementById("kdvOran").addEventListener("change", isToplamGuncelle);
+    isToplamGuncelle();
     const c = document.getElementById("cari");
     c.addEventListener("change", () => { const m = bul("musteriler", c.value), a = document.getElementById("adres"); if(m && m.adres && !a.value.trim()) a.value = m.adres; });
     document.getElementById(ie || cariId ? "baslik" : "cari").focus();
@@ -1187,25 +1253,36 @@ EYLEM.isKaydet = (btn, id) => {
   if(!baslik) return hataYaz("Lütfen işin başlığını yazın.");
   const fiyatYazi = deger("fiyat"), fiyat = fiyatYazi ? sayiOku(fiyatYazi) : 0;
   if(!(fiyat >= 0)) return hataYaz("Fiyatı kontrol edin.");
+  const indirimYazi = deger("indirim"), indirim = indirimYazi ? sayiOku(indirimYazi) : 0;
+  if(!(indirim >= 0)) return hataYaz("İndirim tutarını kontrol edin.");
   const kaporaYazi = deger("kapora"), kapora = kaporaYazi ? sayiOku(kaporaYazi) : 0;
   if(!(kapora >= 0)) return hataYaz("Kapora tutarını kontrol edin.");
   const eski = bul("is_emirleri", id);
-  const kalemler = form.ikalemler.filter(k => k.ad.trim()).map(k => Object.assign({ad:k.ad.trim(), olcu:String(k.olcu || "").trim(), renk:String(k.renk || "").trim(), adet:Math.max(1, Math.round(Number(k.adet)) || 1)},
-    k.katalogId ? {katalogId:k.katalogId} : {}));
+  const kalemler = form.ikalemler.filter(k => k.ad.trim()).map(k => {
+    const y = {ad:k.ad.trim(), olcu:String(k.olcu || "").trim(), renk:String(k.renk || "").trim(), adet:Math.max(1, Math.round(Number(k.adet)) || 1)};
+    if(k.fiyat > 0) y.fiyat = yuvarla(k.fiyat);
+    if(k.fiyat > 0 && k.maliyet > 0 && k.hesap) { y.maliyet = yuvarla(k.maliyet); y.hesap = k.hesap; }
+    if(k.katalogId) y.katalogId = k.katalogId;
+    return y;
+  });
+  const teklif = {indirim:yuvarla(indirim), kdv:Number(deger("kdvOran")), gecerlilik:deger("gecerlilik")};
+  const h = isHesap(kalemler, teklif);
+  if(h.ara > 0 && indirim > h.ara) return hataYaz("İndirim, kalemlerin toplamından büyük olamaz.");
   const pr = !id && bul("katalog", form.projeId), fotoKopyala = !!(pr && document.getElementById("fotoKopyala") && document.getElementById("fotoKopyala").checked);
   const eskiAs = eski ? eski.asamalar : [];
   const asamalar = form.asamaTum.filter(a => form.asamaSecili.indexOf(a) >= 0).map(a => ({ad:a, tamam: !!(eskiAs.find(x => x.ad === a) || {}).tamam}));
   const k = {id: id || yeniId(), no: eski ? eski.no : siradakiNo("İE-", veri.is_emirleri), musteriId:cari, baslik, durum:form.durum, oncelik:form.oncelik,
-    sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar:yuvarla(fiyat), aciklama:deger("aciklama"),
-    olusma: eski ? eski.olusma : Date.now()};
+    sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar: h.ara > 0 ? h.toplam : yuvarla(fiyat),
+    aciklama:deger("aciklama"), teklif, kesif: eski ? eski.kesif : {}, olusma: eski ? eski.olusma : Date.now()};
   islem(btn, async () => {
     await Depo.kaydet("is_emirleri", k);
     if(!id) await notEkle(k.id, pr ? "Katalogdan teklif açıldı: " + pr.baslik : "İş emri açıldı");
-    if(fotoKopyala) await projeFotolariniKopyala(pr.id, k.id);
     else if(eski.durum !== k.durum) await notEkle(k.id, "Durum: " + eski.durum + " → " + k.durum);
+    if(fotoKopyala) await projeFotolariniKopyala(pr.id, k.id);
     if(kapora > 0) await Depo.kaydet("hareketler", {id:yeniId(), tur:"giris", tutar:yuvarla(kapora), kategori:"Kapora / Peşinat", odeme:form.odeme,
       musteriId:cari, isEmriId:k.id, faturaId:null, aciklama:baslik, tarih:bugun(), olusma:Date.now()});
     if(id){ bildir("Kaydedildi"); geri(); }
+    else if(form.sonraKesif){ bildir("İş emri açıldı: " + k.no); history.replaceState(null, "", "#is/" + k.id); history.pushState(null, "", "#kesif/" + k.id); ciz(); }
     else { bildir("İş emri açıldı: " + k.no); history.replaceState(null, "", "#is/" + k.id); ciz(); }
   });
 };
@@ -1240,10 +1317,18 @@ function ekranIs(id){
       (ie.aciklama ? '<div style="white-space:pre-wrap;font-size:14px;margin-top:10px;background:var(--hafif);border-radius:10px;padding:10px 12px">' + esc(ie.aciklama) + '</div>' : '') +
       '<div class="yazdirma"><label class="etiket">Durumu değiştir</label><div class="secenekler">' + DURUMLAR.map(d =>
         '<button class="secenek' + (d === ie.durum ? " secili" : "") + '" data-is="durumDegistir" data-arg="' + id + '|' + d + '">' + d + '</button>').join("") + '</div></div></div>' +
+    (ie.durum === "Teklif" ? teklifKutusu(ie) : '') +
     (ie.kalemler.length ? '<div class="kart liste-kart"><div class="kart-baslik" style="margin:12px 0 2px">Sipariş kalemleri</div>' + ie.kalemler.map(k =>
       '<div class="satir"><span class="orta"><div class="s1" style="white-space:normal">' + esc(k.ad) + '</div><div class="s2" style="white-space:normal">' + esc([k.olcu, k.renk].filter(Boolean).join(" · ")) +
         (k.katalogId && bul("katalog", k.katalogId) ? ' · <b data-git="proje/' + esc(k.katalogId) + '" style="cursor:pointer;color:var(--borc);font-weight:500">Katalogda gör</b>' : '') + '</div></span>' +
-      '<span class="tutar t-soluk">× ' + k.adet + '</span></div>').join("") + '</div>' : '') +
+      '<span class="sag"><div class="tutar' + (k.fiyat ? '' : ' t-soluk') + '">' + (k.fiyat ? para(k.adet * k.fiyat) : '× ' + k.adet) + '</div>' +
+        (k.fiyat ? '<div class="s2">' + k.adet + ' × ' + para(k.fiyat) + '</div>' : '') + '</span></div>').join("") +
+      (fiyatliMi(ie.kalemler) ? (() => { const h = isHesap(ie.kalemler, ie.teklif);
+        return '<div class="toplamlar" style="padding:4px 0 10px">' + bilgiSatir("Ara toplam", para(h.ara)) + (h.indirim ? bilgiSatir("İndirim", "−" + para(h.indirim)) : '') +
+          bilgiSatir("KDV (%" + h.kdvOran + ")", para(h.kdv)) + '<div class="bilgi-satir genel"><span style="color:var(--yazi)">Genel toplam</span><b>' + para(h.toplam) + '</b></div>' +
+          (h.maliyet ? '<div class="alt-bilgi yazdirma">Malzeme hesabına göre tahmini maliyet <b>' + para(h.maliyet) + '</b> · tahmini kâr <b>' + para(h.net - h.maliyet) + '</b> (KDV hariç)</div>' : '') + '</div>'; })() : '') +
+      '</div>' : '') +
+    kesifKarti(ie) +
     (as.length ? '<div class="kart"><div class="kart-baslik"><span>Üretim aşamaları</span><span>' + yap + '/' + as.length + '</span></div><div class="ilerleme"><i style="width:' + Math.round(yap / as.length * 100) + '%"></i></div>' +
       as.map((a, i) => '<button class="asama' + (a.tamam ? " tamam" : "") + '" data-is="asamaDegis" data-arg="' + id + '|' + i + '"><span class="kutucuk">' + (a.tamam ? ik("tamam") : "") + '</span><span class="ad">' + esc(a.ad) + '</span></button>').join("") + '</div>' : '') +
     '<div class="izgara uc">' +
@@ -1255,7 +1340,7 @@ function ekranIs(id){
       hizliButon("giris/" + cari + "/" + id, "r-giris", "asagi", "Tahsilat Al") + hizliButon("fatura-form/satis/" + cari + "/" + id, "r-borc", "fatura", "Satış Faturası") +
       hizliButon("cikis/-/" + id, "r-cikis", "yukari", "Gider Ekle") + hizliButon("fatura-form/alis/-/" + id, "r-gri", "fatura", "Alış Faturası") + '</div>' +
     '<button class="buton wa-buton" style="margin-top:0" data-is="waIs" data-arg="' + id + '">' + ik("mesaj") + 'Müşteriye WhatsApp mesajı</button>' +
-    '<button class="buton ikincil" style="margin-top:12px" data-is="teklifYazdir" data-arg="' + id + '">' + ik("fatura") + 'Müşteriye fiyat teklifi yazdır / PDF</button>' +
+    (ie.durum === "Teklif" ? '' : '<button class="buton ikincil" style="margin-top:12px" data-is="teklifYazdir" data-arg="' + id + '">' + ik("fatura") + 'Müşteriye fiyat teklifi yazdır / PDF</button>') +
     '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" onclick="window.print()">' + ik("yazdir") + 'Yazdır</button>' +
     '<button class="buton ikincil" data-git="is-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
     '<button class="buton tehlike" data-is="isSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div></div>' +
@@ -1277,6 +1362,31 @@ function ekranIs(id){
     '</div></div>';
   return {baslik: ie.no + " · " + ie.baslik, geri:true, html, sonra: galeriDoldur};
 }
+function teklifKutusu(ie){
+  const g = ie.teklif.gecerlilik, gecti = g && g < bugun();
+  return '<div class="kart yazdirma" style="background:#fffbeb;border-color:#fde68a"><div class="kart-baslik"><span style="color:#92400e">Teklif aşamasında</span>' +
+    (g ? '<span' + (gecti ? ' style="color:#b91c1c"' : '') + '>' + (gecti ? "⚠ Süresi geçti: " : "Geçerli: ") + tarihYaz(g) + '</span>' : '') + '</div>' +
+    '<div class="alt-bilgi" style="margin-bottom:12px">Müşteri onaylayınca siparişe çevirin; isterseniz teklifteki kalemlerle satış faturası da hazırlanır.</div>' +
+    '<div class="buton-sira"><button class="buton ikincil" data-is="teklifYazdir" data-arg="' + ie.id + '">' + ik("fatura") + 'Teklifi yazdır / PDF</button>' +
+    '<button class="buton wa-buton" data-is="waTeklif" data-arg="' + ie.id + '">' + ik("mesaj") + 'WhatsApp ile gönder</button></div>' +
+    '<button class="buton" style="background:var(--giris)" data-is="siparisCevir" data-arg="' + ie.id + '">' + ik("tamam") + 'Teklif onaylandı — siparişe çevir</button></div>';
+}
+EYLEM.waTeklif = (el, id) => {
+  const ie = bul("is_emirleri", id); if(!ie) return;
+  const m = bul("musteriler", ie.musteriId) || {}, s = waIsSablonlari(ie, m);
+  waPencere({tel:m.telefon, ad:m.ad, isEmriId:id, sablonlar:s, varsayilan:s.findIndex(x => x.ad === "Fiyat teklifi")});
+};
+EYLEM.siparisCevir = (el, id) => {
+  const ie = bul("is_emirleri", id); if(!ie) return;
+  onayla("Teklif siparişe çevrilsin mi?", "Durum “Sipariş alındı” olur.", "Siparişe çevir", () => islem(null, async () => {
+    await Depo.kaydet("is_emirleri", Object.assign({}, ie, {durum:"Sipariş alındı"}));
+    await notEkle(id, "Teklif onaylandı, siparişe çevrildi");
+    bildir("Sipariş alındı"); ciz();
+    if(!veri.faturalar.some(f => f.isEmriId === id && f.tur === "satis"))
+      onayla("Satış faturası da hazırlansın mı?", fiyatliMi(ie.kalemler) ? "Teklifteki kalemler ve fiyatlar faturaya aktarılır." : "Daha sonra iş emri sayfasından da hazırlayabilirsiniz.",
+        "Fatura hazırla", () => git("fatura-form/satis/" + ie.musteriId + "/" + id), false);
+  }), false);
+};
 EYLEM.durumDegistir = (el, arg) => {
   const [id, d] = arg.split("|"), ie = bul("is_emirleri", id);
   if(!ie || ie.durum === d) return;
@@ -1424,7 +1534,8 @@ async function dosyaPaylas(ieId, d){
 /* ================= KATALOG ================= */
 // Projeler "katalog" tablosunda, fotoğrafları "katalog_gorseller" tablosunda; dosyalar Storage'da "katalog/<proje>/" altında durur.
 const KATALOG_KLASOR = "katalog";
-const DOSYA_TABLO = {dosyalar:1, katalog_gorseller:1};   // kayıtları dosyaya bağlı tablolar (JSON yedeğe girmez)
+// Kayıtları Storage'daki dosyalara bağlı tablolar: JSON yedeğe girmez (dosyalar, katalog fotoğrafları ZIP yedekte; paylaşımlar yedeklenmez).
+const DOSYA_TABLO = {dosyalar:1, katalog_gorseller:1, paylasimlar:1};
 const guvenliDosyaAdi = a => String(a).normalize("NFKD").replace(/[^\w.\-]+/g, "_").slice(-80);
 function katalogListesi(){
   const a = veri.ayarlar.find(x => x.anahtar === "katalogKategorileri");
@@ -1460,11 +1571,13 @@ function ekranKatalog(){
   const html = '<div class="vitrin"><div class="marka"><span class="gunes">' + ik("gunes") + '</span>Güneş Mobilya</div>' +
       '<div class="alt">Proje kataloğu · ' + projeler.length + ' proje · ' + veri.katalog_gorseller.length + ' fotoğraf</div>' +
       '<div class="buton-sira"><button class="buton altin" data-is="katalogSunum">' + ik("oynat") + (f === "hepsi" ? 'Sunumu başlat' : esc(f) + ' sunumu') + '</button>' +
+      (cevrimici ? '<button class="buton saydam" data-git="paylas-form/' + (f === "hepsi" ? "-" : encodeURIComponent(f)) + '">' + ik("mesaj") + 'Müşteriye gönder</button>' : '') +
       '<button class="buton saydam" data-git="' + yeniYer + '">' + ik("arti") + 'Yeni proje</button></div></div>' +
     '<div class="kat-izgara">' + kutu("Tümü", "hepsi", projeler) + kat.map(k => kutu(k, k, projeler.filter(p => p.kategori === k))).join("") + '</div>' +
     bolum((f === "hepsi" ? "Tüm projeler" : esc(f)) + " (" + sec.length + ")", '<button data-git="' + yeniYer + '">+ Yeni proje</button>') +
     (veri.katalog.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="Proje, malzeme veya ölçü ara…" value="' + esc(katalogArama) + '"></div>' : '') +
-    '<div id="projeListe">' + projeListesi(sec) + '</div>';
+    '<div id="projeListe">' + projeListesi(sec) + '</div>' +
+    (veri.paylasimlar.length ? bolum("Müşteriye gönderilen bağlantılar (" + veri.paylasimlar.filter(k => !paylasimBitti(k)).length + " açık)", '<button data-git="paylasimlar">Tümü</button>') : '');
   return {baslik:"Katalog", html, sonra(){
     const a = document.getElementById("ara");
     if(a) a.addEventListener("input", () => { katalogArama = a.value; document.getElementById("projeListe").innerHTML = projeListesi(sec); galeriDoldur(); });
@@ -1514,6 +1627,7 @@ function ekranProje(id){
       (p.fiyat ? bilgiSatir("Tahmini fiyat", para(p.fiyat)) : '') +
       (p.aciklama ? '<div style="white-space:pre-wrap;font-size:14px;margin-top:10px;background:var(--hafif);border-radius:10px;padding:10px 12px">' + esc(p.aciklama) + '</div>' : '') + '</div>' +
     '<button class="buton" style="margin-top:0" data-git="is-form/-/-/' + id + '">' + ik("is") + 'Bu projeden teklif / iş emri oluştur</button>' +
+    (cevrimici && g.length ? '<button class="buton ikincil" style="margin-top:12px" data-git="paylas-form/-/' + id + '">' + ik("mesaj") + 'Müşteriye bağlantı gönder</button>' : '') +
     '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" data-is="projeSunum" data-arg="' + id + '|0">' + ik("ekran") + 'Sunum</button>' +
       '<button class="buton ikincil" data-git="proje-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
       '<button class="buton tehlike" data-is="projeSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div>' +
@@ -1698,15 +1812,17 @@ async function projeFotolariniKopyala(projeId, ieId){
 
 /* --- Sunum modu --- */
 const sunumListesi = projeler => projeler.flatMap(p => projeGorselleri(p.id).map(g => ({g, p})));
-function sunumAc(liste, bas){
-  if(!liste.length) return uyar("Sunulacak fotoğraf yok", "Önce projelere fotoğraf yükleyin.");
+// musteri: paylaşılan bağlantıdan açıldı (teklif düğmesi yerine WhatsApp, fiyat paylaşıldıysa gösterilir)
+function sunumAc(liste, bas, musteri){
+  if(!liste.length) return uyar("Sunulacak fotoğraf yok", musteri ? "" : "Önce projelere fotoğraf yükleyin.");
   let i = Math.min(bas || 0, liste.length - 1), oto = null, dokunX = null;
   const s = document.createElement("div"); s.className = "sunum";
   s.innerHTML = '<div class="sn-ust"><span class="marka">' + ik("gunes") + '<span class="yazi-gizle">Güneş Mobilya</span></span><span class="sayac"></span>' +
     (liste.length > 1 ? '<button data-k="oto" aria-label="Otomatik geçiş">' + ik("oynat") + '<span class="yazi-gizle">Otomatik</span></button>' : '') +
     '<button data-k="bilgi" class="acik" aria-label="Bilgileri göster / gizle">' + ik("bilgi") + '</button>' +
     (document.fullscreenEnabled ? '<button data-k="tam" aria-label="Tam ekran">' + ik("ekran") + '</button>' : '') +
-    '<button data-k="teklif" aria-label="Teklif hazırla">' + ik("is") + '<span class="yazi-gizle">Teklif hazırla</span></button>' +
+    (musteri ? (waNumara(musteri.telefon) ? '<button data-k="sor" aria-label="WhatsApp ile sor">' + ik("mesaj") + '<span class="yazi-gizle">Bilgi al</span></button>' : '') :
+      '<button data-k="teklif" aria-label="Teklif hazırla">' + ik("is") + '<span class="yazi-gizle">Teklif hazırla</span></button>') +
     '<button data-k="kapat" aria-label="Kapat">' + ik("x") + '</button></div>' +
     '<div class="sn-orta"><img alt="">' + (liste.length > 1 ? '<button class="ok sol" data-k="geri" aria-label="Önceki">' + ik("sol") + '</button>' +
     '<button class="ok sag" data-k="ileri" aria-label="Sonraki">' + ik("sag") + '</button>' : '') + '</div><div class="sn-alt"></div>';
@@ -1717,7 +1833,8 @@ function sunumAc(liste, bas){
     img.alt = p.baslik;
     s.querySelector(".sayac").textContent = (i + 1) + " / " + liste.length;
     s.querySelector(".sn-alt").innerHTML = '<div class="k">' + esc(p.kategori) + '</div><h3>' + esc(p.baslik) + '</h3>' +
-      (p.malzeme || p.olcu ? '<div class="o">' + (p.malzeme ? '<div><span>Malzeme:</span> ' + esc(p.malzeme) + '</div>' : '') + (p.olcu ? '<div><span>Ölçü:</span> ' + esc(p.olcu) + '</div>' : '') + '</div>' : '') +
+      (p.malzeme || p.olcu || (musteri && p.fiyat) ? '<div class="o">' + (p.malzeme ? '<div><span>Malzeme:</span> ' + esc(p.malzeme) + '</div>' : '') + (p.olcu ? '<div><span>Ölçü:</span> ' + esc(p.olcu) + '</div>' : '') +
+        (musteri && p.fiyat ? '<div><span>Fiyat:</span> ' + para(p.fiyat) + '’den başlayan</div>' : '') + '</div>' : '') +
       (p.aciklama ? '<div class="d">' + esc(p.aciklama) + '</div>' : '');
     [1, -1].forEach(n => { const v = urlOnbellek[liste[(i + n + liste.length) % liste.length].g.yol]; if(v) new Image().src = v.url; });   // komşuları önceden yükle
   };
@@ -1750,6 +1867,7 @@ function sunumAc(liste, bas){
     else if(k === "oto") otoAyarla(!oto); else if(k === "bilgi") bilgi(); else if(k === "tam") tamEkran();
     else if(k === "kapat") kapat();
     else if(k === "teklif"){ const id = liste[i].p.id; kapat(); git("is-form/-/-/" + id); }
+    else if(k === "sor") window.open(vitrinWaLink(musteri.telefon, "“" + liste[i].p.baslik + "” projesi hakkında bilgi almak istiyorum."), "_blank", "noopener");
   });
   s.addEventListener("touchstart", e => { dokunX = e.touches.length === 1 ? e.touches[0].clientX : null; }, {passive:true});
   s.addEventListener("touchend", e => {
@@ -1765,23 +1883,383 @@ function sunumAc(liste, bas){
     .then(() => { if(document.body.contains(s)) goster(); }).catch(() => {});
 }
 
+/* ================= MALZEME FİYAT LİSTESİ & HESAPLAMA ================= */
+// Liste "ayarlar" tablosunda "malzemeler" anahtarıyla durur. Fiyatlar maliyettir (KDV hariç).
+const BIRIMLER = ["m²", "mtül", "adet", "plaka", "takım", "kg", "lt"];
+const bosMalzeme = () => ({id:yeniId(), ad:"", birim:"m²", fiyat:0});
+function malzemeListesi(){
+  const a = veri.ayarlar.find(x => x.anahtar === "malzemeler");
+  return a && Array.isArray(a.deger) ? a.deger : [];
+}
+function malzemeSatir(m, i){
+  return '<div class="kalem" data-i="' + i + '"><div class="ikalem-alan alan-3">' +
+    '<label>Malzeme<input class="kutu m-ad" maxlength="80" placeholder="Örn: 18 mm beyaz MDF lam" value="' + esc(m.ad) + '"></label>' +
+    '<label>Birim<select class="kutu m-birim">' + BIRIMLER.map(b => '<option' + (b === m.birim ? ' selected' : '') + '>' + b + '</option>').join("") + '</select></label>' +
+    '<label>Birim maliyet<input class="kutu m-fiyat" inputmode="decimal" placeholder="0 ₺" value="' + sayiYaz(m.fiyat) + '"></label>' +
+    '<button type="button" class="ikon-buton" data-is="malzemeSil" data-arg="' + i + '" aria-label="Sil">' + ik("x") + '</button></div></div>';
+}
+const malzemeleriCiz = () => { document.getElementById("mListe").innerHTML = form.malzemeler.map(malzemeSatir).join(""); };
+function ekranMalzemeler(){
+  form = {malzemeler: malzemeListesi().map(x => Object.assign({}, x))};
+  if(!form.malzemeler.length) form.malzemeler.push(bosMalzeme());
+  const html = '<div class="kart form-kart"><div class="alt-bilgi" style="margin:0">Malzemelerin alış / maliyet fiyatlarını (KDV hariç) yazın. Teklif hazırlarken kalemdeki <b>Malzemeden hesapla</b> bu listeyi kullanır; kâr oranı Ayarlar\'daki varsayılandan gelir.</div>' +
+    '<div id="mListe">' + form.malzemeler.map(malzemeSatir).join("") + '</div>' +
+    '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="malzemeEkle">' + ik("arti") + 'Malzeme ekle</button>' +
+    '<div class="hata" id="hata"></div><button class="buton" data-is="malzemeKaydet">' + ik("tamam") + 'Kaydet</button></div>';
+  return {baslik:"Malzeme fiyat listesi", geri:true, html, sonra(){
+    document.getElementById("mListe").addEventListener("input", e => {
+      const d = e.target.closest(".kalem"); if(!d) return;
+      const m = form.malzemeler[Number(d.getAttribute("data-i"))];
+      m.ad = d.querySelector(".m-ad").value; m.birim = d.querySelector(".m-birim").value; m.fiyat = sayiOku(d.querySelector(".m-fiyat").value) || 0;
+    });
+    document.getElementById("mListe").addEventListener("change", e => { const d = e.target.closest(".kalem"); if(d) form.malzemeler[Number(d.getAttribute("data-i"))].birim = d.querySelector(".m-birim").value; });
+  }};
+}
+EYLEM.malzemeEkle = () => { form.malzemeler.push(bosMalzeme()); malzemeleriCiz(); const s = document.querySelectorAll(".m-ad"); s[s.length - 1].focus(); };
+EYLEM.malzemeSil = (el, i) => { form.malzemeler.splice(Number(i), 1); if(!form.malzemeler.length) form.malzemeler.push(bosMalzeme()); malzemeleriCiz(); };
+EYLEM.malzemeKaydet = btn => {
+  const l = form.malzemeler.filter(m => m.ad.trim()).map(m => ({id:m.id, ad:m.ad.trim(), birim:m.birim, fiyat:yuvarla(m.fiyat)}));
+  if(l.some(m => !(m.fiyat >= 0) || m.fiyat > 1e8)) return hataYaz("Fiyatları kontrol edin.");
+  islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"malzemeler", deger:l}); bildir("Malzeme listesi kaydedildi"); geri(); });
+};
+// Bir kalemin 1 adedi için: malzeme + işçilik = maliyet; maliyet × (1 + kâr) = önerilen birim fiyat (KDV hariç).
+function malzemeHesap(h){
+  const malzeme = yuvarla(h.satirlar.reduce((t, s) => t + (s.miktar || 0) * (s.fiyat || 0), 0));
+  const maliyet = yuvarla(malzeme + (h.iscilik || 0));
+  return {malzeme, maliyet, satis:yuvarla(maliyet * (1 + (h.kar || 0) / 100))};
+}
+EYLEM.kalemHesap = (el, i) => {
+  const k = form.ikalemler[Number(i)]; if(!k) return;
+  const ml = malzemeListesi();
+  const h = k.hesap ? JSON.parse(JSON.stringify(k.hesap)) : {satirlar:[], iscilik:0, kar:firma().kar};
+  if(!h.satirlar.length) h.satirlar.push({malzemeId:"", ad:"", birim:"", fiyat:0, miktar:0});
+  const p = document.createElement("div"); p.className = "perde";
+  const satirHtml = (s, j) => '<div class="kalem" data-j="' + j + '" style="margin-top:8px"><div class="ikalem-alan alan-3">' +
+    '<label>Malzeme<select class="kutu h-m"><option value="">— Elle yaz —</option>' + ml.map(m => '<option value="' + m.id + '"' + (m.id === s.malzemeId ? ' selected' : '') + '>' + esc(m.ad + " (" + m.birim + ")") + '</option>').join("") + '</select></label>' +
+    '<label>Miktar' + (s.birim ? ' (' + esc(s.birim) + ')' : '') + '<input class="kutu h-miktar" inputmode="decimal" value="' + sayiYaz(s.miktar) + '"></label>' +
+    '<label>Birim maliyet<input class="kutu h-fiyat" inputmode="decimal" value="' + sayiYaz(s.fiyat) + '"></label>' +
+    '<button type="button" class="ikon-buton" data-k="sil" aria-label="Satırı sil">' + ik("x") + '</button></div>' +
+    (s.malzemeId ? '' : '<input class="kutu h-ad" maxlength="80" placeholder="Malzeme adı (örn: Kuvars tezgah)" value="' + esc(s.ad) + '" style="margin-top:8px">') + '</div>';
+  const ciz_ = () => { p.querySelector("#hSatir").innerHTML = h.satirlar.map(satirHtml).join(""); ozet(); };
+  const ozet = () => {
+    const r = malzemeHesap(h);
+    p.querySelector("#hOzet").innerHTML = bilgiSatir("Malzeme", para(r.malzeme)) + bilgiSatir("İşçilik / montaj", para(h.iscilik || 0)) + bilgiSatir("Maliyet", para(r.maliyet)) +
+      '<div class="bilgi-satir genel"><span style="color:var(--yazi)">Önerilen birim fiyat <span class="ist" style="font-weight:400">(KDV hariç, %' + sayiYaz(h.kar || 0).replace(/^$/, "0") + ' kâr)</span></span><b>' + para(r.satis) + '</b></div>';
+  };
+  p.innerHTML = '<div class="pencere" style="max-width:600px;max-height:90vh;overflow:auto"><p>Malzemeden fiyat hesapla</p><div class="alt-bilgi">' + esc(k.ad || "Kalem") + ' · <b>1 adet</b> için</div>' +
+    (ml.length ? '' : '<div class="uyari" style="margin:12px 0 0">Malzeme fiyat listeniz boş. Ayarlar → Malzeme fiyat listesi\'nden ekleyebilirsiniz; şimdilik satırlara elle yazabilirsiniz.</div>') +
+    '<div id="hSatir"></div><button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-k="ekle">' + ik("arti") + 'Satır ekle</button>' +
+    '<div class="iki-alan"><div><label class="etiket" for="hIscilik">İşçilik / montaj / nakliye (₺)</label><input id="hIscilik" class="kutu" inputmode="decimal" value="' + sayiYaz(h.iscilik) + '"></div>' +
+    '<div><label class="etiket" for="hKar">Kâr oranı (%)</label><input id="hKar" class="kutu" inputmode="decimal" value="' + sayiYaz(h.kar) + '"></div></div>' +
+    '<div class="toplamlar" id="hOzet"></div><div class="hata" id="hHata"></div>' +
+    '<div class="buton-sira"><button class="buton ikincil" data-k="kapat">Vazgeç</button><button class="buton" data-k="aktar">' + ik("tamam") + 'Fiyatı kaleme aktar</button></div></div>';
+  const oku = e => {
+    if(e.target.id === "hIscilik") h.iscilik = Math.max(0, sayiOku(e.target.value) || 0);
+    else if(e.target.id === "hKar") h.kar = Math.max(0, sayiOku(e.target.value) || 0);
+    const d = e.target.closest("[data-j]");
+    if(d){
+      const s = h.satirlar[Number(d.getAttribute("data-j"))];
+      if(e.target.classList.contains("h-m")){
+        const m = ml.find(x => x.id === e.target.value);
+        Object.assign(s, m ? {malzemeId:m.id, ad:m.ad, birim:m.birim, fiyat:m.fiyat} : {malzemeId:"", birim:""});
+        return ciz_();
+      }
+      s.miktar = Math.max(0, sayiOku(d.querySelector(".h-miktar").value) || 0);
+      s.fiyat = Math.max(0, sayiOku(d.querySelector(".h-fiyat").value) || 0);
+      if(d.querySelector(".h-ad")) s.ad = d.querySelector(".h-ad").value.trim();
+    }
+    ozet();
+  };
+  p.addEventListener("input", oku); p.addEventListener("change", e => { if(e.target.classList.contains("h-m")) oku(e); });
+  p.addEventListener("click", e => {
+    const b = e.target.closest("[data-k]");
+    if(!b){ if(e.target === p) p.remove(); return; }
+    const c = b.getAttribute("data-k");
+    if(c === "kapat") return p.remove();
+    if(c === "ekle"){ h.satirlar.push({malzemeId:"", ad:"", birim:"", fiyat:0, miktar:0}); return ciz_(); }
+    if(c === "sil"){ h.satirlar.splice(Number(b.closest("[data-j]").getAttribute("data-j")), 1); if(!h.satirlar.length) h.satirlar.push({malzemeId:"", ad:"", birim:"", fiyat:0, miktar:0}); return ciz_(); }
+    if(c === "aktar"){
+      h.satirlar = h.satirlar.filter(s => s.miktar > 0 && s.fiyat > 0);
+      const r = malzemeHesap(h);
+      if(!(r.satis > 0)){ if(!h.satirlar.length) h.satirlar.push({malzemeId:"", ad:"", birim:"", fiyat:0, miktar:0}); ciz_(); p.querySelector("#hHata").textContent = "En az bir malzemenin miktarını ve fiyatını yazın."; return; }
+      k.fiyat = r.satis; k.maliyet = r.maliyet; k.hesap = h;
+      p.remove(); ikalemleriCiz(); bildir("Birim fiyat: " + para(r.satis));
+    }
+  });
+  document.body.appendChild(p);
+  ciz_();
+};
+
+/* ================= ÖLÇÜ / KEŞİF ================= */
+// İş emrinin "kesif" alanında durur; fotoğraflar iş emrinin dosyalarına eklenir.
+const TESISAT = ["Su / gider", "Elektrik prizi", "Doğalgaz", "Kombi", "Aspiratör çıkışı", "Pencere", "Kapı", "Kolon / kiriş", "Kalorifer peteği"];
+const kesifDolu = k => !!(k && (k.tarih || (k.duvarlar || []).length || k.notlar));
+function kesifKarti(ie){
+  const k = ie.kesif || {};
+  if(!kesifDolu(k)) return '<div class="kart yazdirma"><div class="kart-baslik"><span>Ölçü / keşif</span></div><div class="alt-bilgi">Henüz ölçü alınmadı.</div>' +
+    '<button class="buton ikincil" data-git="kesif/' + ie.id + '">' + ik("cetvel") + 'Ölçü / keşif formu doldur</button></div>';
+  const kutu = t => '<div style="white-space:pre-wrap;font-size:14px;margin-top:10px;background:var(--hafif);border-radius:10px;padding:10px 12px">' + esc(t) + '</div>';
+  return '<div class="kart"><div class="kart-baslik"><span>Ölçü / keşif</span><button class="baglanti yazdirma" data-git="kesif/' + ie.id + '">Düzenle</button></div>' +
+    (k.tarih ? bilgiSatir("Tarih", tarihYaz(k.tarih)) : '') + (k.olcen ? bilgiSatir("Ölçüyü alan", esc(k.olcen)) : '') +
+    (k.mekan ? bilgiSatir("Mekân", esc(k.mekan)) : '') + (k.yukseklik ? bilgiSatir("Tavan yüksekliği", esc(k.yukseklik) + " cm") : '') +
+    (k.duvarlar || []).map(d => bilgiSatir(esc(d.ad || "Duvar"), esc([d.olcu ? d.olcu + " cm" : "", d.not].filter(Boolean).join(" · ")))).join("") +
+    ((k.tesisat || []).length ? '<div class="secenekler" style="margin-top:10px">' + k.tesisat.map(t => '<span class="etiket-rozet d-sari">' + esc(t) + '</span>').join("") + '</div>' : '') +
+    (k.tesisatNot ? kutu(k.tesisatNot) : '') + (k.notlar ? kutu(k.notlar) : '') + '</div>';
+}
+function duvarSatir(d, i){
+  return '<div class="kalem" data-i="' + i + '"><div class="ikalem-alan alan-duvar">' +
+    '<label>Duvar<input class="kutu d-ad" maxlength="40" value="' + esc(d.ad) + '"></label>' +
+    '<label>Uzunluk (cm)<input class="kutu d-olcu" inputmode="decimal" maxlength="20" value="' + esc(d.olcu) + '"></label>' +
+    '<label>Not<input class="kutu d-not" maxlength="200" placeholder="Pencere 90 cm, soldan 120 cm…" value="' + esc(d.not) + '"></label>' +
+    '<button type="button" class="ikon-buton" data-is="duvarSil" data-arg="' + i + '" aria-label="Sil">' + ik("x") + '</button></div></div>';
+}
+const duvarlariCiz = () => { document.getElementById("duvarlar").innerHTML = form.duvarlar.map(duvarSatir).join(""); };
+function ekranKesif(id){
+  const ie = bul("is_emirleri", id);
+  if(!ie) return {baslik:"Ölçü / keşif", geri:true, html:'<div class="kart">' + bos("is", "İş emri bulunamadı.") + '</div>'};
+  const k = ie.kesif || {};
+  form = {mekan:k.mekan || "", tesisat:(k.tesisat || []).slice(),
+    duvarlar:(k.duvarlar || []).length ? k.duvarlar.map(d => Object.assign({}, d)) : ["A", "B", "C"].map(h => ({ad:h + " duvarı", olcu:"", not:""}))};
+  const mekanlar = Array.from(new Set(katalogKategorileri().concat(["Yatak odası", "Salon", "Diğer"])));
+  const ustalar = Array.from(new Set(veri.is_emirleri.map(i => i.sorumlu).concat(veri.is_emirleri.map(i => (i.kesif || {}).olcen)).filter(Boolean)));
+  const html = '<div class="kart form-kart">' +
+    (eksikSutun && cevrimici ? '<div class="uyari">Ölçü bilgilerinin kaydedilmesi için önce Supabase\'de <b>supabase-guncelleme-4.sql</b> dosyasını çalıştırın.</div>' : '') +
+    '<div class="alt-bilgi" style="margin:0">' + esc([ie.no, ie.baslik, cariAdi(ie.musteriId)].filter(Boolean).join(" · ")) + '</div>' +
+    '<div class="iki-alan"><div>' + tarihAlani("kTarih", "Keşif tarihi", k.tarih || bugun()) + '</div>' +
+    '<div><label class="etiket" for="kOlcen">Ölçüyü alan</label><input id="kOlcen" class="kutu" list="kUstalar" maxlength="60" value="' + esc(k.olcen || kullaniciAdi()) + '">' +
+    '<datalist id="kUstalar">' + ustalar.map(u => '<option value="' + esc(u) + '">').join("") + '</datalist></div></div>' +
+    '<label class="etiket">Mekân</label>' + secenekler("mekan", mekanlar, form.mekan) +
+    '<label class="etiket" for="kYukseklik">Tavan yüksekliği (cm) <span class="ist">(isteğe bağlı)</span></label><input id="kYukseklik" class="kutu" inputmode="decimal" maxlength="20" value="' + esc(k.yukseklik || "") + '" style="max-width:200px">' +
+    '<div class="form-bolum">Duvar ölçüleri</div><div class="alt-bilgi" style="margin:0">Duvarları soldan sağa harflendirin; pencere, kapı ve tesisat yerlerini nota yazın.</div>' +
+    '<div id="duvarlar">' + form.duvarlar.map(duvarSatir).join("") + '</div>' +
+    '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="duvarEkle">' + ik("arti") + 'Duvar ekle</button>' +
+    '<div class="form-bolum">Tesisat ve engeller</div><div class="secenekler" style="margin-top:10px">' + TESISAT.map((t, i) =>
+      '<button type="button" class="secenek' + (form.tesisat.indexOf(t) >= 0 ? ' secili' : '') + '" data-is="tesisatSec" data-arg="' + i + '">' + esc(t) + '</button>').join("") + '</div>' +
+    '<label class="etiket" for="kTesisatNot">Tesisat yerleri <span class="ist">(isteğe bağlı)</span></label><textarea id="kTesisatNot" class="kutu" maxlength="1000" placeholder="Örn: Su çıkışı A duvarında soldan 120 cm, yerden 50 cm">' + esc(k.tesisatNot || "") + '</textarea>' +
+    '<label class="etiket" for="kNotlar">Genel notlar <span class="ist">(müşteri istekleri, zemin, eğim…)</span></label><textarea id="kNotlar" class="kutu" maxlength="2000">' + esc(k.notlar || "") + '</textarea>' +
+    (cevrimici ? '<div class="form-bolum">Fotoğraflar</div><div class="buton-sira" style="margin-top:10px"><button type="button" class="buton ikincil kucuk" onclick="document.getElementById(\'kesifFoto\').click()">' + ik("kamera") + 'Fotoğraf çek / ekle</button></div>' +
+      '<input type="file" id="kesifFoto" accept="image/*,video/*" multiple style="display:none" onchange="dosyaSecildi(this,\'' + id + '\')">' +
+      '<div class="alt-bilgi">Fotoğraflar iş emrinin dosyalarına eklenir (şu an ' + isDosyalari(id).length + ' dosya).</div>' : '') +
+    '<div class="hata" id="hata"></div><button class="buton" data-is="kesifKaydet" data-arg="' + id + '">' + ik("tamam") + 'Kaydet</button></div>';
+  return {baslik:"Ölçü / keşif", geri:true, html, sonra(){
+    secenekBagla();
+    document.getElementById("duvarlar").addEventListener("input", e => {
+      const d = e.target.closest(".kalem"); if(!d) return;
+      const w = form.duvarlar[Number(d.getAttribute("data-i"))];
+      w.ad = d.querySelector(".d-ad").value; w.olcu = d.querySelector(".d-olcu").value; w.not = d.querySelector(".d-not").value;
+    });
+  }};
+}
+EYLEM.duvarEkle = () => { form.duvarlar.push({ad:String.fromCharCode(65 + form.duvarlar.length % 26) + " duvarı", olcu:"", not:""}); duvarlariCiz(); };
+EYLEM.duvarSil = (el, i) => { form.duvarlar.splice(Number(i), 1); duvarlariCiz(); };
+EYLEM.tesisatSec = (el, i) => {
+  const t = TESISAT[Number(i)], j = form.tesisat.indexOf(t);
+  if(j >= 0) form.tesisat.splice(j, 1); else form.tesisat.push(t);
+  el.classList.toggle("secili");
+};
+EYLEM.kesifKaydet = (btn, id) => {
+  const ie = bul("is_emirleri", id); if(!ie) return;
+  if(eksikSutun && cevrimici) return hataYaz("Önce Supabase'de “supabase-guncelleme-4.sql” dosyasını çalıştırın; yoksa ölçüler kaydedilmez.");
+  const kesif = {tarih:deger("kTarih") || bugun(), olcen:deger("kOlcen"), mekan:form.mekan || "", yukseklik:deger("kYukseklik"),
+    duvarlar:form.duvarlar.map(d => ({ad:String(d.ad || "").trim(), olcu:String(d.olcu || "").trim(), not:String(d.not || "").trim()})).filter(d => d.olcu || d.not),
+    tesisat:TESISAT.filter(t => form.tesisat.indexOf(t) >= 0), tesisatNot:deger("kTesisatNot"), notlar:deger("kNotlar")};
+  islem(btn, async () => {
+    await Depo.kaydet("is_emirleri", Object.assign({}, bul("is_emirleri", id), {kesif}));
+    await notEkle(id, kesifDolu(ie.kesif) ? "Ölçü / keşif bilgileri güncellendi" : "Ölçü / keşif bilgileri girildi");
+    bildir("Ölçüler kaydedildi"); geri();
+  });
+};
+
+/* ================= MÜŞTERİYE PAYLAŞIM ================= */
+// Seçilen projelerin fotoğrafları herkese açık "vitrin" deposuna kopyalanır; müşteri giriş yapmadan #vitrin/<anahtar> adresinden görür.
+// Bağlantı kapatılınca kopyalar silinir; katalogdaki asıl fotoğraflar gizli kalır.
+const VITRIN = "vitrin";
+const PAYLASIM_SURE = [["7", "7 gün"], ["30", "30 gün"], ["90", "90 gün"], ["0", "Süresiz"]];
+const rastgeleAnahtar = () => Array.from(crypto.getRandomValues(new Uint8Array(16)), b => ("0" + b.toString(16)).slice(-2)).join("");
+const paylasimLinki = k => location.origin + location.pathname + "#vitrin/" + k.id;
+const paylasimBitti = k => k.bitis > 0 && k.bitis < Date.now();
+const msTarih = ms => { const d = new Date(ms); return d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear(); };
+const vitrinWaLink = (tel, yazi) => "https://wa.me/" + waNumara(tel) + "?text=" + encodeURIComponent("Merhaba, " + yazi);
+
+function ekranPaylasimlar(){
+  if(eksikTablo.paylasimlar) return {baslik:"Müşteri bağlantıları", geri:true, html:'<div class="uyari">Bu özellik için Supabase\'de <b>supabase-guncelleme-4.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};
+  const l = veri.paylasimlar.slice().sort((a, b) => b.olusma - a.olusma);
+  const html = (firma().telefon ? '' : '<div class="uyari">Müşterinin size WhatsApp\'tan yazabilmesi için <b data-git="ayarlar" style="cursor:pointer;text-decoration:underline">Ayarlar</b>\'dan firma telefonunu girin.</div>') +
+    '<div class="ust-arac"><div class="alt-bilgi" style="margin:0">Müşteri bu bağlantıları giriş yapmadan açar. Kapattığınız bağlantı çalışmaz.</div>' +
+    '<button class="buton kucuk" data-git="paylas-form">' + ik("arti") + 'Yeni bağlantı</button></div>' +
+    '<div class="kart liste-kart">' + (l.length ? l.map(k => {
+      const ic = k.icerik || {}, pl = ic.projeler || [], biten = paylasimBitti(k);
+      const alt = [cariAdi(k.musteriId), pl.length + " proje", pl.reduce((t, p) => t + p.gorseller.length, 0) + " fotoğraf",
+        k.bitis ? (biten ? "Süresi doldu" : "Son gün: " + msTarih(k.bitis)) : "Süresiz"].filter(Boolean).join(" · ");
+      return '<div class="satir"><span class="rozet r-ana">' + ik("katalog") + '</span><span class="orta"><div class="s1">' + esc(k.baslik) + '</div>' +
+        '<div class="s2"' + (biten ? ' style="color:#b91c1c"' : '') + '>' + esc(alt) + '</div></span>' +
+        '<span class="sag" style="display:flex;gap:6px">' + (biten ? '' : '<button class="ikon-buton" data-is="paylasimAc" data-arg="' + k.id + '">' + ik("mesaj") + '<span class="yazi-gizle">Gönder</span></button>') +
+        '<button class="ikon-buton" data-is="paylasimSil" data-arg="' + k.id + '" aria-label="Bağlantıyı kapat">' + ik("sil") + '</button></span></div>';
+    }).join("") : bos("mesaj", "Henüz müşteriye gönderilmiş bağlantı yok.")) + '</div>';
+  return {baslik:"Müşteri bağlantıları", geri:true, html};
+}
+function ekranPaylasForm(kategori, projeId){
+  if(!cevrimici) return {baslik:"Müşteriye gönder", geri:true, html:'<div class="uyari">Bağlantı oluşturmak için bulut bağlantısı gerekir.</div>'};
+  if(eksikTablo.paylasimlar) return ekranPaylasimlar();
+  const projeler = projeSirali(veri.katalog), kat = katalogKategorileri();
+  const secili = p => projeId ? p.id === projeId : !kategori || p.kategori === kategori;
+  const pr = bul("katalog", projeId);
+  form = {sure:"30"};
+  const html = '<div class="kart form-kart">' +
+    '<label class="etiket" for="cari" style="margin-top:0">Müşteri <span class="ist">(isteğe bağlı; WhatsApp numarası buradan alınır)</span></label>' + cariSecici("", false, "musteri") +
+    '<label class="etiket" for="shBaslik">Başlık</label><input id="shBaslik" class="kutu" maxlength="120" value="' + esc(pr ? pr.baslik : kategori ? kategori + " projelerimiz" : "Proje kataloğumuz") + '">' +
+    '<label class="etiket" for="shMesaj">Mesaj <span class="ist">(sayfanın başında görünür)</span></label><textarea id="shMesaj" class="kutu" maxlength="600">Sizin için seçtiğimiz örnek projelerimizi inceleyebilirsiniz. Beğendiğiniz model için bize WhatsApp\'tan yazabilirsiniz.</textarea>' +
+    '<div class="form-bolum">Gönderilecek projeler</div>' +
+    '<div class="secenekler" style="margin:10px 0"><button type="button" class="secenek" data-is="paylasSec" data-arg="hepsi">Tümünü seç</button>' +
+      kat.filter(k => projeler.some(p => p.kategori === k)).map(k => '<button type="button" class="secenek" data-is="paylasSec" data-arg="' + esc(k) + '">Sadece ' + esc(k) + '</button>').join("") + '</div>' +
+    (projeler.length ? projeler.map(p => {
+      const g = projeGorselleri(p.id);
+      return '<label class="satir" style="cursor:pointer"><input type="checkbox" class="pSec" value="' + p.id + '" data-kat="' + esc(p.kategori) + '"' + (secili(p) ? ' checked' : '') + ' style="width:20px;height:20px">' +
+        '<span class="kapak" style="width:56px;flex:0 0 56px;border-radius:8px">' + (g.length ? '<img data-yol="' + esc(g[0].yol) + '" loading="lazy" alt="">' : ik("resim")) + '</span>' +
+        '<span class="orta"><div class="s1">' + esc(p.baslik) + '</div><div class="s2">' + esc(p.kategori + " · " + g.length + " fotoğraf") + '</div></span></label>';
+    }).join("") : bos("katalog", "Katalogda proje yok.")) +
+    '<label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px"><input type="checkbox" id="shFiyat"> Tahmini fiyatları göster <span class="ist" style="color:var(--soluk)">(“… ₺’den başlayan” olarak)</span></label>' +
+    '<label class="etiket">Bağlantı ne kadar açık kalsın?</label><div class="secenekler" data-ad="sure">' + PAYLASIM_SURE.map(x =>
+      '<button type="button" class="secenek' + (x[0] === form.sure ? ' secili' : '') + '" data-deger="' + x[0] + '">' + x[1] + '</button>').join("") + '</div>' +
+    '<div class="hata" id="hata"></div><button class="buton" data-is="paylasKaydet">' + ik("mesaj") + 'Bağlantı oluştur</button></div>';
+  return {baslik:"Müşteriye gönder", geri:true, html, sonra(){ secenekBagla(); galeriDoldur(); }};
+}
+EYLEM.paylasSec = (el, k) => document.querySelectorAll(".pSec").forEach(x => { x.checked = k === "hepsi" || x.getAttribute("data-kat") === k; });
+EYLEM.paylasKaydet = btn => {
+  const projeler = Array.from(document.querySelectorAll(".pSec:checked")).map(x => bul("katalog", x.value)).filter(Boolean);
+  if(!projeler.length) return hataYaz("En az bir proje seçin.");
+  if(!projeler.some(p => projeGorselleri(p.id).length)) return hataYaz("Seçilen projelerde fotoğraf yok.");
+  const o = {projeler, musteriId:deger("cari") || null, baslik:deger("shBaslik") || "Proje kataloğumuz", mesaj:deger("shMesaj"),
+    fiyatli:document.getElementById("shFiyat").checked, gun:Number(form.sure) || 0};
+  islem(btn, async () => {
+    const k = await paylasimOlustur(o);
+    history.replaceState(null, "", "#paylasimlar"); ciz(); paylasimPenceresi(k);
+  });
+};
+async function paylasimOlustur(o){
+  const id = rastgeleAnahtar(), yollar = [], tum = o.projeler.flatMap(p => projeGorselleri(p.id));
+  try{
+    for(let i = 0; i < tum.length; i += 100) await urlleriGetir(tum.slice(i, i + 100));
+    const projeler = [];
+    for(const p of o.projeler){
+      const gorseller = [];
+      for(const g of projeGorselleri(p.id)){
+        yuklemeGoster("Fotoğraflar hazırlanıyor " + (yollar.length + 1) + "/" + tum.length + "…");
+        const u = urlOnbellek[g.yol]; if(!u) throw new Error("fotoğraf alınamadı");
+        const r0 = await fetch(u.url); if(!r0.ok) throw new Error("fotoğraf indirilemedi");
+        const hedef = id + "/" + g.id + "_" + guvenliDosyaAdi(g.ad);
+        const r = await sb.storage.from(VITRIN).upload(hedef, await r0.blob(), {contentType:g.tur || "image/jpeg", upsert:false});
+        if(r.error) throw r.error;
+        yollar.push(hedef);
+        gorseller.push(sb.storage.from(VITRIN).getPublicUrl(hedef).data.publicUrl);
+      }
+      if(gorseller.length) projeler.push({baslik:p.baslik, kategori:p.kategori, aciklama:p.aciklama, malzeme:p.malzeme, olcu:p.olcu, fiyat: o.fiyatli ? p.fiyat : 0, gorseller});
+    }
+    const f = firma();
+    const k = {id, baslik:o.baslik, musteriId:o.musteriId, bitis: o.gun ? Date.now() + o.gun * 86400000 : 0, olusma:Date.now(),
+      icerik:{baslik:o.baslik, mesaj:o.mesaj, firma:{ad:FIRMA, telefon:f.telefon, adres:f.adres}, projeler, yollar}};
+    await Depo.kaydet("paylasimlar", k);
+    return k;
+  }catch(e){
+    if(yollar.length) sb.storage.from(VITRIN).remove(yollar).catch(() => {});
+    if(/bucket not found/i.test((e && e.message) || "")) throw new Error("Paylaşım deposu kurulmamış: Supabase'de “supabase-guncelleme-4.sql” dosyasını çalıştırın.");
+    throw e;
+  }finally{ yuklemeKapat(); }
+}
+EYLEM.paylasimAc = (el, id) => { const k = bul("paylasimlar", id); if(k) paylasimPenceresi(k); };
+function paylasimPenceresi(k){
+  const link = paylasimLinki(k), m = bul("musteriler", k.musteriId) || {};
+  const p = document.createElement("div"); p.className = "perde";
+  p.innerHTML = '<div class="pencere" style="max-width:460px"><p>Bağlantı hazır</p><div class="alt-bilgi">' + esc(k.baslik) + (k.bitis ? ' · son gün ' + msTarih(k.bitis) : '') + '</div>' +
+    '<input class="kutu" readonly value="' + esc(link) + '" style="margin-top:12px;font-size:14px" onclick="this.select()">' +
+    '<div class="secim-liste"><button class="buton wa-buton" data-k="wa">' + ik("mesaj") + 'WhatsApp ile gönder</button>' +
+    '<button class="buton ikincil" data-k="kopyala">' + ik("ataç") + 'Bağlantıyı kopyala</button>' +
+    '<a class="buton ikincil" href="' + esc(link) + '" target="_blank" rel="noopener">' + ik("ekran") + 'Müşterinin göreceği sayfayı aç</a>' +
+    '<button class="buton ikincil" data-k="kapat">Kapat</button></div></div>';
+  p.addEventListener("click", e => {
+    const b = e.target.closest("[data-k]");
+    if(!b){ if(e.target === p) p.remove(); return; }
+    const c = b.getAttribute("data-k");
+    if(c === "kopyala"){
+      const yedek = () => { const i = p.querySelector("input"); i.select(); try{ document.execCommand("copy"); }catch(x){} bildir("Bağlantı kopyalandı"); };
+      if(navigator.clipboard) navigator.clipboard.writeText(link).then(() => bildir("Bağlantı kopyalandı"), yedek); else yedek();
+      return;
+    }
+    p.remove();
+    if(c === "wa") waPencere({tel:m.telefon, ad:m.ad, sablonlar:[{ad:"Katalog bağlantısı", metin:"Merhaba" + (m.ad ? " " + m.ad : "") + ", sizin için hazırladığımız örnek projelerimizi bu bağlantıdan inceleyebilirsiniz:\n" + link +
+      (k.bitis ? "\n(Bağlantı " + msTarih(k.bitis) + " tarihine kadar açıktır.)" : "") + "\n\n" + FIRMA}]});
+  });
+  document.body.appendChild(p);
+}
+EYLEM.paylasimSil = (el, id) => {
+  const k = bul("paylasimlar", id); if(!k) return;
+  onayla("Bağlantı kapatılsın mı?", "Müşteri bu bağlantıyı artık açamaz; paylaşılan fotoğraf kopyaları silinir. Katalog etkilenmez.", "Kapat", () => islem(null, async () => {
+    const yollar = (k.icerik && k.icerik.yollar) || [];
+    if(yollar.length){ const r = await sb.storage.from(VITRIN).remove(yollar); if(r.error) throw r.error; }
+    await Depo.sil("paylasimlar", id); bildir("Bağlantı kapatıldı"); ciz();
+  }));
+};
+
+/* --- Müşterinin gördüğü sayfa (giriş gerekmez) --- */
+let vitrinVeri = null;
+async function vitrinGoster(anahtar){
+  document.body.classList.add("girissiz");
+  window.addEventListener("hashchange", () => location.reload());
+  const el = document.getElementById("uygulama"), mesaj = (b, a) => {
+    el.innerHTML = '<div class="giris-ekrani"><div class="kart" style="text-align:center"><div class="logo" style="justify-content:center"><span class="gunes">' + ik("gunes") + '</span>' + esc(FIRMA) + '</div>' +
+      '<p style="font-weight:600;margin:16px 0 4px">' + esc(b) + '</p><div class="alt-bilgi">' + esc(a || "") + '</div></div></div>';
+  };
+  el.innerHTML = '<div class="yukleniyor"><span class="donen"></span>Yükleniyor…</div>';
+  if(!sb) return mesaj("İnternet bağlantısı yok gibi görünüyor.", "Bağlantınızı kontrol edip sayfayı yenileyin.");
+  let r;
+  try{ r = await sb.rpc("vitrin_getir", {anahtar}); }catch(e){ r = {error:e}; }
+  if(r.error && /fetch|network|Failed/i.test(r.error.message || "")) return mesaj("İnternet bağlantısı yok gibi görünüyor.", "Bağlantınızı kontrol edip sayfayı yenileyin.");
+  if(r.error || !r.data || !Array.isArray(r.data.projeler)) return mesaj("Bu bağlantı geçersiz veya süresi dolmuş.", "Güncel bağlantı için bizimle iletişime geçebilirsiniz.");
+  const v = vitrinVeri = r.data, fr = v.firma || {}, tel = waNumara(fr.telefon);
+  v.projeler.forEach(p => p.gorseller.forEach(u => { urlOnbellek[u] = {url:u, bitis:Infinity}; }));
+  document.title = v.baslik + " — " + (fr.ad || FIRMA);
+  const iletisim = (tel ? '<a class="buton wa-buton" href="' + esc(vitrinWaLink(fr.telefon, "“" + v.baslik + "” sayfanızı inceledim, bilgi almak istiyorum.")) + '" target="_blank" rel="noopener">' + ik("mesaj") + 'WhatsApp\'tan yazın</a>' +
+    '<a class="buton saydam" href="tel:+' + tel + '">' + ik("telefon") + 'Arayın</a>' : '');
+  el.innerHTML = '<main class="sayfa" style="max-width:1100px">' +
+    '<div class="vitrin"><div class="marka"><span class="gunes">' + ik("gunes") + '</span>' + esc(fr.ad || FIRMA) + '</div>' +
+      '<h1 style="font-size:22px;margin:14px 0 4px;position:relative">' + esc(v.baslik) + '</h1>' +
+      (v.mesaj ? '<div class="alt" style="white-space:pre-wrap">' + esc(v.mesaj) + '</div>' : '<div class="alt"></div>') +
+      '<div class="buton-sira"><button class="buton altin" data-is="vitrinSunum" data-arg="-1">' + ik("oynat") + 'Tüm fotoğrafları izle</button>' + iletisim + '</div></div>' +
+    '<div class="proje-izgara">' + v.projeler.map((p, i) => '<button class="proje-kart" data-is="vitrinSunum" data-arg="' + i + '"><span class="kapak"><img src="' + esc(p.gorseller[0]) + '" loading="lazy" alt="' + esc(p.baslik) + '">' +
+      '<span class="sayi">' + p.gorseller.length + ' foto</span></span><span class="pk"><b>' + esc(p.baslik) + '</b><span>' + esc([p.kategori, p.malzeme].filter(Boolean).join(" · ")) + '</span>' +
+      (p.fiyat ? '<span style="color:var(--yazi);font-weight:600;margin-top:2px;white-space:normal">' + para(p.fiyat) + '’den başlayan</span>' : '') + '</span></button>').join("") + '</div>' +
+    '<div class="alt-bilgi" style="text-align:center;margin:28px 0 12px">' + esc([fr.ad || FIRMA, fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></main>';
+}
+EYLEM.vitrinSunum = (el, i) => {
+  if(!vitrinVeri) return;
+  const n = Number(i), pl = n >= 0 ? [vitrinVeri.projeler[n]] : vitrinVeri.projeler;
+  sunumAc(pl.flatMap(p => p.gorseller.map(u => ({g:{yol:u}, p}))), 0, {telefon:(vitrinVeri.firma || {}).telefon});
+};
+
 /* --- Teklif çıktısı --- */
 EYLEM.teklifYazdir = async (el, id) => {
   const ie = bul("is_emirleri", id); if(!ie) return;
-  const m = bul("musteriler", ie.musteriId) || {}, o = isOzet(id), d = new Date();
+  const m = bul("musteriler", ie.musteriId) || {}, o = isOzet(id), fr = firma(), d = new Date();
+  const fiyatli = fiyatliMi(ie.kalemler), h = isHesap(ie.kalemler, ie.teklif);
   const fotolar = isDosyalari(id).filter(x => dosyaTuru(x) === "g").slice(0, 6);
   if(fotolar.length) await urlleriGetir(fotolar).catch(() => {});
   document.querySelectorAll(".baski").forEach(x => x.remove());
   const b = document.createElement("div"); b.className = "baski";
-  b.innerHTML = '<div class="b-ust"><div><h1>' + esc(FIRMA) + '</h1><div>Fiyat Teklifi</div></div>' +
-      '<div style="text-align:right">Teklif no: <b>' + esc(ie.no) + '</b><br>Tarih: ' + d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear() + '</div></div>' +
-    '<div>Sayın <b>' + esc(m.ad || "") + '</b>' + (m.telefon ? ' · ' + esc(m.telefon) : '') + '</div>' +
+  const toplamSatir = (k, v, kalin) => '<tr' + (kalin ? ' style="font-size:16px;font-weight:700"' : '') + '><td colspan="' + (fiyatli ? 5 : 3) + '" style="text-align:right;border:0">' + k + '</td><td style="text-align:right;border:0;white-space:nowrap">' + v + '</td></tr>';
+  b.innerHTML = '<div class="b-ust"><div><h1>' + esc(FIRMA) + '</h1><div>' + esc([fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></div>' +
+      '<div style="text-align:right"><b style="font-size:16px">FİYAT TEKLİFİ</b><br>Teklif no: <b>' + esc(ie.no) + '</b><br>Tarih: ' + d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear() + '</div></div>' +
+    '<div>Sayın <b>' + esc(m.ad || "") + '</b>' + (m.telefon ? ' · ' + esc(m.telefon) : '') + (ie.adres ? '<br>' + esc(ie.adres) : '') + '</div>' +
     '<h2>' + esc(ie.baslik) + '</h2>' +
-    (ie.kalemler.length ? '<table><tr><th>Ürün</th><th>Ölçü</th><th>Malzeme / renk</th><th>Adet</th></tr>' + ie.kalemler.map(k =>
-      '<tr><td>' + esc(k.ad) + '</td><td>' + esc(k.olcu) + '</td><td>' + esc(k.renk) + '</td><td>' + k.adet + '</td></tr>').join("") + '</table>' : '') +
+    (ie.kalemler.length ? '<table><tr><th>Ürün</th><th>Ölçü</th><th>Malzeme / renk</th><th>Adet</th>' + (fiyatli ? '<th style="text-align:right">Birim fiyat</th><th style="text-align:right">Tutar</th>' : '') + '</tr>' +
+      ie.kalemler.map(k => '<tr><td>' + esc(k.ad) + '</td><td>' + esc(k.olcu) + '</td><td>' + esc(k.renk) + '</td><td>' + k.adet + '</td>' +
+        (fiyatli ? '<td style="text-align:right;white-space:nowrap">' + (k.fiyat ? para(k.fiyat) : '') + '</td><td style="text-align:right;white-space:nowrap">' + (k.fiyat ? para(k.adet * k.fiyat) : '') + '</td>' : '') + '</tr>').join("") +
+      (fiyatli ? toplamSatir("Ara toplam", para(h.ara)) + (h.indirim ? toplamSatir("İndirim", "−" + para(h.indirim)) : '') + toplamSatir("KDV (%" + h.kdvOran + ")", para(h.kdv)) + toplamSatir("Genel toplam", para(h.toplam), true) : '') +
+      '</table>' : '') +
+    (!fiyatli && o.fiyat ? '<div class="toplam">Toplam (KDV dahil): ' + para(o.fiyat) + '</div>' : '') +
     (ie.aciklama ? '<p style="white-space:pre-wrap">' + esc(ie.aciklama) + '</p>' : '') +
-    (o.fiyat ? '<div class="toplam">Toplam: ' + para(o.fiyat) + '</div>' : '') +
-    (ie.teslimTarihi ? '<p>Tahmini teslim: ' + esc(tarihYaz(ie.teslimTarihi)) + '</p>' : '') +
+    '<p>' + [ie.teslimTarihi ? 'Tahmini teslim: <b>' + esc(tarihYaz(ie.teslimTarihi)) + '</b>' : '', ie.teklif.gecerlilik ? 'Teklif geçerlilik tarihi: <b>' + esc(tarihYaz(ie.teklif.gecerlilik)) + '</b>' : ''].filter(Boolean).join("<br>") + '</p>' +
+    (fr.teklifNotu ? '<p style="white-space:pre-wrap">' + esc(fr.teklifNotu) + '</p>' : '') +
+    (fr.iban ? '<p>IBAN: <b>' + esc(fr.iban) + '</b> (' + esc(FIRMA) + ')</p>' : '') +
     (fotolar.length ? '<h2>Görseller</h2><div class="b-foto">' + fotolar.map(x => urlOnbellek[x.yol] ? '<img src="' + esc(urlOnbellek[x.yol].url) + '" alt="">' : '').join("") + '</div>' : '') +
     '<div style="display:flex;justify-content:space-between;margin-top:40px"><div>Müşteri onayı<br><br>……………………</div><div style="text-align:right">' + esc(FIRMA) + '<br><br>……………………</div></div>';
   document.body.appendChild(b);
@@ -1844,6 +2322,15 @@ function ekranFaturaForm(tur, cariId, ieId){
   const ilkFiyat = satis && ie && ie.tutar && !veri.faturalar.some(f => f.isEmriId === ie.id && f.tur === "satis") ? yuvarla(ie.tutar / 1.2) : 0;
   form = {tur: satis ? "satis" : "alis", odeme:"Nakit", kategori: kategoriler("cikis")[0],
     kalemler:[{ad: satis && ie ? ie.baslik : "", miktar:1, fiyat:ilkFiyat, kdv:20}]};
+  // Kalem fiyatlı tekliften: indirim kalemlere oranla dağıtılır, KDV teklifteki orandır.
+  if(ilkFiyat && fiyatliMi(ie.kalemler)){
+    const h = isHesap(ie.kalemler, ie.teklif), oran = h.ara ? 1 - h.indirim / h.ara : 1, kdv = KDV_ORANLARI.indexOf(h.kdvOran) >= 0 ? h.kdvOran : 20;
+    form.kalemler = ie.kalemler.map(k => ({ad: k.ad + (k.olcu ? " (" + k.olcu + ")" : ""), miktar:k.adet, fiyat:yuvarla((k.fiyat || 0) * oran), kdv}));
+    // Kuruş yuvarlamasından kalan farkı tek adetli (yoksa son) fiyatlı kaleme ekle; fatura teklif toplamını tutsun.
+    const fark = yuvarla(h.net - form.kalemler.reduce((t, k) => t + k.miktar * k.fiyat, 0));
+    const hedef = form.kalemler.filter(k => k.fiyat > 0).sort((x, y) => (x.miktar === 1 ? 0 : 1) - (y.miktar === 1 ? 0 : 1))[0];
+    if(fark && hedef) hedef.fiyat = yuvarla(hedef.fiyat + fark / hedef.miktar);
+  }
   form.onOdeme = satis && ie ? yuvarla(bagsizTahsilatlar(ie.id, cariId).reduce((t, x) => t + x.tutar, 0)) : 0;
   const html = '<div class="kart form-kart">' +
     '<div class="iki-alan"><div><label class="etiket" for="cari" style="margin-top:0">' + (satis ? "Müşteri" : "Tedarikçi") + '</label>' + cariSecici(cariId, true, satis ? "musteri" : "tedarikci") +
@@ -1993,12 +2480,33 @@ function cubuklar(baslik, obj, toplam, renk, sinir){
 }
 
 /* ================= AYARLAR ================= */
+const FIRMA_VARSAYILAN = {telefon:"", adres:"", iban:"", teklifNotu:"", gecerlilik:15, kar:30};
+function firma(){
+  const a = veri.ayarlar.find(x => x.anahtar === "firma");
+  return Object.assign({}, FIRMA_VARSAYILAN, a && a.deger && typeof a.deger === "object" ? a.deger : {});
+}
+EYLEM.firmaKaydet = btn => {
+  const gun = Math.round(sayiOku(deger("fGecerlilik"))), kar = sayiOku(deger("fKar"));
+  if(!(gun >= 1 && gun <= 365)) return uyar("Geçerlilik süresini kontrol edin", "1 ile 365 gün arası olmalı.");
+  if(!(kar >= 0 && kar <= 500)) return uyar("Kâr oranını kontrol edin", "0 ile 500 arası olmalı.");
+  const d = {telefon:deger("fTelefon"), adres:deger("fAdres"), iban:deger("fIban"), teklifNotu:deger("fNot"), gecerlilik:gun, kar};
+  islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"firma", deger:d}); bildir("Firma bilgileri kaydedildi"); ciz(); });
+};
 function ekranAyarlar(){
   const son = Number(ayarOku("sonYedek")), eski = cevrimici ? yerelOku() : null;
   const katKart = (tur, baslik) => '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">' + baslik + '</div>' +
     '<div class="kategori-liste">' + kategoriler(tur).map((k, i) => '<span>' + esc(k) + '<button data-is="katSil" data-arg="' + tur + '|' + i + '" aria-label="Sil">' + ik("x") + '</button></span>').join("") + '</div>' +
     '<div class="buton-sira" style="flex-wrap:nowrap"><input id="yeniKat-' + tur + '" class="kutu" maxlength="40" placeholder="Yeni kategori adı"><button class="buton kucuk" data-is="katEkle" data-arg="' + tur + '">' + ik("arti") + 'Ekle</button></div></div>';
-  let html = '<div class="iki-sutun"><div>';
+  const fr = firma();
+  let html = '<div class="iki-sutun"><div>' +
+    '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Firma bilgileri <span class="ist" style="font-weight:400">(teklif ve müşteri sayfasında görünür)</span></div>' +
+      '<div class="iki-alan"><div><label class="etiket" for="fTelefon" style="margin-top:8px">Telefon / WhatsApp</label><input id="fTelefon" class="kutu" inputmode="tel" maxlength="30" value="' + esc(fr.telefon) + '" placeholder="05xx xxx xx xx"></div>' +
+      '<div><label class="etiket" for="fIban" style="margin-top:8px">IBAN <span class="ist">(isteğe bağlı)</span></label><input id="fIban" class="kutu" maxlength="40" value="' + esc(fr.iban) + '"></div></div>' +
+      '<label class="etiket" for="fAdres">Adres</label><input id="fAdres" class="kutu" maxlength="200" value="' + esc(fr.adres) + '">' +
+      '<label class="etiket" for="fNot">Teklif alt notu <span class="ist">(örn: Fiyatlara montaj ve nakliye dahildir.)</span></label><textarea id="fNot" class="kutu" maxlength="600" style="min-height:64px">' + esc(fr.teklifNotu) + '</textarea>' +
+      '<div class="iki-alan"><div><label class="etiket" for="fGecerlilik">Teklif geçerliliği (gün)</label><input id="fGecerlilik" class="kutu" inputmode="numeric" value="' + fr.gecerlilik + '"></div>' +
+      '<div><label class="etiket" for="fKar">Varsayılan kâr oranı (%)</label><input id="fKar" class="kutu" inputmode="decimal" value="' + sayiYaz(fr.kar) + '"></div></div>' +
+      '<button class="buton" data-is="firmaKaydet">' + ik("tamam") + 'Kaydet</button></div>';
   if(cevrimici){
     html += '<div class="kart"><div class="kart-baslik">Hesap</div><div style="font-weight:500">' + esc(kullaniciAdi()) + '</div>' +
       '<div class="alt-bilgi">Bilgiler bulutta saklanıyor; telefon ve bilgisayarda aynı bilgiler görünür.</div>' +
@@ -2019,6 +2527,9 @@ function ekranAyarlar(){
     '<div class="kart">' + bilgiSatir("Cari", veri.musteriler.length) + bilgiSatir("İş emri", veri.is_emirleri.length) + bilgiSatir("Fatura", veri.faturalar.length) + bilgiSatir("Kasa hareketi", veri.hareketler.length) +
       bilgiSatir("Katalog projesi", veri.katalog.length + " (" + veri.katalog_gorseller.length + " fotoğraf)") + '</div>' +
     '</div><div>' +
+    '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Malzeme fiyat listesi</div>' +
+      '<div class="alt-bilgi" style="margin:0">' + malzemeListesi().length + ' malzeme kayıtlı. Teklifte “Malzemeden hesapla” bu fiyatları kullanır.</div>' +
+      '<button class="buton ikincil" data-git="malzemeler">' + ik("kalem") + 'Listeyi düzenle</button></div>' +
     '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Katalog kategorileri</div>' +
       '<div class="kategori-liste">' + katalogListesi().map((k, i) => '<span>' + esc(k) + '<button data-is="kKatSil" data-arg="' + i + '" aria-label="Sil">' + ik("x") + '</button></span>').join("") + '</div>' +
       '<div class="buton-sira" style="flex-wrap:nowrap"><input id="yeniKat-katalog" class="kutu" maxlength="40" placeholder="Örn: Yatak odası"><button class="buton kucuk" data-is="kKatEkle">' + ik("arti") + 'Ekle</button></div></div>' +
@@ -2253,6 +2764,8 @@ document.addEventListener("visibilitychange", () => {
 });
 
 (async () => {
+  const vt = location.hash.match(/^#vitrin\/([\w-]+)/);
+  if(vt) return vitrinGoster(vt[1]);
   if(!cevrimici) return acilis();
   if(!sb){
     document.body.classList.add("girissiz");

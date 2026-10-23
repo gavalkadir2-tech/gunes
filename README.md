@@ -5,6 +5,10 @@ Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 ## Neler var?
 - **Katalog (showroom)**: Mutfak, banyo, gardırop, TV ünitesi (kategoriler Ayarlar'dan değiştirilebilir) projeleri; proje adı, açıklama, malzeme, ölçü ve isteğe bağlı tahmini fiyat. Telefondan fotoğraf çekme veya toplu yükleme; kapak seçme, sıralama, döndürme, başka projeye taşıma, silme
 - **Sunum modu**: Fotoğrafları müşteriye tam ekranda gösterir; ileri/geri oklar, telefonda kaydırma, klavye (← → Boşluk, Esc), otomatik geçiş, proje bilgilerini aç/kapat. Tek proje, tek kategori veya tüm katalog sunulabilir
+- **Müşteriye katalog bağlantısı**: Seçilen projeler giriş gerektirmeyen bir sayfa olarak WhatsApp'tan gönderilir (7 / 30 / 90 gün veya süresiz). Müşteri fotoğrafları tam ekran izler, tek dokunuşla WhatsApp'tan yazar veya arar. Bağlantı kapatılınca paylaşılan fotoğraf kopyaları silinir; asıl katalog gizli kalır
+- **Ayrıntılı teklif**: Kalem kalem birim fiyat, indirim, KDV, geçerlilik tarihi; firma telefonu / adresi / IBAN ve teklif notu ile yazdırılabilir / PDF teklif. “Teklif onaylandı — siparişe çevir” ile sipariş olur, kalemler ve fiyatlar satış faturasına aktarılır
+- **Malzeme fiyat listesi ve hızlı hesap**: Malzemelerin maliyetleri bir kez girilir; teklifte “Malzemeden hesapla” ile miktar + işçilik + kâr oranından önerilen birim fiyat ve tahmini kâr çıkar
+- **Ölçü / keşif formu**: Mekân, tavan yüksekliği, duvar ölçüleri, tesisat ve engeller (su, elektrik, doğalgaz, pencere…), notlar ve fotoğraflar; iş emrine bağlı. Ana sayfadan “Ölçü / Keşif” ile başlar
 - **Katalogdan teklif / iş emri**: Seçilen projeden bilgiler ve fotoğraflar aktarılmış, “Teklif” durumunda iş emri açılır (fiyat isteğe bağlı); müşteriye yazdırılabilir / PDF fiyat teklifi ve WhatsApp teklif mesajı
 - **Cariler**: Müşteri ve tedarikçiler, bakiye (alacak/borç), hesap ekstresi
 - **İş emirleri**: Sipariş kalemleri (ürün, ölçü, renk, adet), öncelik, sorumlu usta, teslimat adresi, üretim aşamaları (tek dokunuşla işaretlenir), notlar ve işlem geçmişi, **fotoğraf / video / dosya yükleme** (telefondan doğrudan kamera), kapora; işe bağlı faturalar, ödemeler, maliyet ve kâr; yazdırılabilir iş formu
@@ -20,8 +24,9 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 
 ### 1. Veritabanı (Supabase, ücretsiz)
 1. https://supabase.com → **Start your project** → yeni proje açın (bölge: Frankfurt).
-2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) ve `supabase-guncelleme-3.sql` (katalog) dosyalarını çalıştırın.
-   (Önceki dosyalar daha önce çalıştırıldıysa sadece eksik olanları çalıştırın; katalog için `supabase-guncelleme-3.sql` yeterli.)
+2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) ve `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif) dosyalarını çalıştırın.
+   (Önceki dosyalar daha önce çalıştırıldıysa sadece eksik olanları çalıştırın; örneğin katalog kuruluysa sadece `supabase-guncelleme-4.sql` yeterli.)
+   Firma telefonu, adresi, IBAN ve teklif notu uygulamada **Ayarlar → Firma bilgileri**'nden girilir.
 3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" kapalı olsun.
 4. **Authentication → Users → Add user → Create new user**:
    - E-posta: `dukkan@gunesmobilya.app` (giriş ekranında sadece `dukkan` yazılır)
