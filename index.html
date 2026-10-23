@@ -246,6 +246,82 @@ body.girissiz .menu{display:none;}
 .ikalem-alan .kutu{padding:8px 10px;font-size:15px}
 @media(max-width:599px){.ikalem-alan{grid-template-columns:1fr 1fr}.ikalem-alan .ikon-buton{grid-column:1 / -1;justify-self:end}}
 @media(min-width:900px){.galeri{grid-template-columns:repeat(4,1fr)}}
+
+/* Katalog */
+.vitrin{background:linear-gradient(135deg,#292524,#44403c);color:#fff;border-radius:16px;padding:22px 20px;margin-bottom:14px;position:relative;overflow:hidden}
+.vitrin:after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.35),transparent 70%)}
+.vitrin .marka{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;letter-spacing:-.3px}
+.vitrin .marka .gunes{width:38px;height:38px;border-radius:11px;background:rgba(251,191,36,.18);color:#fbbf24;display:flex;align-items:center;justify-content:center}
+.vitrin .alt{color:#d6d3d1;font-size:14px;margin:6px 0 16px}
+.vitrin .buton-sira{position:relative;z-index:1}
+.vitrin .buton{margin-top:0;flex:0 1 auto;width:auto;padding:12px 20px}
+@media(max-width:599px){.vitrin .buton{flex:1}}
+.buton.altin{background:#f59e0b;color:#1c1917}
+.buton.saydam{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.kat-izgara{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.kat-kutu{position:relative;aspect-ratio:16/10;border:2px solid transparent;border-radius:14px;overflow:hidden;background:#e7e5e4;padding:0;text-align:left;color:#fff;box-shadow:var(--golge)}
+.kat-kutu img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.kat-kutu .yazi{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:10px 12px;background:linear-gradient(transparent 35%,rgba(0,0,0,.65))}
+.kat-kutu b{font-size:15px;font-weight:600}
+.kat-kutu small{font-size:12px;opacity:.85}
+.kat-kutu.secili{border-color:var(--ana)}
+.kat-kutu.bos-kapak .yazi{background:none;color:var(--yazi)}
+.proje-izgara{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.proje-kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:14px;overflow:hidden;padding:0;text-align:left;box-shadow:var(--golge);display:flex;flex-direction:column}
+.proje-kart:hover{border-color:#d6d3d1}
+.kapak{aspect-ratio:4/3;background:#f0eeec;display:flex;align-items:center;justify-content:center;color:#d6d3d1;position:relative;overflow:hidden;width:100%}
+.kapak img{width:100%;height:100%;object-fit:cover;display:block}
+.kapak svg{width:34px;height:34px}
+.kapak .sayi{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;border-radius:999px;padding:2px 8px}
+.proje-kart .pk{padding:10px 12px 12px}
+.proje-kart .pk b{display:block;font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proje-kart .pk span{display:block;color:var(--soluk);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.buyuk-kapak{border:0;padding:0;border-radius:14px;cursor:pointer;margin-bottom:10px}
+.buyuk-kapak .oynat-rozet{position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.6);color:#fff;font-size:13px;font-weight:500;border-radius:999px;padding:6px 12px}
+.buyuk-kapak .oynat-rozet svg{width:14px;height:14px}
+.foto-sar .menu-dugme{position:absolute;right:4px;top:4px;width:30px;height:30px;border-radius:8px;border:0;background:rgba(0,0,0,.55);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1}
+.foto-sar .kapak-rozet{position:absolute;left:4px;top:4px;background:var(--ana);color:#fff;font-size:11px;font-weight:600;border-radius:6px;padding:1px 6px}
+.foto-sar{position:relative}
+.secim-liste{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.secim-liste .buton{margin-top:0;justify-content:flex-start}
+@media(min-width:600px){.kat-izgara{grid-template-columns:repeat(3,1fr)}.proje-izgara{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1100px){.kat-izgara{grid-template-columns:repeat(5,1fr)}.proje-izgara{grid-template-columns:repeat(4,1fr)}}
+
+/* Sunum modu */
+.sunum{position:fixed;inset:0;background:#0c0a09;z-index:75;display:flex;flex-direction:column;color:#fff;user-select:none}
+.sn-ust{display:flex;align-items:center;gap:8px;padding:10px 14px}
+.sn-ust .marka{display:flex;align-items:center;gap:8px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden}
+.sn-ust .marka svg{color:#fbbf24}
+.sn-ust .sayac{font-size:13px;color:#a8a29e;font-variant-numeric:tabular-nums}
+.sunum button{background:rgba(255,255,255,.1);border:0;color:#fff;border-radius:10px;height:38px;min-width:38px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
+.sunum button:hover{background:rgba(255,255,255,.18)}
+.sunum button.acik{background:#f59e0b;color:#1c1917}
+.sn-orta{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
+.sn-orta img{max-width:100%;max-height:100%;object-fit:contain;transition:opacity .25s}
+.sn-orta .ok{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.45)}
+.sn-orta .ok.sol{left:10px} .sn-orta .ok.sag{right:10px}
+.sn-alt{padding:12px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.4))}
+.sn-alt h3{margin:0;font-size:19px;font-weight:600}
+.sn-alt .k{color:#fbbf24;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.sn-alt .d{color:#d6d3d1;font-size:14px;margin-top:4px;max-width:760px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.sn-alt .o{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;font-size:14px}
+.sn-alt .o span{color:#a8a29e}
+.sunum.bilgisiz .sn-alt{display:none}
+.sn-gizli{display:none!important}
+@media(max-width:599px){.sn-ust .yazi-gizle{display:none}.sn-orta .ok{width:40px;height:40px}}
+
+/* Teklif çıktısı */
+.baski{display:none}
+@media print{
+  body.teklif-baski #uygulama,body.teklif-baski .menu{display:none!important}
+  body.teklif-baski .baski{display:block;font-size:13px}
+  .baski .b-ust{display:flex;justify-content:space-between;border-bottom:2px solid #1c1917;padding-bottom:10px;margin-bottom:14px}
+  .baski h1{margin:0;font-size:22px} .baski h2{font-size:15px;margin:18px 0 6px}
+  .baski .b-foto{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+  .baski .b-foto img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
+  .baski table{width:100%;border-collapse:collapse} .baski th,.baski td{border-bottom:1px solid #ddd;padding:6px 4px;text-align:left;vertical-align:top}
+  .baski .toplam{font-size:17px;font-weight:700;text-align:right;margin-top:12px}
+}
 @media print{
   body{padding:0!important;background:#fff;}
   .menu,.ust,.yazdirma,.bildirim{display:none!important;}
@@ -258,6 +334,7 @@ body.girissiz .menu{display:none;}
 <nav class="menu" id="menu">
   <div class="logo"><span class="gunes" data-ik="gunes"></span>Güneş Mobilya</div>
   <button data-git="ana"><span data-ik="ev"></span>Ana Sayfa</button>
+  <button data-git="katalog"><span data-ik="katalog"></span>Katalog</button>
   <button data-git="cariler"><span data-ik="kisiler"></span>Cariler</button>
   <button data-git="isler"><span data-ik="is"></span>İş Emirleri</button>
   <button data-git="faturalar"><span data-ik="fatura"></span>Faturalar</button>
@@ -296,7 +373,14 @@ const IK = {
   kamera:'<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
   ataç:'<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
   mesaj:'<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>',
-  oynat:'<polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/>'
+  oynat:'<polygon points="6 4 20 12 6 20 6 4" fill="currentColor"/>',
+  duraklat:'<path d="M8 5v14M16 5v14"/>',
+  katalog:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+  resim:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+  ekran:'<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
+  bilgi:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  dondur:'<path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/>',
+  yildiz:'<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>'
 };
 const ik = ad => '<svg class="ik" viewBox="0 0 24 24" aria-hidden="true">' + IK[ad] + '</svg>';
 document.querySelectorAll("[data-ik]").forEach(e => { e.outerHTML = ik(e.getAttribute("data-ik")); });
@@ -315,11 +399,15 @@ const KAPALI_DURUM = {"Teslim edildi":1, "İptal":1};
 const KDV_ORANLARI = [0, 1, 10, 20];
 const AYLAR = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
 const YEREL_ANAHTAR = "gunes_muhasebe_v1";
-const FORM_EKRANLARI = {giris:1, cikis:1, "cari-form":1, "is-form":1, "fatura-form":1, ayarlar:1};
+const FORM_EKRANLARI = {giris:1, cikis:1, "cari-form":1, "is-form":1, "fatura-form":1, "proje-form":1, ayarlar:1};
+const VARSAYILAN_KATALOG = ["Mutfak", "Banyo", "Gardırop", "TV ünitesi"];
 
 /* ================= VERİ & DEPO ================= */
 // Tablolar yabancı anahtar sırasıyla (önce cari, sonra iş, fatura, hareket).
-const TABLOLAR = ["musteriler", "is_emirleri", "is_notlari", "dosyalar", "faturalar", "hareketler", "ayarlar"];
+const TABLOLAR = ["musteriler", "is_emirleri", "is_notlari", "dosyalar", "faturalar", "hareketler", "ayarlar", "katalog", "katalog_gorseller"];
+// Sonradan eklenen tablolar: Supabase'de henüz kurulmadıysa uygulama yine açılır.
+const SONRADAN = {is_notlari:1, dosyalar:1, katalog:1, katalog_gorseller:1};
+const eksikTablo = {};
 const ALANLAR = {
   musteriler:  {id:"id", ad:"ad", tip:"tip", telefon:"telefon", adres:"adres", vergiNo:"vergi_no", olusma:"olusma"},
   is_emirleri: {id:"id", no:"no", musteriId:"musteri_id", baslik:"baslik", durum:"durum", teslimTarihi:"teslim_tarihi", tutar:"tutar", aciklama:"aciklama", olusma:"olusma",
@@ -330,13 +418,15 @@ const ALANLAR = {
                 kalemler:"kalemler", araToplam:"ara_toplam", kdvToplam:"kdv_toplam", toplam:"toplam", aciklama:"aciklama", olusma:"olusma"},
   hareketler:  {id:"id", tur:"tur", tutar:"tutar", kategori:"kategori", odeme:"odeme", aciklama:"aciklama", musteriId:"musteri_id",
                 isEmriId:"is_emri_id", faturaId:"fatura_id", tarih:"tarih", olusma:"olusma"},
-  ayarlar:     {anahtar:"anahtar", deger:"deger"}
+  ayarlar:     {anahtar:"anahtar", deger:"deger"},
+  katalog:     {id:"id", baslik:"baslik", kategori:"kategori", aciklama:"aciklama", malzeme:"malzeme", olcu:"olcu", fiyat:"fiyat", olusma:"olusma"},
+  katalog_gorseller: {id:"id", projeId:"proje_id", ad:"ad", tur:"tur", boyut:"boyut", yol:"yol", sira:"sira", olusma:"olusma"}
 };
-const SAYISAL = {tutar:1, toplam:1, araToplam:1, kdvToplam:1, olusma:1, boyut:1};
+const SAYISAL = {tutar:1, toplam:1, araToplam:1, kdvToplam:1, olusma:1, boyut:1, fiyat:1, sira:1};
 const JSONLI = {kalemler:1, asamalar:1};
 const BOSSA_NULL = {musteriId:1, isEmriId:1, faturaId:1, teslimTarihi:1, vade:1, odeme:1, deger:1};
 const anahtarAdi = t => t === "ayarlar" ? "anahtar" : "id";
-const bosVeri = () => ({musteriler:[], is_emirleri:[], is_notlari:[], dosyalar:[], faturalar:[], hareketler:[], ayarlar:[]});
+const bosVeri = () => ({musteriler:[], is_emirleri:[], is_notlari:[], dosyalar:[], faturalar:[], hareketler:[], ayarlar:[], katalog:[], katalog_gorseller:[]});
 
 const cevrimici = !!(BULUT.adres && BULUT.anahtar);
 const sb = cevrimici && window.supabase ? window.supabase.createClient(BULUT.adres, BULUT.anahtar) : null;
@@ -392,9 +482,10 @@ const Depo = {
       for(let bas = 0; ; bas += 1000){
         const r = await sb.from(t).select("*").order(anahtarAdi(t)).range(bas, bas + 999);
         if(r.error){   // yeni tablolar henüz kurulmadıysa site yine açılsın
-          if((t === "is_notlari" || t === "dosyalar") && /does not exist|schema cache|Could not find/i.test(r.error.message || "")) break;
+          if(SONRADAN[t] && /does not exist|schema cache|Could not find/i.test(r.error.message || "")){ eksikTablo[t] = 1; break; }
           throw r.error;
         }
+        delete eksikTablo[t];
         r.data.forEach(x => sonuc[t].push(buluttanCevir(t, x)));
         if(r.data.length < 1000) break;
       }
@@ -424,7 +515,7 @@ const Depo = {
 function hataMesaji(e){
   const m = (e && (e.message || e.error_description)) || String(e);
   if(/does not exist|Could not find the table|schema cache|column .* not found/i.test(m))
-    return "Veritabanı güncellemesi gerekiyor: Supabase'de “supabase-guncelleme.sql” ve “supabase-guncelleme-2.sql” dosyalarını çalıştırın.";
+    return "Veritabanı güncellemesi gerekiyor: Supabase'de “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql” ve “supabase-guncelleme-3.sql” dosyalarını çalıştırın.";
   if(/bucket not found/i.test(m)) return "Dosya deposu kurulmamış: Supabase'de “supabase-guncelleme-2.sql” dosyasını çalıştırın.";
   if(/fetch|network|Failed/i.test(m)) return "İnternet bağlantısı yok gibi görünüyor. Tekrar deneyin.";
   if(/JWT|row-level|permission/i.test(m)) return "Oturum süresi doldu. Lütfen tekrar giriş yapın.";
@@ -558,7 +649,7 @@ document.addEventListener("click", e => {
 });
 
 let ayGoster = bugun().slice(0, 7);
-const filtre = {kasa:"hepsi", fatura:"hepsi", is:"acik", cari:"hepsi"};
+const filtre = {kasa:"hepsi", fatura:"hepsi", is:"acik", cari:"hepsi", katalog:"hepsi"};
 let aramaYazi = "";
 let hazir = false;
 const yol = () => (location.hash || "#ana").slice(1).split("/").map(x => x && x !== "-" ? decodeURIComponent(x) : null);
@@ -571,8 +662,9 @@ function ciz(){
     ana: ekranAna, kasa: ekranKasa, kayit: () => ekranKayit(a), rapor: ekranRapor, ayarlar: ekranAyarlar,
     giris: () => ekranPara("giris", a, b, c), cikis: () => ekranPara("cikis", a, b, c),
     cariler: ekranCariler, cari: () => ekranCari(a), "cari-form": () => ekranCariForm(a, b),
-    isler: ekranIsler, is: () => ekranIs(a), "is-form": () => ekranIsForm(a, b),
-    faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c)
+    isler: ekranIsler, is: () => ekranIs(a), "is-form": () => ekranIsForm(a, b, c),
+    faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
+    katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b)
   };
   const s = (sayfalar[ekran] || ekranAna)();
   document.getElementById("uygulama").innerHTML =
@@ -583,7 +675,7 @@ function ciz(){
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
-    kayit:"kasa", giris:"kasa", cikis:"kasa"}[ekran] || ekran;
+    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
   if(s.sonra) s.sonra();
   window.scrollTo(0, 0);
@@ -957,10 +1049,12 @@ function waIsSablonlari(ie, m){
     {ad:"Hazır", metin: bas + isAd + " siparişiniz hazır. Teslimat için uygun olduğunuz gün ve saati bildirir misiniz?" + (o.kalan > 0 ? "\nTeslimatta kalan ödeme: " + para(o.kalan) : "") + imza},
     {ad:"Teslim edildi", metin: bas + isAd + " siparişiniz teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz." + imza},
     {ad:"Ödeme hatırlatma", metin: bas + ie.no + " numaralı siparişinizle ilgili " + para(Math.max(o.kalan, 0)) + " tutarında ödemeniz bulunmaktadır. Uygun olduğunuzda bilgi verirseniz seviniriz." + imza},
+    {ad:"Fiyat teklifi", metin: bas + isAd + " için fiyat teklifimiz:" + ie.kalemler.map(k => "\n• " + k.ad + (k.olcu ? " (" + k.olcu + ")" : "") + (k.renk ? " — " + k.renk : "") + (k.adet > 1 ? " × " + k.adet : "")).join("") +
+      (o.fiyat ? "\nToplam: " + para(o.fiyat) : "") + "\nOnaylarsanız siparişinizi hemen üretime alabiliriz." + imza},
     {ad:"Boş mesaj", metin: bas + imza}
   ];
 }
-const WA_DURUM = {"Sipariş alındı":0, "Üretimde":1, "Hazır":2, "Teslim edildi":3};
+const WA_DURUM = {"Sipariş alındı":0, "Üretimde":1, "Hazır":2, "Teslim edildi":3, "Teklif":5};
 EYLEM.waIs = (el, id) => {
   const ie = bul("is_emirleri", id); if(!ie) return;
   const m = bul("musteriler", ie.musteriId) || {};
@@ -1043,22 +1137,26 @@ EYLEM.asamaEkle = () => {
   if(form.asamaSecili.indexOf(ad) < 0) form.asamaSecili.push(ad);
   document.getElementById("asamaKutu").innerHTML = asamaChipleri(); document.getElementById("yeniAsama").value = "";
 };
-function ekranIsForm(id, cariId){
+function ekranIsForm(id, cariId, projeId){
   const ie = bul("is_emirleri", id), m0 = bul("musteriler", ie ? ie.musteriId : cariId);
+  const pr = ie ? null : bul("katalog", projeId), prFoto = pr && cevrimici ? projeGorselleri(pr.id).length : 0;
   const mevcut = ie ? ie.asamalar.map(a => a.ad) : ASAMALAR.slice();
-  form = {durum: ie ? ie.durum : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit",
-    ikalemler: ie && ie.kalemler.length ? ie.kalemler.map(k => Object.assign({}, k)) : [bosKalem()],
+  form = {durum: ie ? ie.durum : pr ? "Teklif" : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit", projeId: pr ? pr.id : null,
+    ikalemler: ie && ie.kalemler.length ? ie.kalemler.map(k => Object.assign({}, k)) :
+      pr ? [{ad: pr.kategori ? pr.kategori + " — " + pr.baslik : pr.baslik, olcu:pr.olcu, renk:pr.malzeme, adet:1, katalogId:pr.id}] : [bosKalem()],
     asamaTum: ASAMALAR.concat(mevcut.filter(a => ASAMALAR.indexOf(a) < 0)), asamaSecili: mevcut};
   const ustalar = Array.from(new Set(veri.is_emirleri.map(i => i.sorumlu).filter(Boolean)));
   const html = '<div class="kart form-kart">' +
-    '<label class="etiket" for="cari" style="margin-top:0">Müşteri</label>' + cariSecici(ie ? ie.musteriId : cariId, true, "musteri") +
+    (pr ? '<div class="bilgi-kutu" style="margin:0 0 4px">Katalog projesinden: <b>' + esc(pr.baslik) + '</b>. Bilgiler aşağıya aktarıldı; fiyat isteğe bağlıdır, durum “Teklif” olarak açılır.</div>' : '') +
+    '<label class="etiket" for="cari"' + (pr ? '' : ' style="margin-top:0"') + '>Müşteri</label>' + cariSecici(ie ? ie.musteriId : cariId, true, "musteri") +
     '<div class="alt-bilgi">Listede yoksa: <b data-git="cari-form/-/musteri" style="cursor:pointer;color:var(--borc)">+ Yeni müşteri ekle</b></div>' +
-    '<label class="etiket" for="baslik">İş başlığı</label><input id="baslik" class="kutu" maxlength="120" value="' + esc(ie ? ie.baslik : "") + '" placeholder="Örn: Yatak odası takımı">' +
+    '<label class="etiket" for="baslik">İş başlığı</label><input id="baslik" class="kutu" maxlength="120" value="' + esc(ie ? ie.baslik : pr ? pr.baslik : "") + '" placeholder="Örn: Yatak odası takımı">' +
     '<div class="form-bolum">Sipariş kalemleri</div><div id="ikalemler">' + form.ikalemler.map(ikalemHtml).join("") + '</div>' +
     '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="ikalemEkle">' + ik("arti") + 'Ürün ekle</button>' +
-    '<label class="etiket" for="aciklama">Notlar / özel istekler <span class="ist">(kumaş, kulp, montaj detayı…)</span></label><textarea id="aciklama" class="kutu" maxlength="2000">' + esc(ie ? ie.aciklama : "") + '</textarea>' +
+    '<label class="etiket" for="aciklama">Notlar / özel istekler <span class="ist">(kumaş, kulp, montaj detayı…)</span></label><textarea id="aciklama" class="kutu" maxlength="2000">' + esc(ie ? ie.aciklama : pr ? pr.aciklama : "") + '</textarea>' +
+    (prFoto ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px"><input type="checkbox" id="fotoKopyala" checked> Projenin ' + prFoto + ' fotoğrafını iş emrine ekle</label>' : '') +
     '<div class="form-bolum">Teslimat ve sorumlu</div>' +
-    '<div class="iki-alan"><div><label class="etiket" for="fiyat" style="margin-top:0">Anlaşılan fiyat</label><input id="fiyat" class="kutu" inputmode="decimal" value="' + (ie ? sayiYaz(ie.tutar) : "") + '" placeholder="0 ₺"></div>' +
+    '<div class="iki-alan"><div><label class="etiket" for="fiyat" style="margin-top:0">' + (pr ? 'Teklif fiyatı <span class="ist">(isteğe bağlı)</span>' : 'Anlaşılan fiyat') + '</label><input id="fiyat" class="kutu" inputmode="decimal" value="' + (ie ? sayiYaz(ie.tutar) : pr ? sayiYaz(pr.fiyat) : "") + '" placeholder="0 ₺"></div>' +
     '<div>' + tarihAlani("teslim", "Teslim tarihi", ie ? ie.teslimTarihi : "", true) + '</div></div>' +
     '<div class="iki-alan"><div><label class="etiket" for="sorumlu">Sorumlu usta <span class="ist">(isteğe bağlı)</span></label><input id="sorumlu" class="kutu" list="ustalar" maxlength="60" value="' + esc(ie ? ie.sorumlu : "") + '">' +
     '<datalist id="ustalar">' + ustalar.map(u => '<option value="' + esc(u) + '">').join("") + '</datalist></div>' +
@@ -1092,7 +1190,9 @@ EYLEM.isKaydet = (btn, id) => {
   const kaporaYazi = deger("kapora"), kapora = kaporaYazi ? sayiOku(kaporaYazi) : 0;
   if(!(kapora >= 0)) return hataYaz("Kapora tutarını kontrol edin.");
   const eski = bul("is_emirleri", id);
-  const kalemler = form.ikalemler.filter(k => k.ad.trim()).map(k => ({ad:k.ad.trim(), olcu:String(k.olcu || "").trim(), renk:String(k.renk || "").trim(), adet:Math.max(1, Math.round(Number(k.adet)) || 1)}));
+  const kalemler = form.ikalemler.filter(k => k.ad.trim()).map(k => Object.assign({ad:k.ad.trim(), olcu:String(k.olcu || "").trim(), renk:String(k.renk || "").trim(), adet:Math.max(1, Math.round(Number(k.adet)) || 1)},
+    k.katalogId ? {katalogId:k.katalogId} : {}));
+  const pr = !id && bul("katalog", form.projeId), fotoKopyala = !!(pr && document.getElementById("fotoKopyala") && document.getElementById("fotoKopyala").checked);
   const eskiAs = eski ? eski.asamalar : [];
   const asamalar = form.asamaTum.filter(a => form.asamaSecili.indexOf(a) >= 0).map(a => ({ad:a, tamam: !!(eskiAs.find(x => x.ad === a) || {}).tamam}));
   const k = {id: id || yeniId(), no: eski ? eski.no : siradakiNo("İE-", veri.is_emirleri), musteriId:cari, baslik, durum:form.durum, oncelik:form.oncelik,
@@ -1100,7 +1200,8 @@ EYLEM.isKaydet = (btn, id) => {
     olusma: eski ? eski.olusma : Date.now()};
   islem(btn, async () => {
     await Depo.kaydet("is_emirleri", k);
-    if(!id) await notEkle(k.id, "İş emri açıldı");
+    if(!id) await notEkle(k.id, pr ? "Katalogdan teklif açıldı: " + pr.baslik : "İş emri açıldı");
+    if(fotoKopyala) await projeFotolariniKopyala(pr.id, k.id);
     else if(eski.durum !== k.durum) await notEkle(k.id, "Durum: " + eski.durum + " → " + k.durum);
     if(kapora > 0) await Depo.kaydet("hareketler", {id:yeniId(), tur:"giris", tutar:yuvarla(kapora), kategori:"Kapora / Peşinat", odeme:form.odeme,
       musteriId:cari, isEmriId:k.id, faturaId:null, aciklama:baslik, tarih:bugun(), olusma:Date.now()});
@@ -1140,7 +1241,8 @@ function ekranIs(id){
       '<div class="yazdirma"><label class="etiket">Durumu değiştir</label><div class="secenekler">' + DURUMLAR.map(d =>
         '<button class="secenek' + (d === ie.durum ? " secili" : "") + '" data-is="durumDegistir" data-arg="' + id + '|' + d + '">' + d + '</button>').join("") + '</div></div></div>' +
     (ie.kalemler.length ? '<div class="kart liste-kart"><div class="kart-baslik" style="margin:12px 0 2px">Sipariş kalemleri</div>' + ie.kalemler.map(k =>
-      '<div class="satir"><span class="orta"><div class="s1" style="white-space:normal">' + esc(k.ad) + '</div><div class="s2" style="white-space:normal">' + esc([k.olcu, k.renk].filter(Boolean).join(" · ")) + '</div></span>' +
+      '<div class="satir"><span class="orta"><div class="s1" style="white-space:normal">' + esc(k.ad) + '</div><div class="s2" style="white-space:normal">' + esc([k.olcu, k.renk].filter(Boolean).join(" · ")) +
+        (k.katalogId && bul("katalog", k.katalogId) ? ' · <b data-git="proje/' + esc(k.katalogId) + '" style="cursor:pointer;color:var(--borc);font-weight:500">Katalogda gör</b>' : '') + '</div></span>' +
       '<span class="tutar t-soluk">× ' + k.adet + '</span></div>').join("") + '</div>' : '') +
     (as.length ? '<div class="kart"><div class="kart-baslik"><span>Üretim aşamaları</span><span>' + yap + '/' + as.length + '</span></div><div class="ilerleme"><i style="width:' + Math.round(yap / as.length * 100) + '%"></i></div>' +
       as.map((a, i) => '<button class="asama' + (a.tamam ? " tamam" : "") + '" data-is="asamaDegis" data-arg="' + id + '|' + i + '"><span class="kutucuk">' + (a.tamam ? ik("tamam") : "") + '</span><span class="ad">' + esc(a.ad) + '</span></button>').join("") + '</div>' : '') +
@@ -1153,6 +1255,7 @@ function ekranIs(id){
       hizliButon("giris/" + cari + "/" + id, "r-giris", "asagi", "Tahsilat Al") + hizliButon("fatura-form/satis/" + cari + "/" + id, "r-borc", "fatura", "Satış Faturası") +
       hizliButon("cikis/-/" + id, "r-cikis", "yukari", "Gider Ekle") + hizliButon("fatura-form/alis/-/" + id, "r-gri", "fatura", "Alış Faturası") + '</div>' +
     '<button class="buton wa-buton" style="margin-top:0" data-is="waIs" data-arg="' + id + '">' + ik("mesaj") + 'Müşteriye WhatsApp mesajı</button>' +
+    '<button class="buton ikincil" style="margin-top:12px" data-is="teklifYazdir" data-arg="' + id + '">' + ik("fatura") + 'Müşteriye fiyat teklifi yazdır / PDF</button>' +
     '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" onclick="window.print()">' + ik("yazdir") + 'Yazdır</button>' +
     '<button class="buton ikincil" data-git="is-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
     '<button class="buton tehlike" data-is="isSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div></div>' +
@@ -1217,11 +1320,11 @@ function yuklemeGoster(y){
 }
 function yuklemeKapat(){ if(yuklemeEl){ yuklemeEl.remove(); yuklemeEl = null; } }
 // Fotoğrafları küçültür (telefon fotoğrafı 5 MB yerine ~300 KB olur); video ve belgeler olduğu gibi yüklenir.
-async function gorselKucult(file){
+async function gorselKucult(file, enFazla){
   if(!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
   try{
     const bmp = await createImageBitmap(file, {imageOrientation:"from-image"});
-    const oran = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+    const oran = Math.min(1, (enFazla || 1600) / Math.max(bmp.width, bmp.height));
     const c = document.createElement("canvas"); c.width = Math.round(bmp.width * oran); c.height = Math.round(bmp.height * oran);
     const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0, c.width, c.height);
     if(bmp.close) bmp.close();
@@ -1317,6 +1420,377 @@ async function dosyaPaylas(ieId, d){
     waPencere({tel:m.telefon, ad:m.ad, isEmriId:ieId, sablonlar:[{ad:"Dosya bağlantısı", metin:"Merhaba " + (m.ad || "") + ", " + ie.no + " siparişinize ait dosya:\n" + r.data.signedUrl + "\n(Bağlantı 7 gün geçerlidir)\n\n" + FIRMA}]});
   }catch(e){ uyar("Paylaşılamadı", hataMesaji(e)); }
 }
+
+/* ================= KATALOG ================= */
+// Projeler "katalog" tablosunda, fotoğrafları "katalog_gorseller" tablosunda; dosyalar Storage'da "katalog/<proje>/" altında durur.
+const KATALOG_KLASOR = "katalog";
+const DOSYA_TABLO = {dosyalar:1, katalog_gorseller:1};   // kayıtları dosyaya bağlı tablolar (JSON yedeğe girmez)
+const guvenliDosyaAdi = a => String(a).normalize("NFKD").replace(/[^\w.\-]+/g, "_").slice(-80);
+function katalogListesi(){
+  const a = veri.ayarlar.find(x => x.anahtar === "katalogKategorileri");
+  return a && Array.isArray(a.deger) && a.deger.length ? a.deger.slice() : VARSAYILAN_KATALOG.slice();
+}
+// Ayarlardaki liste + projelerde kullanılıp listeden çıkarılmış kategoriler
+function katalogKategorileri(){
+  const l = katalogListesi();
+  veri.katalog.forEach(p => { if(p.kategori && l.indexOf(p.kategori) < 0) l.push(p.kategori); });
+  return l;
+}
+const gorselSira = (a, b) => a.sira - b.sira || a.olusma - b.olusma;
+const projeGorselleri = id => veri.katalog_gorseller.filter(g => g.projeId === id).sort(gorselSira);
+function projeSirali(liste){
+  const kat = katalogKategorileri();
+  return liste.slice().sort((a, b) => kat.indexOf(a.kategori) - kat.indexOf(b.kategori) || b.olusma - a.olusma);
+}
+let katalogArama = "";
+
+function ekranKatalog(){
+  if(eksikTablo.katalog || eksikTablo.katalog_gorseller)
+    return {baslik:"Katalog", html:'<div class="uyari">Katalog için veritabanı güncellemesi gerekiyor: Supabase\'de <b>supabase-guncelleme-3.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};
+  const kat = katalogKategorileri();
+  if(filtre.katalog !== "hepsi" && kat.indexOf(filtre.katalog) < 0) filtre.katalog = "hepsi";
+  const f = filtre.katalog, projeler = projeSirali(veri.katalog);
+  const sec = projeler.filter(p => f === "hepsi" || p.kategori === f);
+  const yeniYer = "proje-form/-/" + (f === "hepsi" ? "-" : encodeURIComponent(f));
+  const kutu = (ad, d, liste) => {
+    const kp = liste.map(p => projeGorselleri(p.id)[0]).find(Boolean);
+    return '<button class="kat-kutu' + (kp ? '' : ' bos-kapak') + (f === d ? ' secili' : '') + '" data-is="katalogFiltre" data-arg="' + esc(d) + '">' +
+      (kp ? '<img data-yol="' + esc(kp.yol) + '" loading="lazy" alt="">' : '') + '<span class="yazi"><b>' + esc(ad) + '</b><small>' + liste.length + ' proje</small></span></button>';
+  };
+  const html = '<div class="vitrin"><div class="marka"><span class="gunes">' + ik("gunes") + '</span>Güneş Mobilya</div>' +
+      '<div class="alt">Proje kataloğu · ' + projeler.length + ' proje · ' + veri.katalog_gorseller.length + ' fotoğraf</div>' +
+      '<div class="buton-sira"><button class="buton altin" data-is="katalogSunum">' + ik("oynat") + (f === "hepsi" ? 'Sunumu başlat' : esc(f) + ' sunumu') + '</button>' +
+      '<button class="buton saydam" data-git="' + yeniYer + '">' + ik("arti") + 'Yeni proje</button></div></div>' +
+    '<div class="kat-izgara">' + kutu("Tümü", "hepsi", projeler) + kat.map(k => kutu(k, k, projeler.filter(p => p.kategori === k))).join("") + '</div>' +
+    bolum((f === "hepsi" ? "Tüm projeler" : esc(f)) + " (" + sec.length + ")", '<button data-git="' + yeniYer + '">+ Yeni proje</button>') +
+    (veri.katalog.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="Proje, malzeme veya ölçü ara…" value="' + esc(katalogArama) + '"></div>' : '') +
+    '<div id="projeListe">' + projeListesi(sec) + '</div>';
+  return {baslik:"Katalog", html, sonra(){
+    const a = document.getElementById("ara");
+    if(a) a.addEventListener("input", () => { katalogArama = a.value; document.getElementById("projeListe").innerHTML = projeListesi(sec); galeriDoldur(); });
+    galeriDoldur();
+  }};
+}
+function projeListesi(liste){
+  if(!veri.katalog.length) return '<div class="kart">' + bos("katalog", "Henüz proje yok. “Yeni proje” ile ilk mutfak, banyo, gardırop veya TV ünitesi projenizi ekleyin.") + '</div>';
+  const q = katalogArama.toLocaleLowerCase("tr");
+  const l = liste.filter(p => !q || [p.baslik, p.kategori, p.malzeme, p.olcu, p.aciklama].join(" ").toLocaleLowerCase("tr").indexOf(q) >= 0);
+  if(!l.length) return '<div class="kart">' + (q ? bos("ara", "Bulunamadı.") : bos("katalog", "Bu kategoride henüz proje yok.")) + '</div>';
+  return '<div class="proje-izgara">' + l.map(p => {
+    const g = projeGorselleri(p.id);
+    return '<button class="proje-kart" data-git="proje/' + p.id + '"><span class="kapak">' +
+      (g.length ? '<img data-yol="' + esc(g[0].yol) + '" loading="lazy" alt=""><span class="sayi">' + g.length + ' foto</span>' : ik("resim")) + '</span>' +
+      '<span class="pk"><b>' + esc(p.baslik) + '</b><span>' + esc([p.kategori, p.malzeme].filter(Boolean).join(" · ")) + '</span></span></button>';
+  }).join("") + '</div>';
+}
+EYLEM.katalogFiltre = (el, k) => { filtre.katalog = k; ciz(); };
+EYLEM.katalogSunum = () => {
+  const f = filtre.katalog;
+  sunumAc(sunumListesi(projeSirali(veri.katalog.filter(p => f === "hepsi" || p.kategori === f))), 0);
+};
+
+/* --- Proje sayfası --- */
+function ekranProje(id){
+  const p = bul("katalog", id);
+  if(!p) return {baslik:"Proje", geri:true, html:'<div class="kart">' + bos("katalog", "Proje bulunamadı.") + '</div>'};
+  const g = projeGorselleri(id);
+  const isler = veri.is_emirleri.filter(ie => ie.kalemler.some(k => k.katalogId === id)).sort((a, b) => b.olusma - a.olusma);
+  const html = '<div class="iki-sutun genis"><div>' +
+    (g.length ? '<button class="kapak buyuk-kapak" data-is="projeSunum" data-arg="' + id + '|0"><img data-yol="' + esc(g[0].yol) + '" alt="' + esc(p.baslik) + '">' +
+      '<span class="oynat-rozet">' + ik("oynat") + 'Sunum modu</span></button>' : '') +
+    '<div class="kart"><div class="kart-baslik"><span>Fotoğraflar (' + g.length + ')</span></div>' +
+    (cevrimici ? '<div class="buton-sira" style="margin-top:8px"><button class="buton ikincil kucuk" onclick="document.getElementById(\'kKamera\').click()">' + ik("kamera") + 'Fotoğraf çek</button>' +
+      '<button class="buton ikincil kucuk" onclick="document.getElementById(\'kGaleri\').click()">' + ik("yukle") + 'Fotoğraf yükle</button></div>' +
+      '<input type="file" id="kKamera" accept="image/*" capture="environment" style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">' +
+      '<input type="file" id="kGaleri" accept="image/*" multiple style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">'
+      : '<div class="alt-bilgi">Fotoğraf yüklemek için bulut bağlantısı gerekir.</div>') +
+    (g.length ? '<div class="galeri">' + g.map((x, i) => '<div class="foto-sar"><button class="foto" data-is="projeSunum" data-arg="' + id + '|' + i + '"><img data-yol="' + esc(x.yol) + '" loading="lazy" alt="' + esc(x.ad) + '"></button>' +
+        (i === 0 ? '<span class="kapak-rozet">Kapak</span>' : '') + '<button class="menu-dugme" data-is="gorselMenu" data-arg="' + x.id + '" aria-label="Fotoğraf işlemleri">⋯</button></div>').join("") + '</div>' +
+      '<div class="alt-bilgi">⋯ ile kapak yapabilir, sırasını değiştirebilir, döndürebilir, başka projeye taşıyabilir veya silebilirsiniz.</div>' : bos("kamera", "Henüz fotoğraf yok.")) + '</div>' +
+    '</div><div>' +
+    '<div class="kart"><span class="etiket-rozet d-sari">' + esc(p.kategori || "Kategorisiz") + '</span>' +
+      '<div style="font-size:19px;font-weight:600;margin:8px 0 6px">' + esc(p.baslik) + '</div>' +
+      (p.malzeme ? bilgiSatir("Malzeme", esc(p.malzeme)) : '') + (p.olcu ? bilgiSatir("Ölçüler", esc(p.olcu)) : '') +
+      (p.fiyat ? bilgiSatir("Tahmini fiyat", para(p.fiyat)) : '') +
+      (p.aciklama ? '<div style="white-space:pre-wrap;font-size:14px;margin-top:10px;background:var(--hafif);border-radius:10px;padding:10px 12px">' + esc(p.aciklama) + '</div>' : '') + '</div>' +
+    '<button class="buton" style="margin-top:0" data-git="is-form/-/-/' + id + '">' + ik("is") + 'Bu projeden teklif / iş emri oluştur</button>' +
+    '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" data-is="projeSunum" data-arg="' + id + '|0">' + ik("ekran") + 'Sunum</button>' +
+      '<button class="buton ikincil" data-git="proje-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
+      '<button class="buton tehlike" data-is="projeSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div>' +
+    bolum("Bu projeden açılan işler (" + isler.length + ")") +
+    '<div class="kart liste-kart">' + (isler.length ? isler.map(ie => isSatir(ie)).join("") : bos("is", "Henüz teklif veya iş emri yok.")) + '</div>' +
+    '</div></div>';
+  return {baslik:p.baslik, geri:true, html, sonra: galeriDoldur};
+}
+EYLEM.projeSunum = (el, arg) => {
+  const [id, i] = arg.split("|"), p = bul("katalog", id);
+  if(p) sunumAc(sunumListesi([p]), Number(i) || 0);
+};
+EYLEM.projeSil = (el, id) => {
+  const g = projeGorselleri(id);
+  onayla("Proje silinsin mi?", (g.length ? g.length + " fotoğrafı da silinir. " : "") + "Bu projeden açılmış iş emirleri silinmez.", "Sil", () => islem(null, async () => {
+    if(cevrimici && g.length){ const r = await sb.storage.from(BUCKET).remove(g.map(x => x.yol)); if(r.error) throw r.error; }
+    await Depo.sil("katalog", id);
+    veri.katalog_gorseller = veri.katalog_gorseller.filter(x => x.projeId !== id);
+    if(!cevrimici) yerelYaz(veri);
+    bildir("Proje silindi"); git("katalog");
+  }));
+};
+
+/* --- Proje formu --- */
+function ekranProjeForm(id, kategori){
+  const p = bul("katalog", id), kat = katalogKategorileri();
+  form = {kategori: p ? p.kategori : kat.indexOf(kategori) >= 0 ? kategori : kat[0], yeniFotolar:[]};
+  const html = '<div class="kart form-kart">' +
+    '<label class="etiket" for="pAd" style="margin-top:0">Proje adı</label><input id="pAd" class="kutu" maxlength="120" value="' + esc(p ? p.baslik : "") + '" placeholder="Örn: Beyaz lake U mutfak">' +
+    '<label class="etiket">Kategori</label>' + secenekler("kategori", kat, form.kategori) +
+    '<div class="alt-bilgi">Kategorileri Ayarlar sayfasından ekleyip çıkarabilirsiniz.</div>' +
+    '<label class="etiket" for="pMalzeme">Malzeme <span class="ist">(isteğe bağlı)</span></label><input id="pMalzeme" class="kutu" maxlength="200" value="' + esc(p ? p.malzeme : "") + '" placeholder="Lake MDF kapak, kuvars tezgah, frenli menteşe">' +
+    '<label class="etiket" for="pOlcu">Ölçüler <span class="ist">(isteğe bağlı)</span></label><input id="pOlcu" class="kutu" maxlength="200" value="' + esc(p ? p.olcu : "") + '" placeholder="Alt dolap 420 cm, üst dolap 360 cm, yükseklik 240 cm">' +
+    '<label class="etiket" for="pAciklama">Açıklama <span class="ist">(sunumda görünür)</span></label><textarea id="pAciklama" class="kutu" maxlength="2000">' + esc(p ? p.aciklama : "") + '</textarea>' +
+    '<label class="etiket" for="pFiyat">Tahmini fiyat <span class="ist">(isteğe bağlı, sunumda görünmez; teklife aktarılır)</span></label><input id="pFiyat" class="kutu" inputmode="decimal" value="' + (p ? sayiYaz(p.fiyat) : "") + '" placeholder="0 ₺">' +
+    (!p && cevrimici ? '<div class="form-bolum">Fotoğraflar</div><button type="button" class="buton ikincil kucuk" style="margin-top:10px" onclick="document.getElementById(\'pFoto\').click()">' + ik("yukle") + 'Fotoğraf seç</button>' +
+      '<input type="file" id="pFoto" accept="image/*" multiple style="display:none"><div class="alt-bilgi" id="pFotoYazi">Kaydettikten sonra proje sayfasından da ekleyebilirsiniz.</div>' : '') +
+    '<div class="hata" id="hata"></div><button class="buton" data-is="projeKaydet" data-arg="' + (p ? p.id : "") + '">' + ik("tamam") + 'Kaydet</button></div>';
+  return {baslik: p ? "Projeyi düzenle" : "Yeni proje", geri:true, html, sonra(){
+    secenekBagla();
+    const f = document.getElementById("pFoto");
+    if(f) f.addEventListener("change", () => {
+      form.yeniFotolar = Array.from(f.files || []);
+      document.getElementById("pFotoYazi").textContent = form.yeniFotolar.length ? form.yeniFotolar.length + " fotoğraf seçildi; kaydedince yüklenecek." : "";
+    });
+    document.getElementById("pAd").focus();
+  }};
+}
+EYLEM.projeKaydet = (btn, id) => {
+  const baslik = deger("pAd");
+  if(!baslik) return hataYaz("Lütfen proje adını yazın.");
+  if(!form.kategori) return hataYaz("Lütfen kategori seçin.");
+  const fy = deger("pFiyat"), fiyat = fy ? sayiOku(fy) : 0;
+  if(!(fiyat >= 0) || fiyat > 1e9) return hataYaz("Fiyatı kontrol edin.");
+  const eski = bul("katalog", id), fotolar = form.yeniFotolar || [];
+  const k = {id: id || yeniId(), baslik, kategori:form.kategori, malzeme:deger("pMalzeme"), olcu:deger("pOlcu"), aciklama:deger("pAciklama"),
+    fiyat:yuvarla(fiyat), olusma: eski ? eski.olusma : Date.now()};
+  islem(btn, async () => {
+    await Depo.kaydet("katalog", k);
+    if(id){ bildir("Kaydedildi"); geri(); return; }
+    bildir("Proje eklendi"); history.replaceState(null, "", "#proje/" + k.id); ciz();
+    if(fotolar.length && await gorselleriYukle(k.id, fotolar) && yol()[0] === "proje") ciz();
+  });
+};
+
+/* --- Katalog fotoğrafları --- */
+async function gorselSecildi(input, projeId){
+  const liste = Array.from(input.files || []); input.value = "";
+  if(liste.length && await gorselleriYukle(projeId, liste) && yol()[0] === "proje") ciz();
+}
+// Sunumda net görünsün diye 2400 piksele kadar küçültülür.
+async function gorselleriYukle(projeId, liste){
+  const resimler = liste.filter(f => /^image\//.test(f.type)), sorunlu = liste.filter(f => !/^image\//.test(f.type)).map(f => f.name + " (fotoğraf değil)");
+  let sira = projeGorselleri(projeId).reduce((m, g) => Math.max(m, g.sira), 0), tamam = 0;
+  for(let i = 0; i < resimler.length; i++){
+    yuklemeGoster("Fotoğraf yükleniyor " + (i + 1) + "/" + resimler.length + "…");
+    let yuklenen = null;
+    try{
+      const f = await gorselKucult(resimler[i], 2400);
+      if(f.size > MAX_DOSYA){ sorunlu.push(f.name + " (50 MB'dan büyük)"); continue; }
+      const id = yeniId(), anahtar = KATALOG_KLASOR + "/" + projeId + "/" + id + "_" + guvenliDosyaAdi(f.name);
+      const r = await sb.storage.from(BUCKET).upload(anahtar, f, {contentType: f.type || "image/jpeg", upsert:false});
+      if(r.error) throw r.error;
+      yuklenen = anahtar; sira += 10;
+      await Depo.kaydet("katalog_gorseller", {id, projeId, ad:f.name, tur:f.type || "", boyut:f.size, yol:anahtar, sira, olusma:Date.now() + i});
+      tamam++;
+    }catch(e){
+      if(yuklenen) sb.storage.from(BUCKET).remove([yuklenen]).catch(() => {});
+      sorunlu.push(resimler[i].name + " — " + hataMesaji(e));
+    }
+  }
+  yuklemeKapat();
+  if(tamam) bildir(tamam + " fotoğraf yüklendi");
+  if(sorunlu.length) uyar("Bazı dosyalar yüklenemedi", sorunlu.join("; "));
+  return tamam;
+}
+EYLEM.gorselMenu = (el, gid) => {
+  const g = bul("katalog_gorseller", gid); if(!g) return;
+  const liste = projeGorselleri(g.projeId), i = liste.findIndex(x => x.id === gid);
+  const digerleri = projeSirali(veri.katalog.filter(p => p.id !== g.projeId));
+  const dugme = (k, ikon, yazi) => '<button class="buton ikincil" data-k="' + k + '">' + ik(ikon) + yazi + '</button>';
+  const p = document.createElement("div"); p.className = "perde";
+  p.innerHTML = '<div class="pencere"><p>Fotoğraf işlemleri</p><div class="alt-bilgi">' + (i + 1) + '. fotoğraf / ' + liste.length + '</div><div class="secim-liste">' +
+    (i > 0 ? dugme("kapak", "yildiz", "Kapak fotoğrafı yap") + dugme("once", "sol", "Bir öne al") : '') +
+    (i < liste.length - 1 ? dugme("sonra", "sag", "Bir sona al") : '') +
+    (cevrimici ? dugme("dondur", "dondur", "90° sağa döndür") : '') +
+    (digerleri.length ? '<div style="display:flex;gap:8px"><select id="tasiHedef" class="kutu" aria-label="Taşınacak proje">' +
+      digerleri.map(x => '<option value="' + x.id + '">' + esc(x.kategori + " · " + x.baslik) + '</option>').join("") + '</select>' +
+      '<button class="buton ikincil kucuk" data-k="tasi">Taşı</button></div>' : '') +
+    '<button class="buton tehlike" data-k="sil">' + ik("sil") + 'Sil</button>' + dugme("kapat", "x", "Kapat") + '</div></div>';
+  p.addEventListener("click", e => {
+    const b = e.target.closest("[data-k]");
+    if(!b){ if(e.target === p) p.remove(); return; }
+    const k = b.getAttribute("data-k"), hedef = p.querySelector("#tasiHedef");
+    p.remove();
+    if(k === "kapak") gorselSiraDegis(g, 0);
+    else if(k === "once") gorselSiraDegis(g, i - 1);
+    else if(k === "sonra") gorselSiraDegis(g, i + 1);
+    else if(k === "dondur") gorselDondur(g);
+    else if(k === "tasi") gorselTasi(g, hedef.value);
+    else if(k === "sil") onayla("Fotoğraf silinsin mi?", "", "Sil", () => islem(null, async () => {
+      if(cevrimici){ const r = await sb.storage.from(BUCKET).remove([g.yol]); if(r.error) throw r.error; }
+      await Depo.sil("katalog_gorseller", g.id); bildir("Fotoğraf silindi"); ciz();
+    }));
+  });
+  document.body.appendChild(p);
+};
+function gorselSiraDegis(g, yeniYer){
+  const l = projeGorselleri(g.projeId).filter(x => x.id !== g.id);
+  l.splice(yeniYer, 0, g);
+  const degisen = l.map((x, i) => x.sira === (i + 1) * 10 ? null : Object.assign({}, x, {sira:(i + 1) * 10})).filter(Boolean);
+  islem(null, async () => { await Depo.kaydet("katalog_gorseller", degisen); ciz(); });
+}
+function gorselTasi(g, projeId){
+  const hedef = bul("katalog", projeId); if(!hedef) return;
+  const sira = projeGorselleri(projeId).reduce((m, x) => Math.max(m, x.sira), 0) + 10;
+  islem(null, async () => { await Depo.kaydet("katalog_gorseller", Object.assign({}, g, {projeId, sira})); bildir("Taşındı: " + hedef.baslik); ciz(); });
+}
+async function gorselDondur(g){
+  let yeni = null;
+  yuklemeGoster("Döndürülüyor…");
+  try{
+    await urlleriGetir([g]);
+    const u = urlOnbellek[g.yol]; if(!u) throw new Error("fotoğraf alınamadı");
+    const bmp = await createImageBitmap(await (await fetch(u.url)).blob());
+    const c = document.createElement("canvas"); c.width = bmp.height; c.height = bmp.width;
+    const x = c.getContext("2d"); x.translate(c.width, 0); x.rotate(Math.PI / 2); x.drawImage(bmp, 0, 0);
+    if(bmp.close) bmp.close();
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.9));
+    if(!blob) throw new Error("fotoğraf işlenemedi");
+    const ad = g.ad.replace(/\.\w+$/, "") + ".jpg";
+    yeni = KATALOG_KLASOR + "/" + g.projeId + "/" + yeniId() + "_" + guvenliDosyaAdi(ad);
+    const r = await sb.storage.from(BUCKET).upload(yeni, blob, {contentType:"image/jpeg", upsert:false});
+    if(r.error) throw r.error;
+    await Depo.kaydet("katalog_gorseller", Object.assign({}, g, {yol:yeni, ad, tur:"image/jpeg", boyut:blob.size}));
+    yeni = null;
+    sb.storage.from(BUCKET).remove([g.yol]).catch(() => {});
+    bildir("Fotoğraf döndürüldü");
+  }catch(e){
+    if(yeni) sb.storage.from(BUCKET).remove([yeni]).catch(() => {});
+    uyar("Döndürülemedi", hataMesaji(e));
+  }finally{ yuklemeKapat(); }
+  if(yol()[0] === "proje") ciz();
+}
+// Teklif açılırken projenin fotoğrafları iş emrinin dosyalarına kopyalanır (katalogdaki asıl fotoğraflar yerinde kalır).
+async function projeFotolariniKopyala(projeId, ieId){
+  if(!cevrimici) return;
+  const g = projeGorselleri(projeId); let tamam = 0;
+  for(let i = 0; i < g.length; i++){
+    yuklemeGoster("Fotoğraflar iş emrine ekleniyor " + (i + 1) + "/" + g.length + "…");
+    try{
+      const id = yeniId(), hedef = ieId + "/" + id + "_" + guvenliDosyaAdi(g[i].ad);
+      const r = await sb.storage.from(BUCKET).copy(g[i].yol, hedef);
+      if(r.error) throw r.error;
+      await Depo.kaydet("dosyalar", {id, isEmriId:ieId, ad:g[i].ad, tur:g[i].tur, boyut:g[i].boyut, yol:hedef, yukleyen:kullaniciAdi(), olusma:Date.now() + i});
+      tamam++;
+    }catch(e){}
+  }
+  yuklemeKapat();
+  if(tamam < g.length) uyar("Bazı fotoğraflar iş emrine eklenemedi", (g.length - tamam) + " fotoğraf kopyalanamadı; iş emri sayfasından elle ekleyebilirsiniz.");
+}
+
+/* --- Sunum modu --- */
+const sunumListesi = projeler => projeler.flatMap(p => projeGorselleri(p.id).map(g => ({g, p})));
+function sunumAc(liste, bas){
+  if(!liste.length) return uyar("Sunulacak fotoğraf yok", "Önce projelere fotoğraf yükleyin.");
+  let i = Math.min(bas || 0, liste.length - 1), oto = null, dokunX = null;
+  const s = document.createElement("div"); s.className = "sunum";
+  s.innerHTML = '<div class="sn-ust"><span class="marka">' + ik("gunes") + '<span class="yazi-gizle">Güneş Mobilya</span></span><span class="sayac"></span>' +
+    (liste.length > 1 ? '<button data-k="oto" aria-label="Otomatik geçiş">' + ik("oynat") + '<span class="yazi-gizle">Otomatik</span></button>' : '') +
+    '<button data-k="bilgi" class="acik" aria-label="Bilgileri göster / gizle">' + ik("bilgi") + '</button>' +
+    (document.fullscreenEnabled ? '<button data-k="tam" aria-label="Tam ekran">' + ik("ekran") + '</button>' : '') +
+    '<button data-k="teklif" aria-label="Teklif hazırla">' + ik("is") + '<span class="yazi-gizle">Teklif hazırla</span></button>' +
+    '<button data-k="kapat" aria-label="Kapat">' + ik("x") + '</button></div>' +
+    '<div class="sn-orta"><img alt="">' + (liste.length > 1 ? '<button class="ok sol" data-k="geri" aria-label="Önceki">' + ik("sol") + '</button>' +
+    '<button class="ok sag" data-k="ileri" aria-label="Sonraki">' + ik("sag") + '</button>' : '') + '</div><div class="sn-alt"></div>';
+  const img = s.querySelector(".sn-orta img");
+  const goster = () => {
+    const {g, p} = liste[i], u = urlOnbellek[g.yol];
+    if(u) img.src = u.url; else img.removeAttribute("src");
+    img.alt = p.baslik;
+    s.querySelector(".sayac").textContent = (i + 1) + " / " + liste.length;
+    s.querySelector(".sn-alt").innerHTML = '<div class="k">' + esc(p.kategori) + '</div><h3>' + esc(p.baslik) + '</h3>' +
+      (p.malzeme || p.olcu ? '<div class="o">' + (p.malzeme ? '<div><span>Malzeme:</span> ' + esc(p.malzeme) + '</div>' : '') + (p.olcu ? '<div><span>Ölçü:</span> ' + esc(p.olcu) + '</div>' : '') + '</div>' : '') +
+      (p.aciklama ? '<div class="d">' + esc(p.aciklama) + '</div>' : '');
+    [1, -1].forEach(n => { const v = urlOnbellek[liste[(i + n + liste.length) % liste.length].g.yol]; if(v) new Image().src = v.url; });   // komşuları önceden yükle
+  };
+  const adim = n => { i = (i + n + liste.length) % liste.length; goster(); };
+  const otoAyarla = ac => {
+    clearInterval(oto); oto = ac ? setInterval(() => adim(1), 5000) : null;
+    const b = s.querySelector('[data-k="oto"]');
+    if(b){ b.classList.toggle("acik", !!ac); b.innerHTML = ik(ac ? "duraklat" : "oynat") + '<span class="yazi-gizle">' + (ac ? "Durdur" : "Otomatik") + '</span>'; }
+  };
+  const bilgi = () => { s.classList.toggle("bilgisiz"); s.querySelector('[data-k="bilgi"]').classList.toggle("acik", !s.classList.contains("bilgisiz")); };
+  const tamEkran = () => { if(document.fullscreenElement) document.exitFullscreen().catch(() => {}); else if(s.requestFullscreen) s.requestFullscreen().catch(() => {}); };
+  const kapat = () => {
+    otoAyarla(false); document.removeEventListener("keydown", tus); window.removeEventListener("hashchange", kapat);
+    if(document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    s.remove();
+  };
+  const tus = e => {
+    if(e.key === "ArrowRight" || e.key === "PageDown"){ adim(1); e.preventDefault(); }
+    else if(e.key === "ArrowLeft" || e.key === "PageUp"){ adim(-1); e.preventDefault(); }
+    else if(e.key === "Escape") kapat();
+    else if(e.key === " " && liste.length > 1){ otoAyarla(!oto); e.preventDefault(); }
+    else if(e.key === "i") bilgi();
+    else if(e.key === "f") tamEkran();
+  };
+  s.addEventListener("click", e => {
+    const b = e.target.closest("[data-k]");
+    if(!b){ if(e.target === img) bilgi(); return; }
+    const k = b.getAttribute("data-k");
+    if(k === "ileri") adim(1); else if(k === "geri") adim(-1);
+    else if(k === "oto") otoAyarla(!oto); else if(k === "bilgi") bilgi(); else if(k === "tam") tamEkran();
+    else if(k === "kapat") kapat();
+    else if(k === "teklif"){ const id = liste[i].p.id; kapat(); git("is-form/-/-/" + id); }
+  });
+  s.addEventListener("touchstart", e => { dokunX = e.touches.length === 1 ? e.touches[0].clientX : null; }, {passive:true});
+  s.addEventListener("touchend", e => {
+    if(dokunX === null) return;
+    const dx = e.changedTouches[0].clientX - dokunX; dokunX = null;
+    if(Math.abs(dx) > 50) adim(dx < 0 ? 1 : -1);
+  });
+  document.addEventListener("keydown", tus);
+  window.addEventListener("hashchange", kapat);   // telefonun geri tuşu sunumu kapatsın
+  document.body.appendChild(s);
+  goster();
+  (async () => { for(let k = 0; k < liste.length; k += 100) await urlleriGetir(liste.slice(k, k + 100).map(x => x.g)); })()
+    .then(() => { if(document.body.contains(s)) goster(); }).catch(() => {});
+}
+
+/* --- Teklif çıktısı --- */
+EYLEM.teklifYazdir = async (el, id) => {
+  const ie = bul("is_emirleri", id); if(!ie) return;
+  const m = bul("musteriler", ie.musteriId) || {}, o = isOzet(id), d = new Date();
+  const fotolar = isDosyalari(id).filter(x => dosyaTuru(x) === "g").slice(0, 6);
+  if(fotolar.length) await urlleriGetir(fotolar).catch(() => {});
+  document.querySelectorAll(".baski").forEach(x => x.remove());
+  const b = document.createElement("div"); b.className = "baski";
+  b.innerHTML = '<div class="b-ust"><div><h1>' + esc(FIRMA) + '</h1><div>Fiyat Teklifi</div></div>' +
+      '<div style="text-align:right">Teklif no: <b>' + esc(ie.no) + '</b><br>Tarih: ' + d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear() + '</div></div>' +
+    '<div>Sayın <b>' + esc(m.ad || "") + '</b>' + (m.telefon ? ' · ' + esc(m.telefon) : '') + '</div>' +
+    '<h2>' + esc(ie.baslik) + '</h2>' +
+    (ie.kalemler.length ? '<table><tr><th>Ürün</th><th>Ölçü</th><th>Malzeme / renk</th><th>Adet</th></tr>' + ie.kalemler.map(k =>
+      '<tr><td>' + esc(k.ad) + '</td><td>' + esc(k.olcu) + '</td><td>' + esc(k.renk) + '</td><td>' + k.adet + '</td></tr>').join("") + '</table>' : '') +
+    (ie.aciklama ? '<p style="white-space:pre-wrap">' + esc(ie.aciklama) + '</p>' : '') +
+    (o.fiyat ? '<div class="toplam">Toplam: ' + para(o.fiyat) + '</div>' : '') +
+    (ie.teslimTarihi ? '<p>Tahmini teslim: ' + esc(tarihYaz(ie.teslimTarihi)) + '</p>' : '') +
+    (fotolar.length ? '<h2>Görseller</h2><div class="b-foto">' + fotolar.map(x => urlOnbellek[x.yol] ? '<img src="' + esc(urlOnbellek[x.yol].url) + '" alt="">' : '').join("") + '</div>' : '') +
+    '<div style="display:flex;justify-content:space-between;margin-top:40px"><div>Müşteri onayı<br><br>……………………</div><div style="text-align:right">' + esc(FIRMA) + '<br><br>……………………</div></div>';
+  document.body.appendChild(b);
+  await Promise.all(Array.from(b.querySelectorAll("img")).map(x => x.complete ? 0 : new Promise(r => { x.onload = x.onerror = r; setTimeout(r, 5000); })));
+  const temizle = () => { b.remove(); document.body.classList.remove("teklif-baski"); window.removeEventListener("afterprint", temizle); };
+  window.addEventListener("afterprint", temizle);
+  document.body.classList.add("teklif-baski");
+  window.print();
+};
 
 /* ================= FATURALAR ================= */
 function ekranFaturalar(){
@@ -1539,11 +2013,16 @@ function ekranAyarlar(){
     '<button class="buton ikincil" onclick="document.getElementById(\'yedekDosya\').click()">' + ik("yukle") + 'Geri yükle</button></div>' +
     '<input type="file" id="yedekDosya" accept=".json,.zip,application/json,application/zip" style="display:none" onchange="yedekYukle(this)"></div>' +
     (cevrimici ? '<div class="kart"><div class="kart-baslik">Dosyalı yedek (ZIP)</div><div>Kayıtlarla birlikte tüm fotoğraf ve belgeleri tek ZIP dosyası olarak indirir. “Geri yükle” bu ZIP\'i de kabul eder.</div>' +
-      '<div class="alt-bilgi">Şu an ' + veri.dosyalar.length + ' dosya (' + mbYaz(veri.dosyalar.reduce((t, d) => t + d.boyut, 0)) + ') var; ' + veri.dosyalar.filter(d => dosyaTuru(d) === "v").length + ' tanesi video.</div>' +
+      '<div class="alt-bilgi">Şu an ' + (veri.dosyalar.length + veri.katalog_gorseller.length) + ' dosya (' + mbYaz(veri.dosyalar.concat(veri.katalog_gorseller).reduce((t, d) => t + d.boyut, 0)) + ') var; ' + veri.dosyalar.filter(d => dosyaTuru(d) === "v").length + ' tanesi video.</div>' +
       '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px"><input type="checkbox" id="videoDahil"> Videoları da dahil et <span class="ist" style="color:var(--soluk)">(dosya çok büyüyebilir)</span></label>' +
       '<button class="buton ikincil" data-is="zipYedek">' + ik("indir") + 'Dosyalı yedek al (ZIP)</button></div>' : '') +
-    '<div class="kart">' + bilgiSatir("Cari", veri.musteriler.length) + bilgiSatir("İş emri", veri.is_emirleri.length) + bilgiSatir("Fatura", veri.faturalar.length) + bilgiSatir("Kasa hareketi", veri.hareketler.length) + '</div>' +
-    '</div><div>' + katKart("giris", "Gelir kategorileri") + katKart("cikis", "Gider kategorileri") +
+    '<div class="kart">' + bilgiSatir("Cari", veri.musteriler.length) + bilgiSatir("İş emri", veri.is_emirleri.length) + bilgiSatir("Fatura", veri.faturalar.length) + bilgiSatir("Kasa hareketi", veri.hareketler.length) +
+      bilgiSatir("Katalog projesi", veri.katalog.length + " (" + veri.katalog_gorseller.length + " fotoğraf)") + '</div>' +
+    '</div><div>' +
+    '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Katalog kategorileri</div>' +
+      '<div class="kategori-liste">' + katalogListesi().map((k, i) => '<span>' + esc(k) + '<button data-is="kKatSil" data-arg="' + i + '" aria-label="Sil">' + ik("x") + '</button></span>').join("") + '</div>' +
+      '<div class="buton-sira" style="flex-wrap:nowrap"><input id="yeniKat-katalog" class="kutu" maxlength="40" placeholder="Örn: Yatak odası"><button class="buton kucuk" data-is="kKatEkle">' + ik("arti") + 'Ekle</button></div></div>' +
+    katKart("giris", "Gelir kategorileri") + katKart("cikis", "Gider kategorileri") +
     '<button class="buton ikincil" data-is="katSifirla">Kategorileri varsayılana döndür</button></div></div>';
   return {baslik:"Ayarlar", geri: matchMedia("(max-width:899px)").matches, html};
 }
@@ -1565,11 +2044,25 @@ EYLEM.katSil = (btn, arg) => {
   const ad = l.splice(Number(i), 1)[0];
   onayla("“" + ad + "” silinsin mi?", "Eski kayıtlardaki kategori adı değişmez.", "Sil", () => islem(null, async () => { await kategoriKaydet(tur, l); ciz(); }));
 };
-EYLEM.katSifirla = () => onayla("Kategoriler varsayılana dönsün mü?", "Eklediğiniz kategoriler listeden kalkar; eski kayıtlar etkilenmez.", "Döndür",
+EYLEM.kKatEkle = btn => {
+  const ad = deger("yeniKat-katalog"); if(!ad) return;
+  const l = katalogListesi();
+  if(l.some(x => x.toLocaleLowerCase("tr") === ad.toLocaleLowerCase("tr"))) return uyar("Bu kategori zaten var", "");
+  l.push(ad);
+  islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"katalogKategorileri", deger:l}); bildir("Kategori eklendi"); ciz(); });
+};
+EYLEM.kKatSil = (btn, i) => {
+  const l = katalogListesi(), ad = l[Number(i)], n = veri.katalog.filter(p => p.kategori === ad).length;
+  if(l.length <= 1) return uyar("En az bir kategori kalmalı", "");
+  if(n) return uyar("“" + ad + "” silinemez", "Bu kategoride " + n + " proje var. Önce projeleri başka kategoriye alın veya silin.");
+  l.splice(Number(i), 1);
+  onayla("“" + ad + "” silinsin mi?", "", "Sil", () => islem(null, async () => { await Depo.kaydet("ayarlar", {anahtar:"katalogKategorileri", deger:l}); ciz(); }));
+};
+EYLEM.katSifirla =() => onayla("Kategoriler varsayılana dönsün mü?", "Eklediğiniz kategoriler listeden kalkar; eski kayıtlar etkilenmez.", "Döndür",
   () => islem(null, async () => { await Depo.kaydet("ayarlar", {anahtar:"kategoriler", deger:VARSAYILAN_KATEGORI}); bildir("Kategoriler sıfırlandı"); ciz(); }));
 
 EYLEM.yedekAl = () => {
-  const v = {surum:2, tarih:new Date().toISOString()}; TABLOLAR.forEach(t => { if(t !== "dosyalar") v[t] = veri[t]; });
+  const v = {surum:2, tarih:new Date().toISOString()}; TABLOLAR.forEach(t => { if(!DOSYA_TABLO[t]) v[t] = veri[t]; });
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(v, null, 1)], {type:"application/json"}));
   a.download = "gunes-mobilya-yedek-" + bugun() + ".json"; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
@@ -1597,27 +2090,31 @@ function jszipYukle(){
 EYLEM.zipYedek = () => {
   const video = document.getElementById("videoDahil").checked;
   const dl = veri.dosyalar.filter(d => video || dosyaTuru(d) !== "v"), atlanan = veri.dosyalar.length - dl.length;
-  onayla(dl.length + " dosya (" + mbYaz(dl.reduce((t, d) => t + d.boyut, 0)) + ") indirilecek",
-    (atlanan ? atlanan + " video dahil edilmiyor. " : "") + "Büyük yedeklerde Wi-Fi önerilir; bitene kadar sayfayı kapatmayın.", "Başlat", () => zipYedekYap(dl), false);
+  const hepsi = dl.concat(veri.katalog_gorseller);
+  onayla(hepsi.length + " dosya (" + mbYaz(hepsi.reduce((t, d) => t + d.boyut, 0)) + ") indirilecek",
+    (atlanan ? atlanan + " video dahil edilmiyor. " : "") + "Büyük yedeklerde Wi-Fi önerilir; bitene kadar sayfayı kapatmayın.", "Başlat", () => zipYedekYap(dl, veri.katalog_gorseller), false);
 };
-async function zipYedekYap(dl){
+async function zipYedekYap(dl, gl){
   try{
     await jszipYukle();
-    const zip = new JSZip(), v = {surum:3, tarih:new Date().toISOString()}, hata = [], tamam = [];
-    TABLOLAR.forEach(t => { if(t !== "dosyalar") v[t] = veri[t]; });
-    for(let i = 0; i < dl.length; i += 100) await urlleriGetir(dl.slice(i, i + 100));
-    for(let i = 0; i < dl.length; i++){
-      const d = dl[i], ie = bul("is_emirleri", d.isEmriId);
-      yuklemeGoster("Dosyalar indiriliyor " + (i + 1) + "/" + dl.length + "…");
+    const zip = new JSZip(), v = {surum:3, tarih:new Date().toISOString()}, hata = [], tamam = {dosyalar:[], katalog_gorseller:[]};
+    TABLOLAR.forEach(t => { if(!DOSYA_TABLO[t]) v[t] = veri[t]; });
+    const hepsi = dl.map(d => ({t:"dosyalar", d})).concat(gl.map(d => ({t:"katalog_gorseller", d})));
+    for(let i = 0; i < hepsi.length; i += 100) await urlleriGetir(hepsi.slice(i, i + 100).map(x => x.d));
+    for(let i = 0; i < hepsi.length; i++){
+      const {t, d} = hepsi[i];
+      yuklemeGoster("Dosyalar indiriliyor " + (i + 1) + "/" + hepsi.length + "…");
       try{
         const u = urlOnbellek[d.yol]; if(!u) throw new Error("bağlantı alınamadı");
         const r = await fetch(u.url); if(!r.ok) throw new Error("indirilemedi");
-        const yolu = "dosyalar/" + guvenliAd((ie ? ie.no + " " + ie.baslik : "silinmis-is")) + "/" + (i + 1) + "_" + guvenliAd(d.ad);
+        const ie = bul("is_emirleri", d.isEmriId), pr = bul("katalog", d.projeId);
+        const klasor = t === "dosyalar" ? "dosyalar/" + guvenliAd(ie ? ie.no + " " + ie.baslik : "silinmis-is") : "katalog/" + guvenliAd(pr ? pr.kategori + " - " + pr.baslik : "silinmis-proje");
+        const yolu = klasor + "/" + (i + 1) + "_" + guvenliAd(d.ad);
         zip.file(yolu, await r.blob(), {compression:"STORE"});
-        tamam.push(Object.assign({}, d, {zip:yolu}));
+        tamam[t].push(Object.assign({}, d, {zip:yolu}));
       }catch(e){ hata.push(d.ad); }
     }
-    v.dosyalar = tamam;
+    v.dosyalar = tamam.dosyalar; v.katalog_gorseller = tamam.katalog_gorseller;
     zip.file("yedek.json", JSON.stringify(v, null, 1));
     const blob = await zip.generateAsync({type:"blob", compression:"STORE", streamFiles:true}, m => yuklemeGoster("ZIP hazırlanıyor %" + Math.round(m.percent)));
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "gunes-mobilya-dosyali-yedek-" + bugun() + ".zip";
@@ -1635,24 +2132,26 @@ async function zipGeriYukle(f){
     let v = JSON.parse(await e.async("string"));
     if(!yedekGecerli(v)) return uyar("Bu ZIP bir yedek dosyası değil", "");
     if(!cevrimici) return uyar("Dosyalı yedek yüklenemedi", "Dosyaları yüklemek için bulut bağlantısı gerekir.");
-    const dosyalar = (Array.isArray(v.dosyalar) ? v.dosyalar : []).filter(d => d && d.zip && d.yol && zip.file(d.zip));
-    v = duzenle(v); v.hareketler.forEach(h => { h.tutar = Number(h.tutar); }); v.dosyalar = [];
-    onayla(v.hareketler.length + " kasa kaydı, " + v.faturalar.length + " fatura, " + v.musteriler.length + " cari ve " + dosyalar.length + " dosya yüklensin mi?",
+    const zipte = t => (Array.isArray(v[t]) ? v[t] : []).filter(d => d && d.zip && d.yol && zip.file(d.zip)).map(d => ({t, d}));
+    const dosyalar = zipte("dosyalar").concat(zipte("katalog_gorseller"));
+    v = duzenle(v); v.hareketler.forEach(h => { h.tutar = Number(h.tutar); }); v.dosyalar = []; v.katalog_gorseller = [];
+    onayla(v.hareketler.length + " kasa kaydı, " + v.faturalar.length + " fatura, " + v.musteriler.length + " cari, " + v.katalog.length + " katalog projesi ve " + dosyalar.length + " dosya yüklensin mi?",
       "Yedekteki kayıtlar buluta eklenecek; aynı kayıtlar varsa üzerine yazılır.", "Yükle", () => islem(null, async () => {
         try{
           await hepsiniKaydet(v);
-          const tamam = [], hata = [];
+          const tamam = {dosyalar:[], katalog_gorseller:[]}, hata = [];
           for(let i = 0; i < dosyalar.length; i++){
-            const d = dosyalar[i]; yuklemeGoster("Dosyalar yükleniyor " + (i + 1) + "/" + dosyalar.length + "…");
+            const {t, d} = dosyalar[i]; yuklemeGoster("Dosyalar yükleniyor " + (i + 1) + "/" + dosyalar.length + "…");
             try{
               const blob = await zip.file(d.zip).async("blob");
               const r = await sb.storage.from(BUCKET).upload(d.yol, new Blob([blob], {type:d.tur || "application/octet-stream"}), {contentType:d.tur || "application/octet-stream", upsert:true});
               if(r.error) throw r.error;
-              const t = Object.assign({}, d); delete t.zip; tamam.push(t);
+              const k = Object.assign({}, d); delete k.zip; tamam[t].push(k);
             }catch(err){ hata.push(d.ad); }
           }
-          await Depo.kaydet("dosyalar", tamam);
-          bildir("Yedek yüklendi (" + tamam.length + " dosya)");
+          await Depo.kaydet("dosyalar", tamam.dosyalar);
+          await Depo.kaydet("katalog_gorseller", tamam.katalog_gorseller);
+          bildir("Yedek yüklendi (" + (tamam.dosyalar.length + tamam.katalog_gorseller.length) + " dosya)");
           if(hata.length) uyar(hata.length + " dosya yüklenemedi", hata.join("; "));
           else git("ana");
         } finally { yuklemeKapat(); }
@@ -1731,7 +2230,7 @@ let kanal = null, yenileZamanlayici = null;
 function canliBaglan(){
   if(kanal) return;
   kanal = sb.channel("degisiklikler");
-  TABLOLAR.forEach(t => kanal.on("postgres_changes", {event:"*", schema:"public", table:t}, p => {
+  TABLOLAR.filter(t => !eksikTablo[t]).forEach(t => kanal.on("postgres_changes", {event:"*", schema:"public", table:t}, p => {
     const id = anahtarAdi(t);
     if(p.eventType === "DELETE") veri[t] = veri[t].filter(x => x[id] !== p.old[id]);
     else bellegeYaz(t, buluttanCevir(t, p.new));
@@ -1743,7 +2242,7 @@ function canliBaglan(){
 function sessizCiz(){
   clearTimeout(yenileZamanlayici);
   yenileZamanlayici = setTimeout(() => {
-    if(!hazir || FORM_EKRANLARI[yol()[0]] || document.querySelector(".perde, .lb")) return;
+    if(!hazir || FORM_EKRANLARI[yol()[0]] || document.querySelector(".perde, .lb, .sunum")) return;
     if(/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName)){ yenileZamanlayici = setTimeout(sessizCiz, 4000); return; }   // yazı yazılıyorsa sonra dene
     const y = window.scrollY; ciz(); window.scrollTo(0, y);
   }, 250);

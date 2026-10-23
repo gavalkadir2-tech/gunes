@@ -3,6 +3,9 @@
 Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 
 ## Neler var?
+- **Katalog (showroom)**: Mutfak, banyo, gardırop, TV ünitesi (kategoriler Ayarlar'dan değiştirilebilir) projeleri; proje adı, açıklama, malzeme, ölçü ve isteğe bağlı tahmini fiyat. Telefondan fotoğraf çekme veya toplu yükleme; kapak seçme, sıralama, döndürme, başka projeye taşıma, silme
+- **Sunum modu**: Fotoğrafları müşteriye tam ekranda gösterir; ileri/geri oklar, telefonda kaydırma, klavye (← → Boşluk, Esc), otomatik geçiş, proje bilgilerini aç/kapat. Tek proje, tek kategori veya tüm katalog sunulabilir
+- **Katalogdan teklif / iş emri**: Seçilen projeden bilgiler ve fotoğraflar aktarılmış, “Teklif” durumunda iş emri açılır (fiyat isteğe bağlı); müşteriye yazdırılabilir / PDF fiyat teklifi ve WhatsApp teklif mesajı
 - **Cariler**: Müşteri ve tedarikçiler, bakiye (alacak/borç), hesap ekstresi
 - **İş emirleri**: Sipariş kalemleri (ürün, ölçü, renk, adet), öncelik, sorumlu usta, teslimat adresi, üretim aşamaları (tek dokunuşla işaretlenir), notlar ve işlem geçmişi, **fotoğraf / video / dosya yükleme** (telefondan doğrudan kamera), kapora; işe bağlı faturalar, ödemeler, maliyet ve kâr; yazdırılabilir iş formu
 - **WhatsApp**: Müşteriye hazır mesaj şablonlarıyla (sipariş onayı, üretimde, hazır, teslim, ödeme hatırlatma) mesaj; cari ve fatura için de. Durum değişince "müşteriye haber verilsin mi?" diye sorar. Fotoğraf/videoyu telefondan doğrudan WhatsApp'a paylaşır. Mesaj WhatsApp'ta açılır, **Gönder**'e siz basarsınız (WhatsApp Business API gerekmez).
@@ -17,8 +20,8 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 
 ### 1. Veritabanı (Supabase, ücretsiz)
 1. https://supabase.com → **Start your project** → yeni proje açın (bölge: Frankfurt).
-2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql` ve `supabase-guncelleme-2.sql` dosyalarını çalıştırın (ikincisi dosya deposunu da kurar).
-   (Daha önce `supabase.sql` çalıştırıldıysa sadece `supabase-guncelleme.sql` yeterli.)
+2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) ve `supabase-guncelleme-3.sql` (katalog) dosyalarını çalıştırın.
+   (Önceki dosyalar daha önce çalıştırıldıysa sadece eksik olanları çalıştırın; katalog için `supabase-guncelleme-3.sql` yeterli.)
 3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" kapalı olsun.
 4. **Authentication → Users → Add user → Create new user**:
    - E-posta: `dukkan@gunesmobilya.app` (giriş ekranında sadece `dukkan` yazılır)
