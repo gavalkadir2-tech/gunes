@@ -7,13 +7,14 @@ Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 - **ZIP'ten toplu içe aktarma**: Klasörlere ayrılmış fotoğrafları (ör. Facebook yedeğindeki albümler) tek seferde içe aktarır; her klasör bir proje olur. Önizlemede gruplar seçilir, adı ve kategorisi değiştirilir. İsteğe bağlı `katalog.json` ile proje adı, kategori, malzeme ve açıklama hazır gelir
 - **Sunum modu**: Fotoğrafları müşteriye tam ekranda gösterir; ileri/geri oklar, telefonda kaydırma, klavye (← → Boşluk, Esc), otomatik geçiş, proje bilgilerini aç/kapat. Tek proje, tek kategori veya tüm katalog sunulabilir
 - **Müşteriye katalog bağlantısı**: Seçilen projeler giriş gerektirmeyen bir sayfa olarak WhatsApp'tan gönderilir (7 / 30 / 90 gün veya süresiz). Müşteri fotoğrafları tam ekran izler, tek dokunuşla WhatsApp'tan yazar veya arar. Bağlantı kapatılınca paylaşılan fotoğraf kopyaları silinir; asıl katalog gizli kalır
-- **Ayrıntılı teklif**: Kalem kalem birim fiyat, indirim, KDV, geçerlilik tarihi; firma telefonu / adresi / IBAN ve teklif notu ile yazdırılabilir / PDF teklif. “Teklif onaylandı — siparişe çevir” ile sipariş olur, kalemler ve fiyatlar satış faturasına aktarılır
+- **Ayrıntılı teklif**: Tüm fiyatlar KDV hariç yazılır; seçilen KDV oranı (yok / %1 / %10 / %20) üstüne eklenir. Kalem kalem birim fiyat, indirim, geçerlilik tarihi; firma telefonu / adresi / IBAN ve teklif notu ile yazdırılabilir / PDF teklif. “Teklif onaylandı — siparişe çevir” ile sipariş olur, kalemler ve fiyatlar satış faturasına aktarılır
 - **Malzeme fiyat listesi ve hızlı hesap**: Malzemelerin maliyetleri bir kez girilir; teklifte “Malzemeden hesapla” ile miktar + işçilik + kâr oranından önerilen birim fiyat ve tahmini kâr çıkar
 - **Ölçü / keşif formu**: Mekân, tavan yüksekliği, duvar ölçüleri, tesisat ve engeller (su, elektrik, doğalgaz, pencere…), notlar ve fotoğraflar; iş emrine bağlı. Ana sayfadan “Ölçü / Keşif” ile başlar
 - **Katalogdan teklif / iş emri**: Seçilen projeden bilgiler ve fotoğraflar aktarılmış, “Teklif” durumunda iş emri açılır (fiyat isteğe bağlı); müşteriye yazdırılabilir / PDF fiyat teklifi ve WhatsApp teklif mesajı
 - **Cariler**: Müşteri ve tedarikçiler, bakiye (alacak/borç), hesap ekstresi
 - **İş emirleri**: Sipariş kalemleri (ürün, ölçü, renk, adet), öncelik, sorumlu usta, teslimat adresi, üretim aşamaları (tek dokunuşla işaretlenir), notlar ve işlem geçmişi, **fotoğraf / video / dosya yükleme** (telefondan doğrudan kamera), kapora; işe bağlı faturalar, ödemeler, maliyet ve kâr; yazdırılabilir iş formu
 - **WhatsApp**: Müşteriye hazır mesaj şablonlarıyla (sipariş onayı, üretimde, hazır, teslim, ödeme hatırlatma) mesaj; cari ve fatura için de. Durum değişince "müşteriye haber verilsin mi?" diye sorar. Fotoğraf/videoyu telefondan doğrudan WhatsApp'a paylaşır. Mesaj WhatsApp'ta açılır, **Gönder**'e siz basarsınız (WhatsApp Business API gerekmez).
+- **Personel**: Çalışan kartı (görev, telefon, IBAN, işe giriş / ayrılış, aylık maaş / haftalık ücret / günlük yevmiye, yıllık izin hakkı); günlük puantaj (geldi, yarım gün, gelmedi, ücretli / ücretsiz izin, raporlu, tatil, fazla mesai) ve aylık takvim; haftalık / aylık hakediş hesabı (devamsızlık kesintisi, fazla mesai ücreti); avans, prim, kesinti; maaş ödemesi ve avans kasaya “Personel Maaşı” gideri olarak işlenir, kısmi ödemede kalan devreder; personel hesap ekstresi ve WhatsApp ile hesap özeti
 - **Satış / alış faturası**: Kalem kalem, KDV hesaplı, yazdırılabilir; kısmi ödeme takibi
 - **Kasa**: Para girdi / çıktı (Nakit, Kart, Havale, Çek/Senet)
 - **Rapor**: Aylık giren/çıkan, fatura toplamları, gider dağılımı, en çok satış yapılan müşteriler
@@ -25,7 +26,7 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 
 ### 1. Veritabanı (Supabase, ücretsiz)
 1. https://supabase.com → **Start your project** → yeni proje açın (bölge: Frankfurt).
-2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) ve `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif) dosyalarını çalıştırın.
+2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif) ve `supabase-guncelleme-5.sql` (personel) dosyalarını çalıştırın.
    (Önceki dosyalar daha önce çalıştırıldıysa sadece eksik olanları çalıştırın; örneğin katalog kuruluysa sadece `supabase-guncelleme-4.sql` yeterli.)
    Firma telefonu, adresi, IBAN ve teklif notu uygulamada **Ayarlar → Firma bilgileri**'nden girilir.
 3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" kapalı olsun.
