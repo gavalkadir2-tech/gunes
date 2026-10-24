@@ -225,6 +225,7 @@ button.satir:hover{background:var(--hafif);}
 @keyframes don{to{transform:rotate(360deg);}}
 body.girissiz{padding:0;}
 body.girissiz .menu{display:none;}
+body.usta .yonetici-ozel{display:none!important}
 
 .buton.wa-buton{background:#25D366;color:#fff;white-space:nowrap}
 .pencere .buton-sira .buton.ikincil{flex:0 0 auto;padding-left:22px;padding-right:22px}
@@ -352,12 +353,12 @@ a.buton{text-decoration:none}
   <div class="logo"><img src="logo.png" alt="Güneş Mobilya" class="logo-tam" style="height:30px"></div>
   <button data-git="ana"><span data-ik="ev"></span>Ana Sayfa</button>
   <button data-git="katalog"><span data-ik="katalog"></span>Katalog</button>
-  <button data-git="cariler"><span data-ik="kisiler"></span>Cariler</button>
+  <button class="yonetici-ozel" data-git="cariler"><span data-ik="kisiler"></span>Cariler</button>
   <button data-git="isler"><span data-ik="is"></span>İş Emirleri</button>
-  <button data-git="faturalar"><span data-ik="fatura"></span>Faturalar</button>
-  <button data-git="kasa" class="masaustu"><span data-ik="kasa"></span>Kasa</button>
-  <button data-git="personel" class="masaustu"><span data-ik="kisi"></span>Personel</button>
-  <button data-git="rapor"><span data-ik="grafik"></span>Rapor</button>
+  <button class="yonetici-ozel" data-git="faturalar"><span data-ik="fatura"></span>Faturalar</button>
+  <button data-git="kasa" class="masaustu yonetici-ozel"><span data-ik="kasa"></span>Kasa</button>
+  <button data-git="personel" class="masaustu yonetici-ozel"><span data-ik="kisi"></span>Personel</button>
+  <button class="yonetici-ozel" data-git="rapor"><span data-ik="grafik"></span>Rapor</button>
   <button data-git="ayarlar" class="masaustu alta"><span data-ik="ayar"></span>Ayarlar</button>
 </nav>
 <div id="uygulama"></div>
@@ -465,6 +466,8 @@ const cevrimici = !!(BULUT.adres && BULUT.anahtar);
 const sb = cevrimici && window.supabase ? window.supabase.createClient(BULUT.adres, BULUT.anahtar) : null;
 let veri = bosVeri();
 let oturum = null;
+// Kullanıcı yetkisi (supabase-guncelleme-6.sql). Kurulmadıysa veya liste boşsa herkes yöneticidir.
+let yetki = {yonetici:true, ad:"", liste:[], kurulu:false};
 
 function duzenle(v){
   const d = bosVeri();
@@ -527,12 +530,18 @@ const Depo = {
     }
     const r = await sb.from("is_emirleri").select("teklif,kesif").limit(1);
     eksikSutun = !!r.error;
+    const yr = await sb.rpc("yonetici_mi"), kr = await sb.from("kullanicilar").select("*").order("eposta");
+    const ben = ((oturum && oturum.user && oturum.user.email) || "").toLowerCase();
+    if(yr.error || kr.error) yetki = {yonetici:true, ad:"", liste:[], kurulu:false};
+    else { const k = kr.data.find(x => x.eposta.toLowerCase() === ben); yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true}; }
     veri = sonuc;
   },
   async kaydet(t, kayitlar){
     if(!Array.isArray(kayitlar)) kayitlar = [kayitlar];
     if(!kayitlar.length) return;
-    if(cevrimici){
+    if(cevrimici && !yetki.yonetici && t === "is_emirleri"){
+      for(const k of kayitlar){ const r = await sb.from(t).update(bulutaCevir(t, k)).eq("id", k.id); if(r.error) throw r.error; }
+    } else if(cevrimici){
       const r = await sb.from(t).upsert(kayitlar.map(k => bulutaCevir(t, k)));
       if(r.error) throw r.error;
     }
@@ -691,6 +700,7 @@ let ayGoster = bugun().slice(0, 7);
 const filtre = {kasa:"hepsi", fatura:"hepsi", is:"acik", cari:"hepsi", katalog:"hepsi", personel:"aktif", personelAy:null};
 let aramaYazi = "";
 let hazir = false;
+const USTA_EKRAN = {ana:1, isler:1, is:1, kesif:1, katalog:1, proje:1, ayarlar:1, hatirlatmalar:1};   // ustanın açabildiği sayfalar
 const yol = () => (location.hash || "#ana").slice(1).split("/").map(x => x && x !== "-" ? decodeURIComponent(x) : null);
 
 function ciz(){
@@ -707,13 +717,14 @@ function ciz(){
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
     katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b)
   };
-  const s = (sayfalar[ekran] || ekranAna)();
+  document.body.classList.toggle("usta", !yetki.yonetici);
+  const s = (sayfalar[ekran] && (yetki.yonetici || USTA_EKRAN[ekran]) ? sayfalar[ekran] : ekranAna)();
   document.getElementById("uygulama").innerHTML =
     '<header class="ust">' +
       (s.geri ? '<button class="ikon-buton" onclick="geri()" aria-label="Geri">' + ik("sol") + '</button>' : '<div class="logo"><img src="logo-ikon.png" alt="Güneş Mobilya" class="logo-ikon"></div>') +
       '<h1>' + esc(s.baslik) + '</h1>' +
       '<span class="durum-isik' + (cevrimici ? '' : ' yerel') + '"><i></i>' + (cevrimici ? 'Çevrimiçi' : 'Bu cihazda') + '</span>' +
-      (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
+      (!s.geri ? '<button class="ikon-buton sadece-mobil yonetici-ozel" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + (s.baskiLogo === false ? '' : '<div class="baski-logo"><img src="logo.png" alt="Güneş Mobilya"></div>') + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
     kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", malzemeler:"ayarlar", "personel-form":"personel", puantaj:"personel", maas:"personel"}[ekran] || ekran;
@@ -796,7 +807,7 @@ function isSatir(ie, gizleCari){
     ie.teslimTarihi ? (gec ? "⚠ Gecikti: " : "Teslim: ") + tarihYaz(ie.teslimTarihi, true) : ""].filter(Boolean).join(" · ");
   return '<button class="satir" data-git="is/' + ie.id + '"><span class="rozet r-ana">' + ik("is") + '</span>' +
     '<span class="orta"><div class="s1">' + esc(ie.no + " · " + ie.baslik) + (ie.oncelik === "Acil" ? ' <span class="etiket-rozet d-kirmizi">Acil</span>' : '') + '</div><div class="s2"' + (gec ? ' style="color:#b91c1c"' : '') + '>' + esc(alt) + '</div></span>' +
-    '<span class="sag">' + durumRozet(ie.durum) + (ie.tutar ? '<div class="s2" style="margin-top:3px">' + para(ie.tutar) + '</div>' : '') + '</span></button>';
+    '<span class="sag">' + durumRozet(ie.durum) + (ie.tutar && yetki.yonetici ? '<div class="s2" style="margin-top:3px">' + para(ie.tutar) + '</div>' : '') + '</span></button>';
 }
 function aySecici(){
   const p = ayGoster.split("-");
@@ -815,7 +826,20 @@ function filtreButonlari(ad, liste){
 EYLEM.filtre = (el, arg) => { const [ad, d] = arg.split("|"); filtre[ad] = d; ciz(); };
 
 /* ================= ANA SAYFA ================= */
+// Usta ana sayfası: açık işler (kendine atananlar önce) ve teslim hatırlatmaları; para bilgisi yok.
+function ekranUstaAna(){
+  const ad = (yetki.ad || "").toLocaleLowerCase("tr"), benim = ie => ad && (ie.sorumlu || "").toLocaleLowerCase("tr") === ad;
+  const acik = veri.is_emirleri.filter(ie => ac(ie) && ie.durum !== "Teklif").sort((a, b) => (benim(b) ? 1 : 0) - (benim(a) ? 1 : 0) || ((a.teslimTarihi || "9999") < (b.teslimTarihi || "9999") ? -1 : 1));
+  const hl = hatirlatmalar();
+  const html = '<div class="kart"><div class="kart-baslik">Hoş geldin</div><div style="font-size:18px;font-weight:600">' + esc(yetki.ad || kullaniciAdi()) + '</div>' +
+      '<div class="alt-bilgi">' + acik.filter(benim).length + ' iş sana atanmış · toplam ' + acik.length + ' açık iş</div></div>' +
+    (hl.length ? bolum(ik("zil") + ' Yapılacaklar (' + hl.length + ')') + '<div class="kart liste-kart">' + hl.slice(0, 6).map(hatirlatmaSatir).join("") + '</div>' : '') +
+    '<div class="hizli" style="grid-template-columns:1fr 1fr">' + hizliButon("isler", "r-ana", "is", "İş Emirleri") + hizliButon("katalog", "r-borc", "katalog", "Katalog") + '</div>' +
+    bolum("Açık işler (" + acik.length + ")") + '<div class="kart liste-kart">' + (acik.length ? acik.map(ie => isSatir(ie)).join("") : bos("is", "Açık iş yok.")) + '</div>';
+  return {baslik:FIRMA, html};
+}
 function ekranAna(){
+  if(!yetki.yonetici) return ekranUstaAna();
   const k = kasa(), bg = bugun();
   let gir = 0, cik = 0, alacak = 0, borc = 0;
   veri.hareketler.forEach(h => { if(h.tarih !== bg) return; if(h.tur === "giris") gir += h.tutar; else if(h.tur === "cikis") cik += h.tutar; });
@@ -1145,7 +1169,7 @@ function ekranIsler(){
   const html = '<div class="izgara dort">' + ["Sipariş alındı", "Üretimde", "Hazır", "Teklif"].map(d =>
       '<div class="kart ozet"><div class="kart-baslik">' + d + '</div><div class="deger">' + (sayac[d] || 0) + '</div></div>').join("") + '</div>' +
     '<div class="ust-arac">' + filtreButonlari("is", [["acik","Açık işler"], ["acil","Acil"], ["teslim","Teslim edilenler"], ["hepsi","Hepsi"]]) +
-    '<button class="buton kucuk" data-git="is-form">' + ik("arti") + 'Yeni iş emri</button></div>' +
+    (yetki.yonetici ? '<button class="buton kucuk" data-git="is-form">' + ik("arti") + 'Yeni iş emri</button>' : '') + '</div>' +
     (veri.is_emirleri.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="İş, müşteri veya numara ara…" value="' + esc(aramaYazi) + '"></div>' : '') +
     '<div class="kart liste-kart" id="isListe">' + isListesi(liste) + '</div>';
   return {baslik:"İş Emirleri", html, sonra(){
@@ -1343,11 +1367,11 @@ function ekranIs(id){
   const faturalar = veri.faturalar.filter(f => f.isEmriId === id).sort(tarihSira);
   const hareketler = veri.hareketler.filter(h => h.isEmriId === id).sort(tarihSira);
   const gec = ac(ie) && ie.teslimTarihi && ie.teslimTarihi < bugun();
-  const as = ie.asamalar, yap = as.filter(a => a.tamam).length, dl = isDosyalari(id), notlar = isNotlari(id);
+  const as = ie.asamalar, yap = as.filter(a => a.tamam).length, dl = isDosyalari(id), notlar = isNotlari(id), Y = yetki.yonetici;
   const html = '<div class="iki-sutun genis"><div>' +
     '<div class="kart"><div class="kart-baslik"><span>' + esc(ie.no) + (ie.oncelik === "Acil" ? ' <span class="etiket-rozet d-kirmizi">Acil</span>' : '') + '</span>' + durumRozet(ie.durum) + '</div>' +
       '<div style="font-size:18px;font-weight:600;margin:2px 0 6px">' + esc(ie.baslik) + '</div>' +
-      bilgiSatir("Müşteri", '<button class="baglanti" data-git="cari/' + cari + '">' + esc(m.ad || "") + '</button>') +
+      bilgiSatir("Müşteri", Y ? '<button class="baglanti" data-git="cari/' + cari + '">' + esc(m.ad || "") + '</button>' : esc(m.ad || "")) +
       (m.telefon ? bilgiSatir("Telefon", '<a class="tel" style="margin:0" href="tel:' + esc(m.telefon.replace(/[^\d+]/g, "")) + '">' + esc(m.telefon) + '</a>') : '') +
       (ie.sorumlu ? bilgiSatir("Sorumlu usta", esc(ie.sorumlu)) : '') +
       (ie.teslimTarihi ? bilgiSatir("Teslim tarihi", '<span' + (gec ? ' style="color:#b91c1c"' : '') + '>' + (gec ? "⚠ Gecikti · " : "") + tarihYaz(ie.teslimTarihi) + '</span>') : '') +
@@ -1355,33 +1379,33 @@ function ekranIs(id){
       (ie.aciklama ? '<div style="white-space:pre-wrap;font-size:14px;margin-top:10px;background:var(--hafif);border-radius:10px;padding:10px 12px">' + esc(ie.aciklama) + '</div>' : '') +
       '<div class="yazdirma"><label class="etiket">Durumu değiştir</label><div class="secenekler">' + DURUMLAR.map(d =>
         '<button class="secenek' + (d === ie.durum ? " secili" : "") + '" data-is="durumDegistir" data-arg="' + id + '|' + d + '">' + d + '</button>').join("") + '</div></div></div>' +
-    (ie.durum === "Teklif" ? teklifKutusu(ie) : '') +
+    (Y && ie.durum === "Teklif" ? teklifKutusu(ie) : '') +
     (ie.kalemler.length ? '<div class="kart liste-kart"><div class="kart-baslik" style="margin:12px 0 2px">Sipariş kalemleri</div>' + ie.kalemler.map(k =>
       '<div class="satir"><span class="orta"><div class="s1" style="white-space:normal">' + esc(k.ad) + '</div><div class="s2" style="white-space:normal">' + esc([k.olcu, k.renk].filter(Boolean).join(" · ")) +
         (k.katalogId && bul("katalog", k.katalogId) ? ' · <b data-git="proje/' + esc(k.katalogId) + '" style="cursor:pointer;color:var(--borc);font-weight:500">Katalogda gör</b>' : '') + '</div></span>' +
-      '<span class="sag"><div class="tutar' + (k.fiyat ? '' : ' t-soluk') + '">' + (k.fiyat ? para(k.adet * k.fiyat) : '× ' + k.adet) + '</div>' +
-        (k.fiyat ? '<div class="s2">' + k.adet + ' × ' + para(k.fiyat) + '</div>' : '') + '</span></div>').join("") +
-      ((() => { const h = isHesap(ie.kalemler, isTeklif(ie)); if(!(h.ara > 0)) return '';
+      '<span class="sag"><div class="tutar' + (k.fiyat && Y ? '' : ' t-soluk') + '">' + (k.fiyat && Y ? para(k.adet * k.fiyat) : '× ' + k.adet) + '</div>' +
+        (k.fiyat && Y ? '<div class="s2">' + k.adet + ' × ' + para(k.fiyat) + '</div>' : '') + '</span></div>').join("") +
+      ((() => { const h = isHesap(ie.kalemler, isTeklif(ie)); if(!(h.ara > 0) || !Y) return '';
         return '<div class="toplamlar" style="padding:4px 0 10px">' + toplamHtml(h) +
           (h.maliyet ? '<div class="alt-bilgi yazdirma">Malzeme hesabına göre tahmini maliyet <b>' + para(h.maliyet) + '</b> · tahmini kâr <b>' + para(h.net - h.maliyet) + '</b> (KDV hariç)</div>' : '') + '</div>'; })()) +
       '</div>' : '') +
     kesifKarti(ie) +
     (as.length ? '<div class="kart"><div class="kart-baslik"><span>Üretim aşamaları</span><span>' + yap + '/' + as.length + '</span></div><div class="ilerleme"><i style="width:' + Math.round(yap / as.length * 100) + '%"></i></div>' +
       as.map((a, i) => '<button class="asama' + (a.tamam ? " tamam" : "") + '" data-is="asamaDegis" data-arg="' + id + '|' + i + '"><span class="kutucuk">' + (a.tamam ? ik("tamam") : "") + '</span><span class="ad">' + esc(a.ad) + '</span></button>').join("") + '</div>' : '') +
-    '<div class="izgara uc">' +
+    (Y ? '<div class="izgara uc">' +
       '<div class="kart ozet"><div class="kart-baslik">Satış fiyatı</div><div class="deger">' + para(o.fiyat) + '</div><div class="alt-bilgi">' + (o.satis ? "Faturalı" : "Anlaşılan") + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Tahsil edilen</div><div class="deger t-giris">' + para(o.tahsilat) + '</div><div class="alt-bilgi">Kalan <b>' + para(Math.max(o.kalan, 0)) + '</b></div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Maliyet / Kâr</div><div class="deger">' + para(o.maliyet) + '</div><div class="alt-bilgi">Kâr <b class="' + (o.kar >= 0 ? "t-giris" : "t-cikis") + '">' + para(o.kar) + '</b></div></div>' +
-    '</div>' +
-    '<div class="yazdirma"><div class="hizli" style="grid-template-columns:1fr 1fr">' +
+    '</div>' : '') +
+    '<div class="yazdirma">' + (Y ? '<div class="hizli" style="grid-template-columns:1fr 1fr">' +
       hizliButon("giris/" + cari + "/" + id, "r-giris", "asagi", "Tahsilat Al") + hizliButon("fatura-form/satis/" + cari + "/" + id, "r-borc", "fatura", "Satış Faturası") +
-      hizliButon("cikis/-/" + id, "r-cikis", "yukari", "Gider Ekle") + hizliButon("fatura-form/alis/-/" + id, "r-gri", "fatura", "Alış Faturası") + '</div>' +
+      hizliButon("cikis/-/" + id, "r-cikis", "yukari", "Gider Ekle") + hizliButon("fatura-form/alis/-/" + id, "r-gri", "fatura", "Alış Faturası") + '</div>' : '') +
     (ie.teslimTarihi && ac(ie) ? '<button class="buton ikincil" style="margin:0 0 12px" data-is="takvimIs" data-arg="' + id + '">' + ik("takvim") + 'Teslim tarihini telefon takvimine ekle</button>' : '') +
-    '<button class="buton wa-buton" style="margin-top:0" data-is="waIs" data-arg="' + id + '">' + ik("mesaj") + 'Müşteriye WhatsApp mesajı</button>' +
-    (ie.durum === "Teklif" ? '' : '<button class="buton ikincil" style="margin-top:12px" data-is="teklifYazdir" data-arg="' + id + '">' + ik("fatura") + 'Müşteriye fiyat teklifi yazdır / PDF</button>') +
+    (Y ? '<button class="buton wa-buton" style="margin-top:0" data-is="waIs" data-arg="' + id + '">' + ik("mesaj") + 'Müşteriye WhatsApp mesajı</button>' : '') +
+    (ie.durum === "Teklif" || !Y ? '' : '<button class="buton ikincil" style="margin-top:12px" data-is="teklifYazdir" data-arg="' + id + '">' + ik("fatura") + 'Müşteriye fiyat teklifi yazdır / PDF</button>') +
     '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" onclick="window.print()">' + ik("yazdir") + 'Yazdır</button>' +
-    '<button class="buton ikincil" data-git="is-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
-    '<button class="buton tehlike" data-is="isSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div></div>' +
+    (Y ? '<button class="buton ikincil" data-git="is-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
+    '<button class="buton tehlike" data-is="isSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button>' : '') + '</div></div>' +
     '</div><div>' +
     '<div class="kart"><div class="kart-baslik"><span>Fotoğraf, video ve dosyalar (' + dl.length + ')</span></div>' +
     (cevrimici ? '<div class="buton-sira yazdirma" style="margin-top:8px"><button class="buton ikincil kucuk" onclick="document.getElementById(\'kameraSec\').click()">' + ik("kamera") + 'Fotoğraf çek</button>' +
@@ -1395,8 +1419,8 @@ function ekranIs(id){
       (notlar.length ? notlar.map(n => '<div class="not-satir"><span class="nokta-ince' + (n.tur === "not" ? " koyu" : "") + '"></span><div style="flex:1;min-width:0"><div style="white-space:pre-wrap;word-break:break-word' +
         (n.tur === "not" ? '' : ';color:var(--soluk);font-size:14px') + '">' + esc(n.metin) + '</div><div style="color:var(--soluk);font-size:12px">' +
         esc([n.yazan, zamanYaz(n.olusma)].filter(Boolean).join(" · ")) + '</div></div></div>').join("") : '') + '</div>' +
-    bolum("Faturalar (" + faturalar.length + ")") + '<div class="kart liste-kart">' + (faturalar.length ? faturalar.map(f => faturaSatir(f)).join("") : bos("fatura", "Bu işe bağlı fatura yok.")) + '</div>' +
-    bolum("Ödemeler ve giderler (" + hareketler.length + ")") + '<div class="kart liste-kart">' + (hareketler.length ? hareketler.map(h => hareketSatir(h)).join("") : bos("kasa", "Bu işe bağlı kasa hareketi yok.")) + '</div>' +
+    (Y ? bolum("Faturalar (" + faturalar.length + ")") + '<div class="kart liste-kart">' + (faturalar.length ? faturalar.map(f => faturaSatir(f)).join("") : bos("fatura", "Bu işe bağlı fatura yok.")) + '</div>' +
+    bolum("Ödemeler ve giderler (" + hareketler.length + ")") + '<div class="kart liste-kart">' + (hareketler.length ? hareketler.map(h => hareketSatir(h)).join("") : bos("kasa", "Bu işe bağlı kasa hareketi yok.")) + '</div>' : '') +
     '</div></div>';
   return {baslik: ie.no + " · " + ie.baslik, geri:true, html, sonra: galeriDoldur};
 }
@@ -1432,7 +1456,7 @@ EYLEM.durumDegistir = (el, arg) => {
     await Depo.kaydet("is_emirleri", Object.assign({}, ie, {durum:d}));
     await notEkle(id, "Durum: " + ie.durum + " → " + d);
     bildir("Durum: " + d); ciz();
-    if(WA_DURUM[d] > 0) onayla("Müşteriye WhatsApp ile haber verilsin mi?", "", "Mesaj hazırla", () => EYLEM.waIs(null, id), false);
+    if(WA_DURUM[d] > 0 && yetki.yonetici) onayla("Müşteriye WhatsApp ile haber verilsin mi?", "", "Mesaj hazırla", () => EYLEM.waIs(null, id), false);
   });
 };
 EYLEM.asamaDegis = (el, arg) => {
@@ -1609,10 +1633,10 @@ function ekranKatalog(){
   const html = '<div class="vitrin"><div class="marka"><img src="logo-beyaz.png" alt="Güneş Mobilya"></div>' +
       '<div class="alt">Proje kataloğu · ' + projeler.length + ' proje · ' + veri.katalog_gorseller.length + ' fotoğraf</div>' +
       '<div class="buton-sira"><button class="buton altin" data-is="katalogSunum">' + ik("oynat") + (f === "hepsi" ? 'Sunumu başlat' : esc(f) + ' sunumu') + '</button>' +
-      (cevrimici ? '<button class="buton saydam" data-git="paylas-form/' + (f === "hepsi" ? "-" : encodeURIComponent(f)) + '">' + ik("mesaj") + 'Müşteriye gönder</button>' : '') +
-      '<button class="buton saydam" data-git="' + yeniYer + '">' + ik("arti") + 'Yeni proje</button></div></div>' +
+      (cevrimici ? '<button class="buton saydam yonetici-ozel" data-git="paylas-form/' + (f === "hepsi" ? "-" : encodeURIComponent(f)) + '">' + ik("mesaj") + 'Müşteriye gönder</button>' : '') +
+      '<button class="buton saydam yonetici-ozel" data-git="' + yeniYer + '">' + ik("arti") + 'Yeni proje</button></div></div>' +
     '<div class="kat-izgara">' + kutu("Tümü", "hepsi", projeler) + kat.map(k => kutu(k, k, projeler.filter(p => p.kategori === k))).join("") + '</div>' +
-    bolum((f === "hepsi" ? "Tüm projeler" : esc(f)) + " (" + sec.length + ")", '<span style="display:flex;gap:14px">' +
+    bolum((f === "hepsi" ? "Tüm projeler" : esc(f)) + " (" + sec.length + ")", '<span class="yonetici-ozel" style="display:flex;gap:14px">' +
       (cevrimici ? '<button data-git="katalog-ice">ZIP\'ten içe aktar</button>' : '') + '<button data-git="' + yeniYer + '">+ Yeni proje</button></span>') +
     (veri.katalog.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="Proje, malzeme veya ölçü ara…" value="' + esc(katalogArama) + '"></div>' : '') +
     '<div id="projeListe">' + projeListesi(sec) + '</div>' +
@@ -1651,25 +1675,25 @@ function ekranProje(id){
     (g.length ? '<button class="kapak buyuk-kapak" data-is="projeSunum" data-arg="' + id + '|0"><img data-yol="' + esc(g[0].yol) + '" alt="' + esc(p.baslik) + '">' +
       '<span class="oynat-rozet">' + ik("oynat") + 'Sunum modu</span></button>' : '') +
     '<div class="kart"><div class="kart-baslik"><span>Fotoğraflar (' + g.length + ')</span></div>' +
-    (cevrimici ? '<div class="buton-sira" style="margin-top:8px"><button class="buton ikincil kucuk" onclick="document.getElementById(\'kKamera\').click()">' + ik("kamera") + 'Fotoğraf çek</button>' +
+    (cevrimici ? '<div class="buton-sira yonetici-ozel" style="margin-top:8px"><button class="buton ikincil kucuk" onclick="document.getElementById(\'kKamera\').click()">' + ik("kamera") + 'Fotoğraf çek</button>' +
       '<button class="buton ikincil kucuk" onclick="document.getElementById(\'kGaleri\').click()">' + ik("yukle") + 'Fotoğraf yükle</button></div>' +
       '<input type="file" id="kKamera" accept="image/*" capture="environment" style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">' +
       '<input type="file" id="kGaleri" accept="image/*" multiple style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">'
       : '<div class="alt-bilgi">Fotoğraf yüklemek için bulut bağlantısı gerekir.</div>') +
     (g.length ? '<div class="galeri">' + g.map((x, i) => '<div class="foto-sar"><button class="foto" data-is="projeSunum" data-arg="' + id + '|' + i + '"><img data-yol="' + esc(x.yol) + '" loading="lazy" alt="' + esc(x.ad) + '"></button>' +
-        (i === 0 ? '<span class="kapak-rozet">Kapak</span>' : '') + '<button class="menu-dugme" data-is="gorselMenu" data-arg="' + x.id + '" aria-label="Fotoğraf işlemleri">⋯</button></div>').join("") + '</div>' +
+        (i === 0 ? '<span class="kapak-rozet">Kapak</span>' : '') + '<button class="menu-dugme yonetici-ozel" data-is="gorselMenu" data-arg="' + x.id + '" aria-label="Fotoğraf işlemleri">⋯</button></div>').join("") + '</div>' +
       '<div class="alt-bilgi">⋯ ile kapak yapabilir, sırasını değiştirebilir, döndürebilir, başka projeye taşıyabilir veya silebilirsiniz.</div>' : bos("kamera", "Henüz fotoğraf yok.")) + '</div>' +
     '</div><div>' +
     '<div class="kart"><span class="etiket-rozet d-sari">' + esc(p.kategori || "Kategorisiz") + '</span>' +
       '<div style="font-size:19px;font-weight:600;margin:8px 0 6px">' + esc(p.baslik) + '</div>' +
       (p.malzeme ? bilgiSatir("Malzeme", esc(p.malzeme)) : '') + (p.olcu ? bilgiSatir("Ölçüler", esc(p.olcu)) : '') +
-      (p.fiyat ? bilgiSatir("Tahmini fiyat", para(p.fiyat) + " + KDV") : '') +
+      (p.fiyat && yetki.yonetici ? bilgiSatir("Tahmini fiyat", para(p.fiyat) + " + KDV") : '') +
       (p.aciklama ? '<div style="white-space:pre-wrap;font-size:14px;margin-top:10px;background:var(--hafif);border-radius:10px;padding:10px 12px">' + esc(p.aciklama) + '</div>' : '') + '</div>' +
-    '<button class="buton" style="margin-top:0" data-git="is-form/-/-/' + id + '">' + ik("is") + 'Bu projeden teklif / iş emri oluştur</button>' +
-    (cevrimici && g.length ? '<button class="buton ikincil" style="margin-top:12px" data-git="paylas-form/-/' + id + '">' + ik("mesaj") + 'Müşteriye bağlantı gönder</button>' : '') +
+    '<button class="buton yonetici-ozel" style="margin-top:0" data-git="is-form/-/-/' + id + '">' + ik("is") + 'Bu projeden teklif / iş emri oluştur</button>' +
+    (cevrimici && g.length ? '<button class="buton ikincil yonetici-ozel" style="margin-top:12px" data-git="paylas-form/-/' + id + '">' + ik("mesaj") + 'Müşteriye bağlantı gönder</button>' : '') +
     '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" data-is="projeSunum" data-arg="' + id + '|0">' + ik("ekran") + 'Sunum</button>' +
-      '<button class="buton ikincil" data-git="proje-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
-      '<button class="buton tehlike" data-is="projeSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div>' +
+      '<button class="buton ikincil yonetici-ozel" data-git="proje-form/' + id + '">' + ik("kalem") + 'Düzenle</button>' +
+      '<button class="buton tehlike yonetici-ozel" data-is="projeSil" data-arg="' + id + '">' + ik("sil") + 'Sil</button></div>' +
     bolum("Bu projeden açılan işler (" + isler.length + ")") +
     '<div class="kart liste-kart">' + (isler.length ? isler.map(ie => isSatir(ie)).join("") : bos("is", "Henüz teklif veya iş emri yok.")) + '</div>' +
     '</div></div>';
@@ -1971,7 +1995,7 @@ function sunumAc(liste, bas, musteri){
     '<button data-k="bilgi" class="acik" aria-label="Bilgileri göster / gizle">' + ik("bilgi") + '</button>' +
     (document.fullscreenEnabled ? '<button data-k="tam" aria-label="Tam ekran">' + ik("ekran") + '</button>' : '') +
     (musteri ? (waNumara(musteri.telefon) ? '<button data-k="sor" aria-label="WhatsApp ile sor">' + ik("mesaj") + '<span class="yazi-gizle">Bilgi al</span></button>' : '') :
-      '<button data-k="teklif" aria-label="Teklif hazırla">' + ik("is") + '<span class="yazi-gizle">Teklif hazırla</span></button>') +
+      '<button data-k="teklif" class="yonetici-ozel" aria-label="Teklif hazırla">' + ik("is") + '<span class="yazi-gizle">Teklif hazırla</span></button>') +
     '<button data-k="kapat" aria-label="Kapat">' + ik("x") + '</button></div>' +
     '<div class="sn-orta"><img alt="">' + (liste.length > 1 ? '<button class="ok sol" data-k="geri" aria-label="Önceki">' + ik("sol") + '</button>' +
     '<button class="ok sag" data-k="ileri" aria-label="Sonraki">' + ik("sag") + '</button>' : '') + '</div><div class="sn-alt"></div>';
@@ -3069,7 +3093,51 @@ EYLEM.firmaKaydet = btn => {
   const d = {telefon:deger("fTelefon"), adres:deger("fAdres"), iban:deger("fIban"), teklifNotu:deger("fNot"), gecerlilik:gun, kar};
   islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"firma", deger:d}); bildir("Firma bilgileri kaydedildi"); ciz(); });
 };
+const benimEposta = () => ((oturum && oturum.user && oturum.user.email) || "").toLowerCase();
+function kullaniciKarti(){
+  if(!cevrimici) return '';
+  const baslik = '<div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Kullanıcılar ve yetkiler</div>';
+  if(!yetki.kurulu) return '<div class="kart">' + baslik + '<div class="alt-bilgi" style="margin:0">Ustalara fiyat ve kasa görmeyen ayrı giriş vermek için Supabase\'de <b>supabase-guncelleme-6.sql</b> dosyasını çalıştırın.</div></div>';
+  const ad = e => e.replace("@gunesmobilya.app", "");
+  return '<div class="kart">' + baslik +
+    '<div class="alt-bilgi" style="margin:0 0 8px"><b>Usta</b>: iş emirlerini, aşamaları, notları, fotoğrafları, ölçüleri ve kataloğu görür; fiyat, kasa, fatura ve personel bilgilerini görmez. ' +
+    (yetki.liste.length ? 'Listede olmayan hesaplar usta sayılır.' : 'Liste boşken herkes yöneticidir; ilk kişiyi eklediğinizde siz de yönetici olarak eklenirsiniz.') + '</div>' +
+    (yetki.liste.length ? yetki.liste.map(k => '<div class="satir"><span class="rozet ' + (k.rol === "yonetici" ? "r-ana" : "r-gri") + '">' + ik("kisi") + '</span><span class="orta"><div class="s1">' + esc(ad(k.eposta)) +
+      (k.eposta.toLowerCase() === benimEposta() ? ' <span class="etiket-rozet d-gri">siz</span>' : '') + '</div><div class="s2">' + esc([k.ad, k.rol === "yonetici" ? "Yönetici" : "Usta"].filter(Boolean).join(" · ")) + '</div></span>' +
+      (k.eposta.toLowerCase() === benimEposta() ? '' : '<button class="ikon-buton" data-is="kullaniciSil" data-arg="' + esc(k.eposta) + '" aria-label="Kaldır">' + ik("sil") + '</button>') + '</div>').join("") : '') +
+    '<div class="iki-alan" style="margin-top:6px"><div><label class="etiket" for="kuAd">Kullanıcı adı</label><input id="kuAd" class="kutu" autocapitalize="none" maxlength="60" placeholder="ali"></div>' +
+    '<div><label class="etiket" for="kuIsim">Adı <span class="ist">(iş emrindeki sorumlu usta ile aynı)</span></label><input id="kuIsim" class="kutu" maxlength="60" list="kuPersonel">' +
+    '<datalist id="kuPersonel">' + veri.personel.map(p => '<option value="' + esc(p.ad) + '">').join("") + '</datalist></div></div>' +
+    '<label class="etiket">Yetki</label><select id="kuRol" class="kutu"><option value="usta">Usta</option><option value="yonetici">Yönetici</option></select>' +
+    '<button class="buton ikincil" data-is="kullaniciEkle">' + ik("arti") + 'Ekle / güncelle</button>' +
+    '<div class="bilgi-kutu">Listeye eklemek giriş hesabı açmaz. Supabase → <b>Authentication → Users → Add user</b> ile aynı kullanıcı adıyla (örn. <b>ali@gunesmobilya.app</b>) şifre belirleyip <b>Auto Confirm</b> işaretli hesap oluşturun.</div></div>';
+}
+async function yetkiYenile(){
+  const yr = await sb.rpc("yonetici_mi"), kr = await sb.from("kullanicilar").select("*").order("eposta");
+  if(yr.error) throw yr.error; if(kr.error) throw kr.error;
+  const k = kr.data.find(x => x.eposta.toLowerCase() === benimEposta());
+  yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true};
+}
+EYLEM.kullaniciEkle = btn => {
+  const kadi = deger("kuAd"), isim = deger("kuIsim"), rol = deger("kuRol");
+  if(!/^[a-z0-9._-]+(@[^\s@]+\.[^\s@]+)?$/i.test(kadi)) return uyar("Kullanıcı adını kontrol edin", "Türkçe karakter ve boşluk olmadan yazın (örn. ali, mehmet.usta).");
+  const eposta = epostaYap(kadi), ben = benimEposta();
+  if(eposta === ben && rol !== "yonetici") return uyar("Kendi yetkinizi düşüremezsiniz", "Önce başka bir yönetici ekleyin; o sizin yetkinizi değiştirebilir.");
+  islem(btn, async () => {
+    const satirlar = [];
+    if(!yetki.liste.length && eposta !== ben) satirlar.push({eposta:ben, ad:"", rol:"yonetici", olusma:Date.now()});
+    satirlar.push({eposta, ad:isim, rol, olusma:Date.now()});
+    const r = await sb.from("kullanicilar").upsert(satirlar); if(r.error) throw r.error;
+    await yetkiYenile(); bildir("Kaydedildi"); ciz();
+  });
+};
+EYLEM.kullaniciSil = (el, eposta) => onayla(eposta.replace("@gunesmobilya.app", "") + " listeden kaldırılsın mı?", "Hesabı Supabase'den de silmezseniz usta yetkisiyle girmeye devam eder.", "Kaldır",
+  () => islem(null, async () => { const r = await sb.from("kullanicilar").delete().eq("eposta", eposta); if(r.error) throw r.error; await yetkiYenile(); ciz(); }));
 function ekranAyarlar(){
+  if(!yetki.yonetici) return {baslik:"Hesap", geri:true, html:'<div class="kart form-kart"><div class="kart-baslik">Hesap</div><div style="font-weight:500">' + esc(yetki.ad || kullaniciAdi()) + '</div>' +
+    '<div class="alt-bilgi">Usta yetkisi: iş emirleri, aşamalar, notlar, fotoğraflar, ölçü ve katalog.</div>' +
+    '<button class="buton ikincil" data-is="bildirimIzni">' + ik("zil") + 'Bildirimlere izin ver</button>' +
+    '<button class="buton ikincil" data-is="cikisYap">' + ik("cikis") + 'Çıkış yap</button></div>'};
   const son = Number(ayarOku("sonYedek")), eski = cevrimici ? yerelOku() : null;
   const katKart = (tur, baslik) => '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">' + baslik + '</div>' +
     '<div class="kategori-liste">' + kategoriler(tur).map((k, i) => '<span>' + esc(k) + '<button data-is="katSil" data-arg="' + tur + '|' + i + '" aria-label="Sil">' + ik("x") + '</button></span>').join("") + '</div>' +
@@ -3104,6 +3172,7 @@ function ekranAyarlar(){
     '<div class="kart">' + bilgiSatir("Cari", veri.musteriler.length) + bilgiSatir("İş emri", veri.is_emirleri.length) + bilgiSatir("Fatura", veri.faturalar.length) + bilgiSatir("Kasa hareketi", veri.hareketler.length) +
       bilgiSatir("Katalog projesi", veri.katalog.length + " (" + veri.katalog_gorseller.length + " fotoğraf)") + bilgiSatir("Personel", veri.personel.length) + '</div>' +
     '</div><div>' +
+    kullaniciKarti() +
     '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Malzeme fiyat listesi</div>' +
       '<div class="alt-bilgi" style="margin:0">' + malzemeListesi().length + ' malzeme kayıtlı. Teklifte “Malzemeden hesapla” bu fiyatları kullanır.</div>' +
       '<button class="buton ikincil" data-git="malzemeler">' + ik("kalem") + 'Listeyi düzenle</button></div>' +
