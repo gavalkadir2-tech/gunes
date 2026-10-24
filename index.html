@@ -569,7 +569,9 @@ const Depo = {
 function hataMesaji(e){
   const m = (e && (e.message || e.error_description)) || String(e);
   if(/does not exist|Could not find the table|schema cache|column .* not found/i.test(m))
-    return "Veritabanı güncellemesi gerekiyor: Supabase'de sırayla “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql”, “supabase-guncelleme-3.sql”, “supabase-guncelleme-4.sql”, “-5”, “-6” ve “-7” dosyalarını çalıştırın.";
+    return "Veritabanı güncellemesi gerekiyor: Supabase'de sırayla “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql”, “supabase-guncelleme-3.sql”, “supabase-guncelleme-4.sql”, “-5”, “-6”, “-7” ve “-8” dosyalarını çalıştırın.";
+  if(/maximum allowed size|too large|413/i.test(m))
+    return "Dosya, Supabase'in izin verdiği boyuttan büyük. Supabase'de “supabase-guncelleme-8.sql” dosyasını çalıştırın; ücretsiz planda tek dosya en çok 50 MB olabilir (daha büyüğü için Pro plan ve Storage → Settings → Global file size limit).";
   if(/bucket not found/i.test(m)) return "Dosya deposu kurulmamış: Supabase'de “supabase-guncelleme-2.sql” dosyasını çalıştırın.";
   if(/fetch|network|Failed/i.test(m)) return "İnternet bağlantısı yok gibi görünüyor. Tekrar deneyin.";
   if(/JWT|row-level|permission/i.test(m)) return "Oturum süresi doldu. Lütfen tekrar giriş yapın.";
@@ -1160,7 +1162,6 @@ EYLEM.waFatura = (el, id) => {
 const BUCKET = "dosyalar";
 const ASAMALAR = ["Ölçü / Keşif", "Kesim", "Kenar bantlama", "Montaj / İskelet", "Boya / Cila", "Döşeme", "Paketleme", "Teslimat / Kurulum"];
 const ONCELIK = ["Normal", "Acil"];
-const MAX_DOSYA = 50 * 1024 * 1024;
 const zamanYaz = ms => { const d = new Date(ms); return d.getDate() + " " + AYLAR[d.getMonth()] + " " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); };
 const isNotlari = id => veri.is_notlari.filter(n => n.isEmriId === id).sort((a, b) => b.olusma - a.olusma);
 const isDosyalari = id => veri.dosyalar.filter(d => d.isEmriId === id).sort((a, b) => a.olusma - b.olusma);
@@ -1523,7 +1524,6 @@ async function dosyaSecildi(input, ieId){
     let yuklenen = null;
     try{
       const f = await gorselKucult(liste[i]);
-      if(f.size > MAX_DOSYA){ sorunlu.push(f.name + " (50 MB'dan büyük)"); continue; }
       const id = yeniId(), guvenli = f.name.normalize("NFKD").replace(/[^\w.\-]+/g, "_").slice(-80), anahtar = ieId + "/" + id + "_" + guvenli;
       const r = await sb.storage.from(BUCKET).upload(anahtar, f, {contentType: f.type || "application/octet-stream", upsert:false});
       if(r.error) throw r.error;
@@ -1906,7 +1906,6 @@ async function gorselleriYukle(projeId, liste, toplu){
     let yuklenen = null;
     try{
       const f = await gorselKucult(resimler[i], 2400);
-      if(f.size > MAX_DOSYA){ sorunlu.push(f.name + " (50 MB'dan büyük)"); continue; }
       const id = yeniId(), anahtar = KATALOG_KLASOR + "/" + projeId + "/" + id + "_" + guvenliDosyaAdi(f.name);
       const r = await sb.storage.from(BUCKET).upload(anahtar, f, {contentType: turu(f) || "image/jpeg", upsert:false});
       if(r.error) throw r.error;

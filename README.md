@@ -38,8 +38,8 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 
 ### 1. Veritabanı (Supabase, ücretsiz)
 1. https://supabase.com → **Start your project** → yeni proje açın (bölge: Frankfurt).
-2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif), `supabase-guncelleme-5.sql` (personel), `supabase-guncelleme-6.sql` (yetkiler) ve `supabase-guncelleme-7.sql` (stok, taksit, video) dosyalarını çalıştırın.
-   **Önemli:** Eski dosyalardan birini sonradan tekrar çalıştırırsanız `supabase-guncelleme-6.sql` ve `-7.sql` dosyalarını da yeniden çalıştırın (eski dosyalar tablolara herkese tam yetki verir).
+2. Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif), `supabase-guncelleme-5.sql` (personel), `supabase-guncelleme-6.sql` (yetkiler) `supabase-guncelleme-7.sql` (stok, taksit, video) ve `supabase-guncelleme-8.sql` (dosya boyutu sınırını kaldırır) dosyalarını çalıştırın. Ücretsiz Supabase planında tek dosya en çok 50 MB olabilir; daha büyük dosyalar için Pro planda **Storage → Settings → Global file size limit** değerini artırın.
+   **Önemli:** Eski dosyalardan birini sonradan tekrar çalıştırırsanız `supabase-guncelleme-6.sql`, `-7.sql` ve `-8.sql` dosyalarını da yeniden çalıştırın (eski dosyalar tablolara herkese tam yetki verir ve dosya sınırını 50 MB’a geri alır).
    (Önceki dosyalar daha önce çalıştırıldıysa sadece eksik olanları çalıştırın; örneğin katalog kuruluysa sadece `supabase-guncelleme-4.sql` yeterli.)
    Firma telefonu, adresi, IBAN ve teklif notu uygulamada **Ayarlar → Firma bilgileri**'nden girilir.
 3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" kapalı olsun.
