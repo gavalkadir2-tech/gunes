@@ -4,6 +4,7 @@ Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 
 ## Neler var?
 - **Katalog (showroom)**: Mutfak, banyo, gardırop, TV ünitesi (kategoriler Ayarlar'dan değiştirilebilir) projeleri; proje adı, açıklama, malzeme, ölçü ve isteğe bağlı tahmini fiyat. Telefondan fotoğraf çekme veya toplu yükleme; kapak seçme, sıralama, döndürme, başka projeye taşıma, silme
+- **ZIP'ten toplu içe aktarma**: Klasörlere ayrılmış fotoğrafları (ör. Facebook yedeğindeki albümler) tek seferde içe aktarır; her klasör bir proje olur. Önizlemede gruplar seçilir, adı ve kategorisi değiştirilir. İsteğe bağlı `katalog.json` ile proje adı, kategori, malzeme ve açıklama hazır gelir
 - **Sunum modu**: Fotoğrafları müşteriye tam ekranda gösterir; ileri/geri oklar, telefonda kaydırma, klavye (← → Boşluk, Esc), otomatik geçiş, proje bilgilerini aç/kapat. Tek proje, tek kategori veya tüm katalog sunulabilir
 - **Müşteriye katalog bağlantısı**: Seçilen projeler giriş gerektirmeyen bir sayfa olarak WhatsApp'tan gönderilir (7 / 30 / 90 gün veya süresiz). Müşteri fotoğrafları tam ekran izler, tek dokunuşla WhatsApp'tan yazar veya arar. Bağlantı kapatılınca paylaşılan fotoğraf kopyaları silinir; asıl katalog gizli kalır
 - **Ayrıntılı teklif**: Kalem kalem birim fiyat, indirim, KDV, geçerlilik tarihi; firma telefonu / adresi / IBAN ve teklif notu ile yazdırılabilir / PDF teklif. “Teklif onaylandı — siparişe çevir” ile sipariş olur, kalemler ve fiyatlar satış faturasına aktarılır
