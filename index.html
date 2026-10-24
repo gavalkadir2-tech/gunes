@@ -70,7 +70,8 @@ button.kart:hover{border-color:#d6d3d1;}
 .ozet .deger{font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px;}
 .nokta{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;}
 .bolum-baslik{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 8px;}
-.bolum-baslik h2{font-size:15px;font-weight:600;margin:0;}
+.bolum-baslik h2{font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:6px}
+.bolum-baslik h2 svg{width:17px;height:17px;color:var(--ana)}
 .bolum-baslik button{background:none;border:0;color:var(--ana-koyu);font-size:14px;font-weight:500;padding:0;}
 
 /* Hızlı işlemler */
@@ -397,6 +398,8 @@ const IK = {
   ekran:'<path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>',
   bilgi:'<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
   dondur:'<path d="M21 2v6h-6"/><path d="M21 13a9 9 0 1 1-3-7.7L21 8"/>',
+  zil:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  takvim:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
   cetvel:'<path d="M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.41 2.41 0 0 1 0-3.4l2.6-2.6a2.41 2.41 0 0 1 3.4 0Z"/><path d="m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2"/>',
   yildiz:'<path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>'
 };
@@ -699,7 +702,7 @@ function ciz(){
     giris: () => ekranPara("giris", a, b, c), cikis: () => ekranPara("cikis", a, b, c),
     cariler: ekranCariler, cari: () => ekranCari(a), "cari-form": () => ekranCariForm(a, b),
     isler: ekranIsler, is: () => ekranIs(a), "is-form": () => ekranIsForm(a, b, c, d), kesif: () => ekranKesif(a),
-    paylasimlar: ekranPaylasimlar, "paylas-form": () => ekranPaylasForm(a, b), malzemeler: ekranMalzemeler, "katalog-ice": ekranKatalogIce,
+    paylasimlar: ekranPaylasimlar, "paylas-form": () => ekranPaylasForm(a, b), malzemeler: ekranMalzemeler, "katalog-ice": ekranKatalogIce, hatirlatmalar: ekranHatirlatmalar,
     personel: () => a ? ekranPersonelKart(a) : ekranPersonel(), "personel-form": () => ekranPersonelForm(a), puantaj: () => ekranPuantaj(a), maas: () => ekranMaas(a, b),
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
     katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b)
@@ -820,7 +823,10 @@ function ekranAna(){
   const acikIsler = veri.is_emirleri.filter(ac).sort((a, b) => (a.teslimTarihi || "9999") < (b.teslimTarihi || "9999") ? -1 : 1);
   const son = veri.hareketler.filter(h => h.tur !== "borc").sort(tarihSira).slice(0, 6);
 
+  const hl = hatirlatmalar();
   const html = yedekUyarisi() +
+    (hl.length ? bolum(ik("zil") + ' Yapılacaklar (' + hl.length + ')', '<button data-git="hatirlatmalar">' + (hl.length > 5 ? 'Tümü' : 'Bildirim ayarı') + '</button>') +
+      '<div class="kart liste-kart" style="margin-bottom:12px">' + hl.slice(0, 5).map(hatirlatmaSatir).join("") + '</div>' : '') +
     '<div class="izgara dort">' +
       '<button class="kart genis-mobil" data-git="kasa"><div class="kart-baslik">Kasadaki para ' + ik("sag") + '</div><div class="buyuk-sayi">' + para(k.toplam) + '</div>' +
         '<div class="alt-bilgi">Nakit <b>' + para(k.nakit) + '</b> · Banka <b>' + para(k.banka) + '</b>' + (k.senet ? ' · Çek/Senet <b>' + para(k.senet) + '</b>' : '') + '</div></button>' +
@@ -1370,6 +1376,7 @@ function ekranIs(id){
     '<div class="yazdirma"><div class="hizli" style="grid-template-columns:1fr 1fr">' +
       hizliButon("giris/" + cari + "/" + id, "r-giris", "asagi", "Tahsilat Al") + hizliButon("fatura-form/satis/" + cari + "/" + id, "r-borc", "fatura", "Satış Faturası") +
       hizliButon("cikis/-/" + id, "r-cikis", "yukari", "Gider Ekle") + hizliButon("fatura-form/alis/-/" + id, "r-gri", "fatura", "Alış Faturası") + '</div>' +
+    (ie.teslimTarihi && ac(ie) ? '<button class="buton ikincil" style="margin:0 0 12px" data-is="takvimIs" data-arg="' + id + '">' + ik("takvim") + 'Teslim tarihini telefon takvimine ekle</button>' : '') +
     '<button class="buton wa-buton" style="margin-top:0" data-is="waIs" data-arg="' + id + '">' + ik("mesaj") + 'Müşteriye WhatsApp mesajı</button>' +
     (ie.durum === "Teklif" ? '' : '<button class="buton ikincil" style="margin-top:12px" data-is="teklifYazdir" data-arg="' + id + '">' + ik("fatura") + 'Müşteriye fiyat teklifi yazdır / PDF</button>') +
     '<div class="buton-sira" style="margin:12px 0"><button class="buton ikincil" onclick="window.print()">' + ik("yazdir") + 'Yazdır</button>' +
@@ -2025,6 +2032,87 @@ function sunumAc(liste, bas, musteri){
     .then(() => { if(document.body.contains(s)) goster(); }).catch(() => {});
 }
 
+/* ================= HATIRLATMALAR ================= */
+// Ana sayfadaki "Yapılacaklar". seviye: 0 acil (kırmızı), 1 yaklaşan (sarı), 2 bilgi.
+function hatirlatmalar(){
+  const bg = bugun(), yarin = gunEkle(bg, 1), l = [];
+  const gunFark = t => Math.round((tarihOku(t) - tarihOku(bg)) / 86400000);
+  const ne = t => { const g = gunFark(t); return g < 0 ? -g + " gün gecikti" : g === 0 ? "bugün" : g === 1 ? "yarın" : g + " gün sonra"; };
+  veri.is_emirleri.forEach(ie => {
+    const m = cariAdi(ie.musteriId);
+    if(ac(ie) && ie.durum !== "Teklif" && ie.teslimTarihi && ie.teslimTarihi <= gunEkle(bg, 2))
+      l.push({seviye: ie.teslimTarihi <= bg ? 0 : 1, tarih:ie.teslimTarihi, ikon:"is", yer:"is/" + ie.id,
+        yazi:"Teslim " + ne(ie.teslimTarihi) + ": " + ie.no + " " + ie.baslik, alt:[m, ie.durum].filter(Boolean).join(" · ")});
+    const g = ie.durum === "Teklif" && ie.teklif && ie.teklif.gecerlilik;
+    if(g && g <= gunEkle(bg, 2) && g >= gunEkle(bg, -14))
+      l.push({seviye: g < bg ? 1 : 2, tarih:g, ikon:"fatura", yer:"is/" + ie.id, yazi:(g < bg ? "Teklif süresi geçti: " : "Teklif süresi doluyor (" + ne(g) + "): ") + ie.baslik,
+        alt:m + " · müşteriyi arayın"});
+  });
+  veri.faturalar.forEach(f => {
+    if(!f.vade || f.vade > gunEkle(bg, 3)) return;
+    const od = odemeDurumu(f); if(!(od.kalan > 0)) return;
+    l.push({seviye: f.vade <= bg ? 0 : 1, tarih:f.vade, ikon: f.tur === "satis" ? "asagi" : "yukari", yer:"fatura/" + f.id,
+      yazi:(f.tur === "satis" ? "Tahsilat " : "Ödeme ") + ne(f.vade) + ": " + para(od.kalan), alt:cariAdi(f.musteriId) + " · " + f.no});
+  });
+  if(!personelEksik()){
+    const aktif = veri.personel.filter(p => calisiyor(p, bg));
+    const eksik = aktif.filter(p => !veri.puantaj.some(x => x.personelId === p.id && x.tarih === bg)).length;
+    if(eksik && new Date().getHours() >= 10) l.push({seviye:1, tarih:bg, ikon:"tamam", yer:"puantaj", yazi:"Bugünün puantajı girilmedi (" + eksik + " kişi)", alt:"Personel → Puantaj"});
+    const ay = bg.slice(0, 7), sonGun = ay + "-" + ayGunSayisi(ay);
+    if(gunFark(sonGun) <= 2){
+      const odenmedi = aktif.filter(p => p.ucretTipi === "aylik" && !veri.personel_hareket.some(h => h.personelId === p.id && h.tur === "hakedis" && h.donem === ay));
+      if(odenmedi.length) l.push({seviye:2, tarih:sonGun, ikon:"kasa", yer:"maas/ay", yazi:"Maaş zamanı: " + odenmedi.length + " kişinin bu ay hakedişi kaydedilmedi", alt:odenmedi.map(p => p.ad).join(", ")});
+    }
+  }
+  return l.sort((a, b) => a.seviye - b.seviye || (a.tarih < b.tarih ? -1 : a.tarih > b.tarih ? 1 : 0));
+}
+const HATIRLATMA_RENK = ["r-cikis", "r-ana", "r-borc"];
+const hatirlatmaSatir = h => '<button class="satir" data-git="' + h.yer + '"><span class="rozet ' + HATIRLATMA_RENK[h.seviye] + '">' + ik(h.ikon) + '</span>' +
+  '<span class="orta"><div class="s1"' + (h.seviye === 0 ? ' style="color:#b91c1c"' : '') + '>' + esc(h.yazi) + '</div><div class="s2">' + esc(h.alt || "") + '</div></span>' + ik("sag") + '</button>';
+function ekranHatirlatmalar(){
+  const l = hatirlatmalar(), izin = window.Notification ? Notification.permission : "yok";
+  const html = (izin === "default" ? '<div class="uyari">Uygulamayı açtığınızda acil işler için telefon bildirimi almak ister misiniz? <b data-is="bildirimIzni" style="cursor:pointer;text-decoration:underline">Bildirimlere izin ver</b></div>' : '') +
+    '<div class="kart liste-kart">' + (l.length ? l.map(hatirlatmaSatir).join("") : bos("zil", "Şu an yapılacak bir şey yok.")) + '</div>' +
+    '<div class="alt-bilgi" style="margin:12px 2px">Uygulama kapalıyken hatırlatma için iş emri ve fatura sayfalarındaki “telefon takvimine ekle” düğmesini kullanın; telefonunuz bir gün önceden hatırlatır.</div>';
+  return {baslik:"Yapılacaklar", geri:true, html};
+}
+EYLEM.bildirimIzni = () => {
+  if(!window.Notification) return uyar("Bu tarayıcı bildirim desteklemiyor", "Telefonda uygulamayı “Ana ekrana ekle” ile açmayı deneyin.");
+  Notification.requestPermission().then(r => { if(r === "granted"){ ayarYaz("sonBildirim", ""); bildirimGonder(); bildir("Bildirimler açıldı"); } ciz(); });
+};
+// Gün içinde ilk açılışta acil işler için tek bir özet bildirim.
+function bildirimGonder(){
+  try{
+    if(!window.Notification || Notification.permission !== "granted" || ayarOku("sonBildirim") === bugun()) return;
+    const acil = hatirlatmalar().filter(h => h.seviye === 0); if(!acil.length) return;
+    ayarYaz("sonBildirim", bugun());
+    const n = new Notification(FIRMA + ": " + acil.length + " acil iş", {body:acil.slice(0, 3).map(h => h.yazi).join("\n"), icon:"ikon-192.png", tag:"gunes-hatirlatma"});
+    n.onclick = () => { window.focus(); git("hatirlatmalar"); n.close(); };
+  }catch(e){}
+}
+// Telefon takvimine eklenecek .ics dosyası: tüm gün etkinlik, bir gün önce saat 09:00'da hatırlatma.
+function takvimIndir(baslik, tarih, aciklama, dosya){
+  const t = tarih.replace(/-/g, ""), son = gunEkle(tarih, 1).replace(/-/g, ""), kac = s => String(s || "").replace(/[\;,]/g, m => "\\" + m).replace(/\n/g, "\\n");
+  const damga = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Gunes Mobilya//TR", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
+    "UID:" + yeniId() + "@gunesmobilya", "DTSTAMP:" + damga, "DTSTART;VALUE=DATE:" + t, "DTEND;VALUE=DATE:" + son,
+    "SUMMARY:" + kac(baslik), "DESCRIPTION:" + kac(aciklama), "BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + kac(baslik), "TRIGGER:-PT15H", "END:VALARM",
+    "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], {type:"text/calendar;charset=utf-8"}));
+  a.download = guvenliAd(dosya) + ".ics"; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  bildir("Takvim dosyası indirildi; açıp takvime ekleyin");
+}
+EYLEM.takvimIs = (el, id) => {
+  const ie = bul("is_emirleri", id); if(!ie || !ie.teslimTarihi) return;
+  const m = bul("musteriler", ie.musteriId) || {};
+  takvimIndir("Teslim: " + ie.no + " " + ie.baslik, ie.teslimTarihi, [m.ad, m.telefon, ie.adres].filter(Boolean).join("\n"), "teslim-" + ie.no);
+};
+EYLEM.takvimFatura = (el, id) => {
+  const f = bul("faturalar", id); if(!f || !f.vade) return;
+  takvimIndir((f.tur === "satis" ? "Tahsilat: " : "Ödeme: ") + cariAdi(f.musteriId) + " " + para(odemeDurumu(f).kalan), f.vade, "Fatura " + f.no, "vade-" + f.no);
+};
+
 /* ================= MALZEME FİYAT LİSTESİ & HESAPLAMA ================= */
 // Liste "ayarlar" tablosunda "malzemeler" anahtarıyla durur. Fiyatlar maliyettir (KDV hariç).
 const BIRIMLER = ["m²", "mtül", "adet", "plaka", "takım", "kg", "lt"];
@@ -2569,6 +2657,7 @@ function ekranFatura(id){
     '<div class="buton-sira">' + (od.kalan > 0 ? '<button class="buton" style="background:var(--' + (satis ? "giris" : "cikis") + ')" data-git="' + (satis ? "giris" : "cikis") + '/' + f.musteriId + '/' + (f.isEmriId || "-") + '/' + f.id + '">' +
       ik(satis ? "asagi" : "yukari") + (satis ? "Tahsilat al" : "Ödeme yap") + '</button>' : '') +
       '<button class="buton ikincil" onclick="window.print()">' + ik("yazdir") + 'Yazdır</button><button class="buton wa-buton" data-is="waFatura" data-arg="' + id + '">' + ik("mesaj") + 'WhatsApp</button></div>' +
+    (f.vade && od.kalan > 0 ? '<button class="buton ikincil" data-is="takvimFatura" data-arg="' + id + '">' + ik("takvim") + 'Vadeyi telefon takvimine ekle</button>' : '') +
     (odemeler.length ? bolum("Bu faturanın ödemeleri") + '<div class="kart liste-kart">' + odemeler.map(h => hareketSatir(h, true)).join("") + '</div>' : '') +
     '<div class="alt-bilgi" style="margin:12px 2px">Bu belge işletme içi kayıttır; resmî e-Fatura/e-Arşiv yerine geçmez.</div>' +
     '<button class="buton tehlike" data-is="faturaSil" data-arg="' + id + '">' + ik("sil") + 'Faturayı sil</button></div>';
@@ -3224,6 +3313,7 @@ async function acilis(){
   }
   hazir = true; ciz();
   if(cevrimici) canliBaglan();
+  bildirimGonder();
 }
 let kanal = null, yenileZamanlayici = null;
 function canliBaglan(){
