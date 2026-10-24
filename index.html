@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<title>Güneş Mobilya — Muhasebe</title>
+<title>Güneş Mobilya</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="Güneş Mobilya">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -21,7 +25,7 @@ var BULUT = {
 <style>
 :root{
   --bg:#f6f5f2; --kart:#ffffff; --yazi:#1c1917; --soluk:#78716c; --cizgi:#e7e5e4; --hafif:#fafaf9;
-  --ana:#d97706; --ana-koyu:#b45309; --ana-acik:#fef3c7;
+  --ana:#dc7e03; --ana-koyu:#b45309; --ana-acik:#fef3c7;
   --giris:#15803d; --giris-acik:#ecfdf3;
   --cikis:#c2410c; --cikis-acik:#fff1ea;
   --borc:#1d4ed8; --borc-acik:#eef4ff;
@@ -42,6 +46,12 @@ svg.ik{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;str
 .ikon-buton svg{width:18px;height:18px;}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16px;}
 .logo .gunes{width:30px;height:30px;border-radius:9px;background:var(--ana-acik);color:var(--ana);display:flex;align-items:center;justify-content:center;}
+.logo-tam{height:34px;width:auto;display:block}
+.logo-ikon{width:34px;height:34px;display:block}
+.vitrin .marka img{height:34px;width:auto;display:block;position:relative}
+.sn-ust .marka img{height:22px;width:auto;display:block}
+.baski-logo{display:none}
+@media print{.baski-logo{display:block;margin:0 0 14px}.baski-logo img{height:40px}}
 .durum-isik{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--soluk);}
 .durum-isik i{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;}
 .durum-isik.yerel i{background:#a8a29e;}
@@ -338,7 +348,7 @@ a.buton{text-decoration:none}
 </head>
 <body>
 <nav class="menu" id="menu">
-  <div class="logo"><span class="gunes" data-ik="gunes"></span>Güneş Mobilya</div>
+  <div class="logo"><img src="logo.png" alt="Güneş Mobilya" class="logo-tam" style="height:30px"></div>
   <button data-git="ana"><span data-ik="ev"></span>Ana Sayfa</button>
   <button data-git="katalog"><span data-ik="katalog"></span>Katalog</button>
   <button data-git="cariler"><span data-ik="kisiler"></span>Cariler</button>
@@ -581,6 +591,8 @@ function tarihYaz(t, kisa){
   if(t === tarihStr(d)) return "Dün";
   const p = t.split("-"); return Number(p[2]) + " " + AYLAR[Number(p[1]) - 1] + (kisa && p[0] === bugun().slice(0, 4) ? "" : " " + p[0]);
 }
+// Belgelerde "Bugün / Dün" yerine tam tarih
+const tamTarih = t => { if(!t) return ""; const p = t.split("-"); return Number(p[2]) + " " + AYLAR[Number(p[1]) - 1] + " " + p[0]; };
 const bul = (t, id) => id ? veri[t].find(x => x.id === id) || null : null;
 const cariAdi = id => { const m = bul("musteriler", id); return m ? m.ad : ""; };
 const tarihSira = (a, b) => a.tarih < b.tarih ? 1 : a.tarih > b.tarih ? -1 : (b.olusma || 0) - (a.olusma || 0);
@@ -695,11 +707,11 @@ function ciz(){
   const s = (sayfalar[ekran] || ekranAna)();
   document.getElementById("uygulama").innerHTML =
     '<header class="ust">' +
-      (s.geri ? '<button class="ikon-buton" onclick="geri()" aria-label="Geri">' + ik("sol") + '</button>' : '<div class="logo"><span class="gunes">' + ik("gunes") + '</span></div>') +
+      (s.geri ? '<button class="ikon-buton" onclick="geri()" aria-label="Geri">' + ik("sol") + '</button>' : '<div class="logo"><img src="logo-ikon.png" alt="Güneş Mobilya" class="logo-ikon"></div>') +
       '<h1>' + esc(s.baslik) + '</h1>' +
       '<span class="durum-isik' + (cevrimici ? '' : ' yerel') + '"><i></i>' + (cevrimici ? 'Çevrimiçi' : 'Bu cihazda') + '</span>' +
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
-    '</header><main class="sayfa">' + s.html + '</main>';
+    '</header><main class="sayfa">' + (s.baskiLogo === false ? '' : '<div class="baski-logo"><img src="logo.png" alt="Güneş Mobilya"></div>') + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
     kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", malzemeler:"ayarlar", "personel-form":"personel", puantaj:"personel", maas:"personel"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
@@ -1587,7 +1599,7 @@ function ekranKatalog(){
     return '<button class="kat-kutu' + (kp ? '' : ' bos-kapak') + (f === d ? ' secili' : '') + '" data-is="katalogFiltre" data-arg="' + esc(d) + '">' +
       (kp ? '<img data-yol="' + esc(kp.yol) + '" loading="lazy" alt="">' : '') + '<span class="yazi"><b>' + esc(ad) + '</b><small>' + liste.length + ' proje</small></span></button>';
   };
-  const html = '<div class="vitrin"><div class="marka"><span class="gunes">' + ik("gunes") + '</span>Güneş Mobilya</div>' +
+  const html = '<div class="vitrin"><div class="marka"><img src="logo-beyaz.png" alt="Güneş Mobilya"></div>' +
       '<div class="alt">Proje kataloğu · ' + projeler.length + ' proje · ' + veri.katalog_gorseller.length + ' fotoğraf</div>' +
       '<div class="buton-sira"><button class="buton altin" data-is="katalogSunum">' + ik("oynat") + (f === "hepsi" ? 'Sunumu başlat' : esc(f) + ' sunumu') + '</button>' +
       (cevrimici ? '<button class="buton saydam" data-git="paylas-form/' + (f === "hepsi" ? "-" : encodeURIComponent(f)) + '">' + ik("mesaj") + 'Müşteriye gönder</button>' : '') +
@@ -1947,7 +1959,7 @@ function sunumAc(liste, bas, musteri){
   if(!liste.length) return uyar("Sunulacak fotoğraf yok", musteri ? "" : "Önce projelere fotoğraf yükleyin.");
   let i = Math.min(bas || 0, liste.length - 1), oto = null, dokunX = null;
   const s = document.createElement("div"); s.className = "sunum";
-  s.innerHTML = '<div class="sn-ust"><span class="marka">' + ik("gunes") + '<span class="yazi-gizle">Güneş Mobilya</span></span><span class="sayac"></span>' +
+  s.innerHTML = '<div class="sn-ust"><span class="marka"><img src="logo-beyaz.png" alt="Güneş Mobilya"></span><span class="sayac"></span>' +
     (liste.length > 1 ? '<button data-k="oto" aria-label="Otomatik geçiş">' + ik("oynat") + '<span class="yazi-gizle">Otomatik</span></button>' : '') +
     '<button data-k="bilgi" class="acik" aria-label="Bilgileri göster / gizle">' + ik("bilgi") + '</button>' +
     (document.fullscreenEnabled ? '<button data-k="tam" aria-label="Tam ekran">' + ik("ekran") + '</button>' : '') +
@@ -2336,7 +2348,7 @@ async function vitrinGoster(anahtar){
   document.body.classList.add("girissiz");
   window.addEventListener("hashchange", () => location.reload());
   const el = document.getElementById("uygulama"), mesaj = (b, a) => {
-    el.innerHTML = '<div class="giris-ekrani"><div class="kart" style="text-align:center"><div class="logo" style="justify-content:center"><span class="gunes">' + ik("gunes") + '</span>' + esc(FIRMA) + '</div>' +
+    el.innerHTML = '<div class="giris-ekrani"><div class="kart" style="text-align:center"><img src="logo.png" alt="' + esc(FIRMA) + '" style="height:40px;margin:0 auto">' +
       '<p style="font-weight:600;margin:16px 0 4px">' + esc(b) + '</p><div class="alt-bilgi">' + esc(a || "") + '</div></div></div>';
   };
   el.innerHTML = '<div class="yukleniyor"><span class="donen"></span>Yükleniyor…</div>';
@@ -2351,7 +2363,7 @@ async function vitrinGoster(anahtar){
   const iletisim = (tel ? '<a class="buton wa-buton" href="' + esc(vitrinWaLink(fr.telefon, "“" + v.baslik + "” sayfanızı inceledim, bilgi almak istiyorum.")) + '" target="_blank" rel="noopener">' + ik("mesaj") + 'WhatsApp\'tan yazın</a>' +
     '<a class="buton saydam" href="tel:+' + tel + '">' + ik("telefon") + 'Arayın</a>' : '');
   el.innerHTML = '<main class="sayfa" style="max-width:1100px">' +
-    '<div class="vitrin"><div class="marka"><span class="gunes">' + ik("gunes") + '</span>' + esc(fr.ad || FIRMA) + '</div>' +
+    '<div class="vitrin"><div class="marka"><img src="logo-beyaz.png" alt="' + esc(fr.ad || FIRMA) + '"></div>' +
       '<h1 style="font-size:22px;margin:14px 0 4px;position:relative">' + esc(v.baslik) + '</h1>' +
       (v.mesaj ? '<div class="alt" style="white-space:pre-wrap">' + esc(v.mesaj) + '</div>' : '<div class="alt"></div>') +
       '<div class="buton-sira"><button class="buton altin" data-is="vitrinSunum" data-arg="-1">' + ik("oynat") + 'Tüm fotoğrafları izle</button>' + iletisim + '</div></div>' +
@@ -2376,7 +2388,7 @@ EYLEM.teklifYazdir = async (el, id) => {
   document.querySelectorAll(".baski").forEach(x => x.remove());
   const b = document.createElement("div"); b.className = "baski";
   const toplamSatir = (k, v, kalin) => '<tr' + (kalin ? ' style="font-size:16px;font-weight:700"' : '') + '><td style="text-align:right;border:0">' + k + '</td><td style="text-align:right;border:0;white-space:nowrap;width:140px">' + v + '</td></tr>';
-  b.innerHTML = '<div class="b-ust"><div><h1>' + esc(FIRMA) + '</h1><div>' + esc([fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></div>' +
+  b.innerHTML = '<div class="b-ust"><div><img src="logo.png" alt="' + esc(FIRMA) + '" style="height:46px;display:block;margin-bottom:6px"><div>' + esc([fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></div>' +
       '<div style="text-align:right"><b style="font-size:16px">FİYAT TEKLİFİ</b><br>Teklif no: <b>' + esc(ie.no) + '</b><br>Tarih: ' + d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear() + '</div></div>' +
     '<div>Sayın <b>' + esc(m.ad || "") + '</b>' + (m.telefon ? ' · ' + esc(m.telefon) : '') + (ie.adres ? '<br>' + esc(ie.adres) : '') + '</div>' +
     '<h2>' + esc(ie.baslik) + '</h2>' +
@@ -2388,7 +2400,7 @@ EYLEM.teklifYazdir = async (el, id) => {
       toplamSatir(kdvYazi(h.kdvOran), para(h.kdv)) + toplamSatir("Genel toplam" + (h.kdvOran ? " (KDV dahil)" : ""), para(h.toplam), true) + '</table>' :
       o.fiyat ? '<div class="toplam">Toplam: ' + para(o.fiyat) + '</div>' : '') +
     (ie.aciklama ? '<p style="white-space:pre-wrap">' + esc(ie.aciklama) + '</p>' : '') +
-    '<p>' + [ie.teslimTarihi ? 'Tahmini teslim: <b>' + esc(tarihYaz(ie.teslimTarihi)) + '</b>' : '', ie.teklif.gecerlilik ? 'Teklif geçerlilik tarihi: <b>' + esc(tarihYaz(ie.teklif.gecerlilik)) + '</b>' : ''].filter(Boolean).join("<br>") + '</p>' +
+    '<p>' + [ie.teslimTarihi ? 'Tahmini teslim: <b>' + esc(tamTarih(ie.teslimTarihi)) + '</b>' : '', ie.teklif.gecerlilik ? 'Teklif geçerlilik tarihi: <b>' + esc(tamTarih(ie.teklif.gecerlilik)) + '</b>' : ''].filter(Boolean).join("<br>") + '</p>' +
     (fr.teklifNotu ? '<p style="white-space:pre-wrap">' + esc(fr.teklifNotu) + '</p>' : '') +
     (fr.iban ? '<p>IBAN: <b>' + esc(fr.iban) + '</b> (' + esc(FIRMA) + ')</p>' : '') +
     (fotolar.length ? '<h2>Görseller</h2><div class="b-foto">' + fotolar.map(x => urlOnbellek[x.yol] ? '<img src="' + esc(urlOnbellek[x.yol].url) + '" alt="">' : '').join("") + '</div>' : '') +
@@ -2535,9 +2547,10 @@ function ekranFatura(id){
   const m = bul("musteriler", f.musteriId) || {}, ie = bul("is_emirleri", f.isEmriId), od = odemeDurumu(f), satis = f.tur === "satis";
   const odemeler = veri.hareketler.filter(h => h.faturaId === id).sort(tarihSira);
   const html = '<div class="kart" style="max-width:820px">' +
-    '<div class="fatura-ust"><div><div class="logo" style="margin-bottom:6px"><span class="gunes yazdirma">' + ik("gunes") + '</span>Güneş Mobilya</div>' +
+    '<div class="fatura-ust"><div><img src="logo.png" alt="Güneş Mobilya" style="height:42px;display:block;margin-bottom:4px">' +
+      (firma().adres || firma().telefon ? '<div class="alt-bilgi" style="margin:0 0 8px">' + esc([firma().adres, firma().telefon].filter(Boolean).join(" · ")) + '</div>' : '') +
       '<h2>' + (satis ? "SATIŞ FATURASI" : "ALIŞ FATURASI") + '</h2><div class="alt-bilgi">No: <b>' + esc(f.no) + '</b></div></div>' +
-      '<div style="text-align:right"><div class="alt-bilgi">Tarih: <b>' + tarihYaz(f.tarih) + '</b></div>' + (f.vade ? '<div class="alt-bilgi">Vade: <b>' + tarihYaz(f.vade) + '</b></div>' : '') +
+      '<div style="text-align:right"><div class="alt-bilgi">Tarih: <b>' + tamTarih(f.tarih) + '</b></div>' + (f.vade ? '<div class="alt-bilgi">Vade: <b>' + tamTarih(f.vade) + '</b></div>' : '') +
       '<div style="margin-top:8px"><span class="etiket-rozet ' + od.sinif + '">' + od.yazi + '</span></div></div></div>' +
     '<div style="margin-bottom:10px"><div class="alt-bilgi" style="margin:0">' + (satis ? "Sayın" : "Tedarikçi") + '</div>' +
       '<div style="font-weight:600"><button class="baglanti" style="text-align:left;color:inherit;font-weight:600" data-git="cari/' + f.musteriId + '">' + esc(m.ad || "") + '</button></div>' +
@@ -2559,7 +2572,7 @@ function ekranFatura(id){
     (odemeler.length ? bolum("Bu faturanın ödemeleri") + '<div class="kart liste-kart">' + odemeler.map(h => hareketSatir(h, true)).join("") + '</div>' : '') +
     '<div class="alt-bilgi" style="margin:12px 2px">Bu belge işletme içi kayıttır; resmî e-Fatura/e-Arşiv yerine geçmez.</div>' +
     '<button class="buton tehlike" data-is="faturaSil" data-arg="' + id + '">' + ik("sil") + 'Faturayı sil</button></div>';
-  return {baslik:(satis ? "Satış" : "Alış") + " faturası " + f.no, geri:true, html};
+  return {baslik:(satis ? "Satış" : "Alış") + " faturası " + f.no, geri:true, html, baskiLogo:false};
 }
 EYLEM.faturaSil = (el, id) => {
   const n = veri.hareketler.filter(h => h.faturaId === id).length;
@@ -3174,8 +3187,8 @@ function girisEkrani(mesaj){
   document.body.classList.add("girissiz");
   document.getElementById("uygulama").innerHTML =
     '<div class="giris-ekrani"><form class="kart" id="girisForm">' +
-      '<div class="logo"><span class="gunes">' + ik("gunes") + '</span>Güneş Mobilya</div>' +
-      '<div class="alt-bilgi" style="text-align:center;margin-bottom:8px">Muhasebe</div>' +
+      '<img src="logo.png" alt="Güneş Mobilya" style="width:100%;max-width:260px;height:auto;display:block;margin:0 auto 6px">' +
+      '<div class="alt-bilgi" style="text-align:center;margin-bottom:8px">İşletme yönetimi</div>' +
       '<label class="etiket" for="kadi">Kullanıcı adı</label><input id="kadi" class="kutu" autocomplete="username" autocapitalize="none" required>' +
       '<label class="etiket" for="sifre">Şifre</label><input id="sifre" type="password" class="kutu" autocomplete="current-password" required>' +
       '<div class="hata" id="hata">' + esc(mesaj || "") + '</div>' +
