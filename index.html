@@ -523,6 +523,9 @@ body.gizle-stok #menu [data-git="stok"], body.gizle-rapor #menu [data-git="rapor
 .kisi-kasa{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--cizgi);font-size:13px;color:var(--soluk)}
 .kisi-kasa b{color:var(--yazi);font-weight:600}.kisi-kasa i{font-style:normal;font-size:12px}
 .ortak-kart .ortak-ust{display:flex;gap:12px;align-items:center;margin-bottom:8px}.ortak-kart .rozet{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+
+.bugun-randevu{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-bottom:12px}
+.bugun-randevu .randevu{margin:0;background:var(--kart);border:1px solid var(--cizgi);border-left:4px solid var(--renk)}
 </style>
 </head>
 <body>
@@ -788,7 +791,7 @@ const Depo = {
 function hataMesaji(e){
   const m = (e && (e.message || e.error_description)) || String(e);
   if(/does not exist|Could not find the table|schema cache|column .* not found/i.test(m))
-    return "Veritabanı güncellemesi gerekiyor: Supabase'de sırayla “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql”, “supabase-guncelleme-3.sql”, “supabase-guncelleme-4.sql”, “-5” … “-11” dosyalarını çalıştırın.";
+    return "Veritabanı güncellemesi gerekiyor: Supabase'de sırayla “supabase-guncelleme.sql”, “supabase-guncelleme-2.sql”, “supabase-guncelleme-3.sql”, “supabase-guncelleme-4.sql”, “-5” … “-11” dosyalarını çalıştırın (en kolayı: supabase-tum-kurulum.sql dosyasının tamamını bir kez çalıştırmak).";
   if(/maximum allowed size|too large|413/i.test(m))
     return "Dosya, Supabase'in izin verdiği boyuttan büyük. Supabase'de “supabase-guncelleme-8.sql” dosyasını çalıştırın; ücretsiz planda tek dosya en çok 50 MB olabilir (daha büyüğü için Pro plan ve Storage → Settings → Global file size limit).";
   if(/bucket not found/i.test(m)) return "Dosya deposu kurulmamış: Supabase'de “supabase-guncelleme-2.sql” dosyasını çalıştırın.";
@@ -1075,6 +1078,8 @@ function ekranAna(){
   const html = yedekUyarisi() +
     (hl.length ? bolum(ik("zil") + ' Yapılacaklar (' + hl.length + ')', '<button data-git="hatirlatmalar">' + (hl.length > 5 ? 'Tümü' : 'Bildirim ayarı') + '</button>') +
       '<div class="kart liste-kart" style="margin-bottom:12px">' + hl.slice(0, 5).map(hatirlatmaSatir).join("") + '</div>' : '') +
+    (() => { const r = randevular().filter(x => x.r.tarih === bg && x.ie.durum !== "İptal").sort((a, b) => (a.r.saat || "") < (b.r.saat || "") ? -1 : 1);
+      return r.length ? bolum(ik("takvim") + ' Bugünkü randevular (' + r.length + ')', '<button data-git="takvim">Takvim</button>') + '<div class="bugun-randevu">' + r.map(x => randevuKarti(x)).join("") + '</div>' : ''; })() +
     '<div class="izgara dort">' +
       '<button class="kart genis-mobil" data-git="kasa"><div class="kart-baslik">Kasadaki para ' + ik("sag") + '</div><div class="buyuk-sayi">' + para(k.toplam) + '</div>' +
         '<div class="alt-bilgi">Nakit <b>' + para(k.nakit) + '</b> · Banka <b>' + para(k.banka) + '</b>' + (k.senet ? ' · Çek/Senet <b>' + para(k.senet) + '</b>' : '') + '</div>' + kisiKasaSatiri() + '</button>' +
@@ -1488,7 +1493,7 @@ function ekranIsForm(id, cariId, projeId, sonra){
   const ie = bul("is_emirleri", id), m0 = bul("musteriler", ie ? ie.musteriId : cariId);
   const pr = ie ? null : bul("katalog", projeId), prFoto = pr && cevrimici ? projeGorselleri(pr.id).length : 0;
   const tk = ie ? isTeklif(ie) : {}, mevcut = ie ? ie.asamalar.map(a => a.ad) : ASAMALAR.slice();
-  form = {durum: ie ? ie.durum : pr || sonra === "kesif" ? "Teklif" : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit", projeId: pr ? pr.id : null,
+  form = {durum: ie ? ie.durum : pr || sonra === "kesif" ? "Teklif" : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit", ortak:benimOrtak(), projeId: pr ? pr.id : null,
     sonraKesif: !ie && sonra === "kesif",
     ikalemler: ie && ie.kalemler.length ? ie.kalemler.map(k => Object.assign({}, k)) :
       pr ? [{ad: pr.kategori ? pr.kategori + " — " + pr.baslik : pr.baslik, olcu:pr.olcu, renk:pr.malzeme, adet:1, katalogId:pr.id}] : [bosKalem()],
@@ -1526,7 +1531,7 @@ function ekranIsForm(id, cariId, projeId, sonra){
     '<div class="buton-sira" style="flex-wrap:nowrap;margin-top:10px"><input id="yeniAsama" class="kutu" maxlength="40" placeholder="Başka aşama ekle"><button type="button" class="buton ikincil kucuk" data-is="asamaEkle">Ekle</button></div>' +
     '<label class="etiket">Durum</label>' + secenekler("durum", DURUMLAR, form.durum) +
     (ie ? '' : '<div class="form-bolum">Kapora</div><label class="etiket" for="kapora" style="margin-top:0">Alınan kapora / peşinat <span class="ist">(yoksa boş bırakın)</span></label>' +
-      '<input id="kapora" class="kutu" inputmode="decimal" placeholder="0 ₺"><label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit")) +
+      '<input id="kapora" class="kutu" inputmode="decimal" placeholder="0 ₺"><label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit") + ortakSecici(form.ortak, true)) +
     '<div class="hata" id="hata"></div><button class="buton" data-is="isKaydet" data-arg="' + (ie ? ie.id : "") + '">' + ik("tamam") + (form.sonraKesif ? 'Kaydet ve ölçüye geç' : 'Kaydet') + '</button></div>';
   return {baslik: ie ? "İş emrini düzenle" : form.sonraKesif ? "Yeni ölçü / keşif" : "Yeni iş emri", geri:true, html, sonra(){
     secenekBagla();
@@ -1583,7 +1588,7 @@ EYLEM.isKaydet = (btn, id) => {
     else if(eski.durum !== k.durum) await notEkle(k.id, "Durum: " + eski.durum + " → " + k.durum);
     if(fotoKopyala) await projeFotolariniKopyala(pr.id, k.id);
     if(kapora > 0) await Depo.kaydet("hareketler", {id:yeniId(), tur:"giris", tutar:yuvarla(kapora), kategori:"Kapora / Peşinat", odeme:form.odeme,
-      musteriId:cari, isEmriId:k.id, faturaId:null, aciklama:baslik, tarih:bugun(), olusma:Date.now()});
+      musteriId:cari, isEmriId:k.id, faturaId:null, aciklama:baslik, tarih:bugun(), olusma:Date.now(), ortak:form.ortak || "", hedef:""});
     if(id){ bildir("Kaydedildi"); geri(); }
     else if(form.sonraKesif){ bildir("İş emri açıldı: " + k.no); history.replaceState(null, "", "#is/" + k.id); history.pushState(null, "", "#kesif/" + k.id); ciz(); }
     else { bildir("İş emri açıldı: " + k.no); history.replaceState(null, "", "#is/" + k.id); ciz(); }
@@ -2959,7 +2964,7 @@ function ekranFaturaForm(tur, cariId, ieId){
   const yil = bugun().slice(0, 4);
   const ilk = satis && ie && ie.tutar && !veri.faturalar.some(f => f.isEmriId === ie.id && f.tur === "satis");
   const h = ilk ? isHesap(ie.kalemler, isTeklif(ie)) : null, kdv = h && KDV_ORANLARI.indexOf(h.kdvOran) >= 0 ? h.kdvOran : varsayilanKdv();
-  form = {tur: satis ? "satis" : "alis", odeme:"Nakit", kategori: kategoriler("cikis")[0],
+  form = {tur: satis ? "satis" : "alis", odeme:"Nakit", ortak:benimOrtak(), kategori: kategoriler("cikis")[0],
     kalemler:[{ad: satis && ie ? ie.baslik : "", miktar:1, fiyat: h ? h.net : 0, kdv}]};
   // Kalem fiyatlı tekliften: indirim kalemlere oranla dağıtılır, KDV teklifteki orandır.
   if(h && h.kalemli){
@@ -2988,7 +2993,7 @@ function ekranFaturaForm(tur, cariId, ieId){
     (form.onOdeme > 0 ? '<div class="bilgi-kutu" id="onOdemeBilgi">Bu iş için daha önce alınan <b>' + para(form.onOdeme) + '</b> (kapora vb.) bu faturaya sayılacak.</div>' : '') +
     '<label class="etiket" for="odenen">Tutar <span class="ist">(veresiye ise boş bırakın)</span></label><input id="odenen" class="kutu" inputmode="decimal" placeholder="0 ₺">' +
     '<div class="secenekler" id="tamamiKutu" style="margin-top:8px"></div>' +
-    '<label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit") +
+    '<label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit") + ortakSecici(form.ortak, satis) +
     '<div class="hata" id="hata"></div><button class="buton" style="background:var(--' + (satis ? "borc" : "cikis") + ')" data-is="faturaKaydet">' + ik("tamam") + 'Faturayı kaydet</button></div>';
   return {baslik: satis ? "Satış faturası" : "Alış faturası", geri:true, html, sonra(){
     secenekBagla(); if(satis) cariIsBagla();
@@ -3032,7 +3037,7 @@ EYLEM.faturaKaydet = btn => {
     if(onceki.length) await Depo.kaydet("hareketler", onceki.map(x => Object.assign({}, x, {faturaId:f.id})));
     if(odenen > 0) await Depo.kaydet("hareketler", {id:yeniId(), tur: f.tur === "satis" ? "giris" : "cikis", tutar:yuvarla(odenen),
       kategori: f.tur === "satis" ? "Cari Tahsilat" : f.kategori, odeme:form.odeme, musteriId:cari, isEmriId:f.isEmriId, faturaId:f.id,
-      aciklama:"Fatura " + no, tarih:f.tarih, olusma:Date.now()});
+      aciklama:"Fatura " + no, tarih:f.tarih, olusma:Date.now(), ortak:form.ortak || "", hedef:""});
     const sp = form.siparisId && bul("siparisler", form.siparisId);
     if(sp) await Depo.kaydet("siparisler", Object.assign({}, sp, {faturaId:f.id}));
     faturaOnDoldur = null;
@@ -4807,9 +4812,10 @@ function kisiKasaSatiri(){
     ' <b>' + para(k[id].toplam) + '</b>' + (k[id].nakit && k[id].nakit !== k[id].toplam ? ' <i>(nakit ' + para(k[id].nakit) + ')</i>' : '') + '</span>').join("") + '</div>';
 }
 // Para giriş / çıkış formunda "para kimde" seçimi
-function ortakSecici(secili){
+function ortakSecici(secili, giris){
   if(!ortaklar().length || !ortakHazir()) return '';
-  return '<label class="etiket" id="ortakEtiket">' + (form.tur === "giris" ? "Para kimde?" : "Kim ödedi?") + '</label><div class="secenekler" data-ad="ortak">' +
+  if(giris === undefined) giris = form.tur === "giris";
+  return '<label class="etiket" id="ortakEtiket">' + (giris ? "Para kimde?" : "Kim ödedi?") + '</label><div class="secenekler" data-ad="ortak">' +
     [["", "Kasa"]].concat(ortaklar().map(o => [o.id, o.ad])).map(([id, ad]) => '<button type="button" class="secenek' + (id === secili ? ' secili' : '') + '" data-deger="' + esc(id) + '">' + esc(ad) + '</button>').join("") + '</div>';
 }
 // Rapor: seçili ayda ortakların kâr payı ve şahsi çekişleri (kasa esaslı kâr; sermaye ve çekişler hariç)
@@ -5321,9 +5327,28 @@ function ayarGuvenlik(){
       '<div class="alt-bilgi" style="margin:0 0 8px">Ortak kullanılan bilgisayar veya telefonda, işlem yapılmazsa oturum kendiliğinden kapanır.</div>' +
       '<div class="secenekler">' + [[0, "Kapalı"], [15, "15 dk"], [30, "30 dk"], [60, "1 saat"], [240, "4 saat"]].map(([d, y]) => '<button type="button" class="secenek' + (d === Number(c.otoCikis) ? ' secili' : '') + '" data-is="cihazSec" data-arg="otoCikis|' + d + '">' + y + '</button>').join("") + '</div></div>' : '');
 }
+// Hangi SQL güncellemesi eksik? (uygulamanın açılışta bulduğu eksik tablo / sütunlardan)
+function veritabaniEksikleri(){
+  if(!cevrimici) return [];
+  const l = [], ekle = (no, ne) => { if(!l.some(x => x[0] === no)) l.push([no, ne]); };
+  const T = {is_notlari:[2, "İş notları ve dosyalar"], dosyalar:[2, "İş notları ve dosyalar"], katalog:[3, "Katalog"], katalog_gorseller:[3, "Katalog"], paylasimlar:[4, "Müşteri bağlantısı"],
+    personel:[5, "Personel"], puantaj:[5, "Personel"], personel_hareket:[5, "Personel"], stok_hareket:[7, "Stok, taksit"], taksitler:[7, "Stok, taksit"], cop_kutusu:[9, "Çöp kutusu, işlem geçmişi"],
+    islem_kaydi:[9, "Çöp kutusu, işlem geçmişi"], siparisler:[10, "Takvim, kesim, sipariş, çek"], cekler:[10, "Takvim, kesim, sipariş, çek"]};
+  Object.keys(eksikTablo).forEach(t => { if(T[t]) ekle(T[t][0], T[t][1]); });
+  Object.values(eksikSutun).forEach(no => ekle(no, {4:"Teklif / keşif bilgileri", 10:"Takvim, kesim, sipariş, çek", 11:"Ortaklar ve kişi kasaları"}[no] || ""));
+  if(!yetki.kurulu) ekle(6, "Kullanıcı yetkileri (usta / yönetici)");
+  return l.sort((a, b) => a[0] - b[0]);
+}
 function ayarYedek(){
   const son = Number(ayarOku("sonYedek")), eski = cevrimici ? yerelOku() : null, s = sistem();
   let html = '';
+  if(cevrimici){
+    const e = veritabaniEksikleri();
+    html += '<div class="kart">' + kartBaslik("Veritabanı durumu") + (e.length ?
+      '<div class="alt-bilgi" style="margin:0 0 6px">Bazı özellikler için Supabase güncellemesi eksik:</div>' + e.map(([no, ne]) => bilgiSatir(esc(ne), '<span class="t-cikis">supabase-guncelleme-' + no + '.sql</span>')).join("") +
+      '<div class="bilgi-kutu">En kolayı: Supabase → <b>SQL Editor</b> → <b>New query</b> → <b>supabase-tum-kurulum.sql</b> dosyasının tamamını yapıştırıp <b>Run</b>; sonra sayfayı yenileyin. Tekrar çalıştırmak zarar vermez.</div>' :
+      '<div style="display:flex;gap:8px;align-items:center;color:var(--giris);font-weight:500">' + ik("tamam") + 'Veritabanı güncel; tüm özellikler açık.</div>') + '</div>';
+  }
   if(cevrimici && TABLOLAR.some(t => t !== "ayarlar" && eski[t].length))
     html += '<div class="kart">' + kartBaslik("Bu cihazdaki eski kayıtlar") + '<div>Bu cihazda bulut öncesinden kalan <b>' + eski.hareketler.length + ' kayıt</b> ve <b>' + eski.musteriler.length + ' cari</b> var.</div>' +
       '<div class="hata" id="hata"></div><button class="buton" data-is="buluttaAktar">' + ik("bulut") + 'Buluta aktar</button></div>';
@@ -5440,7 +5465,7 @@ function ekranAyarlar(){
   const bolumler = AYAR_BOLUM.filter(izinli);
   let b = yol()[1];
   if(!bolumler.some(x => x[0] === b)) b = masaustu ? bolumler[0][0] : null;
-  const ozet = x => x[0] === "cop" ? (cop.length ? cop.length + " kayıt" : "Boş") : x[3];
+  const ozet = x => x[0] === "cop" ? (cop.length ? cop.length + " kayıt" : "Boş") : x[0] === "yedek" && veritabaniEksikleri().length ? "⚠ Veritabanı güncellemesi eksik" : x[3];
   const menu = '<div class="ayar-menu' + (b ? '' : ' tam') + '">' + bolumler.map(x => '<button data-git="ayarlar/' + x[0] + '" class="' + (x[0] === b ? 'aktif' : '') + '">' +
     '<span class="rozet r-gri">' + ik(x[2]) + '</span><span class="orta"><div class="s1">' + x[1] + '</div><div class="s2">' + esc(ozet(x)) + '</div></span>' + ik("sag") + '</button>').join("") + '</div>';
   if(!b) return {baslik:"Ayarlar", html:menu};

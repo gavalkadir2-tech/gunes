@@ -34,6 +34,14 @@ drop policy if exists "giris yapanlar" on public.hareketler;
 create policy "giris yapanlar" on public.hareketler for all to authenticated using (true) with check (true);
 
 -- Telefon ve bilgisayar birbirinin kaydını anında görsün.
-alter publication supabase_realtime add table public.musteriler, public.hareketler;
+do $$
+declare t text;
+begin
+  foreach t in array array['musteriler','hareketler'] loop
+    if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t) then
+      execute format('alter publication supabase_realtime add table public.%I', t);
+    end if;
+  end loop;
+end $$;
 
 -- Ardından supabase-guncelleme.sql dosyasını da çalıştırın (iş emirleri, faturalar, ayarlar).
