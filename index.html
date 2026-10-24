@@ -535,7 +535,6 @@ body.gizle-stok #menu [data-git="stok"], body.gizle-rapor #menu [data-git="rapor
   <button data-git="takvim" class="masaustu"><span data-ik="takvim"></span>Takvim</button>
   <button class="yonetici-ozel" data-git="faturalar"><span data-ik="fatura"></span>Faturalar</button>
   <button data-git="kasa" class="masaustu yonetici-ozel"><span data-ik="kasa"></span>Kasa</button>
-  <button data-git="ortaklar" class="masaustu yonetici-ozel"><span data-ik="kisiler"></span>Ortaklar</button>
   <button data-git="cekler" class="masaustu yonetici-ozel"><span data-ik="fatura"></span>Çek / Senet</button>
   <button data-git="personel" class="masaustu yonetici-ozel"><span data-ik="kisi"></span>Personel</button>
   <button data-git="stok" class="masaustu yonetici-ozel"><span data-ik="koli"></span>Stok</button>
@@ -946,7 +945,7 @@ function ciz(){
     paylasimlar: ekranPaylasimlar, "paylas-form": () => ekranPaylasForm(a, b), malzemeler: ekranMalzemeler, "katalog-ice": ekranKatalogIce, hatirlatmalar: ekranHatirlatmalar, stok: ekranStok,
     personel: () => a ? ekranPersonelKart(a) : ekranPersonel(), "personel-form": () => ekranPersonelForm(a), puantaj: () => ekranPuantaj(a), maas: () => ekranMaas(a, b),
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
-    katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b), takvim: () => ekranTakvim(a), karlilik: ekranKarlilik, siparisler: ekranSiparisler, kesim: () => ekranKesim(a), cekler: () => ekranCekler(a), ortaklar: ekranOrtaklar
+    katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b), takvim: () => ekranTakvim(a), karlilik: ekranKarlilik, siparisler: ekranSiparisler, kesim: () => ekranKesim(a), cekler: () => ekranCekler(a)
   };
   document.body.classList.toggle("usta", !yetki.yonetici);
   if(ekran !== "fatura-form") faturaOnDoldur = null;
@@ -1022,8 +1021,8 @@ function hareketSatir(h, gizleCari){
   const ie = h.isEmriId ? bul("is_emirleri", h.isEmriId) : null;
   const ikon = h.tur === "giris" ? "asagi" : h.tur === "cikis" ? "yukari" : "kisi";
   const isaret = h.tur === "giris" ? "+" : h.tur === "cikis" ? "−" : "";
-  const baslik = h.tur === "borc" ? "Veresiye satış (eski kayıt)" : h.kategori;
-  const kimde = h.tur !== "borc" && ortaklar().length && (h.ortak || kisiKasaVar()) ? (h.ortak ? ortakAdi(h.ortak) : "Ortak kasa") : "";
+  const baslik = h.tur === "borc" ? "Veresiye satış (eski kayıt)" : h.kategori + (ortakKategorisi(h.kategori) && h.hedef ? " · " + ortakAdi(h.hedef) : "");
+  const kimde = h.tur !== "borc" && ortaklar().length && (h.ortak || kisiKasaVar()) ? (h.ortak ? ortakAdi(h.ortak) + "'de" : "Kasada") : "";
   const alt = [cari, ie ? ie.no : "", h.aciklama, h.tur !== "borc" ? h.odeme : "", kimde, tarihYaz(h.tarih, true)].filter(Boolean).join(" · ");
   return '<button class="satir" data-git="kayit/' + h.id + '"><span class="rozet r-' + (h.tur === "borc" ? "borc" : h.tur) + '">' + ik(ikon) + '</span>' +
     '<span class="orta"><div class="s1">' + esc(baslik) + '</div><div class="s2">' + esc(alt) + '</div></span>' +
@@ -1112,13 +1111,16 @@ function ekranPara(tur, cariId, ieId, faturaId){
   const kat = kategoriler(tur);
   const varsayilan = f && !giris && f.kategori ? f.kategori : cariId ? (giris ? "Cari Tahsilat" : "Tedarikçi Ödemesi") : kat[0];
   form = {tur, kategori: varsayilan, odeme:"Nakit", faturaId: f ? f.id : null, ortak:benimOrtak()};
-  const katListe = kat.indexOf(varsayilan) >= 0 ? kat : [varsayilan].concat(kat);
+  let katListe = kat.indexOf(varsayilan) >= 0 ? kat : [varsayilan].concat(kat);
+  const ortakKat = giris ? ORTAK_SERMAYE : ORTAK_CEKIS;
+  if(ortaklar().length && ortakHazir() && katListe.indexOf(ortakKat) < 0) katListe = katListe.concat([ortakKat]);
   const html = '<div class="kart form-kart">' +
     (f ? '<div class="bilgi-kutu" style="margin:0 0 14px">' + (f.tur === "satis" ? "Satış" : "Alış") + ' faturası <b>' + esc(f.no) + '</b> · ' + esc(cariAdi(f.musteriId)) +
       '<br>Kalan: <b>' + para(odemeDurumu(f).kalan) + '</b></div>' : '') +
     '<label class="etiket" for="tutar" style="margin-top:0">Tutar</label><input id="tutar" class="kutu tutar-kutu" inputmode="decimal" autocomplete="off" placeholder="0 ₺">' +
     '<div class="secenekler" id="tamamiKutu" style="margin-top:8px"></div>' +
     '<label class="etiket">' + (giris ? "Ne için geldi?" : "Ne için çıktı?") + '</label>' + secenekler("kategori", katListe, varsayilan) +
+    (ortaklar().length ? '<div id="ortakKimKutu" style="display:none"><label class="etiket">Kim?</label>' + secenekler("hedef", ortaklar().map(o => o.ad), "") + '</div>' : '') +
     '<label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit") + ortakSecici(form.ortak) +
     '<div class="iki-alan"><div><label class="etiket" for="cari">Cari <span class="ist">(isteğe bağlı)</span></label>' + cariSecici(cariId, false, giris ? "musteri" : "tedarikci") + '</div>' +
     '<div><label class="etiket" for="isEmri">İş emri <span class="ist">(isteğe bağlı)</span></label><select id="isEmri" class="kutu">' + isSecenekleri(cariId, ieId) + '</select></div></div>' +
@@ -1128,6 +1130,12 @@ function ekranPara(tur, cariId, ieId, faturaId){
     '<button class="buton" style="background:var(--' + tur + ')" data-is="paraKaydet">' + ik("tamam") + 'Kaydet</button></div>';
   return {baslik: giris ? (cariId ? "Tahsilat Al" : "Para Girdi") : (cariId ? "Ödeme Yap" : "Para Çıktı"), geri:true, html, sonra(){
     secenekBagla(); cariIsBagla();
+    const kim = document.getElementById("ortakKimKutu"), katGrup = document.querySelector('.secenekler[data-ad="kategori"]');
+    if(kim && katGrup) katGrup.addEventListener("click", () => setTimeout(() => {
+      const o = ortakKategorisi(form.kategori), et = document.getElementById("ortakEtiket");
+      kim.style.display = o ? "" : "none";
+      if(et) et.textContent = o ? (form.tur === "giris" ? "Hangi kasaya girdi?" : "Hangi kasadan çıktı?") : (form.tur === "giris" ? "Para kimde?" : "Kim ödedi?");
+    }, 0));
     form.cariDegisti = tamamiGuncelle; tamamiGuncelle();
     document.getElementById("tutar").focus();
   }};
@@ -1144,8 +1152,10 @@ function tamamiGuncelle(){
 EYLEM.tutarDoldur = (el, m) => { const t = document.getElementById("tutar") || document.getElementById("odenen"); t.value = sayiYaz(Number(m)); };
 EYLEM.paraKaydet = btn => {
   const tutar = tutarAl("tutar"); if(tutar === null) return;
+  const ortakKim = ortakKategorisi(form.kategori) ? (ortaklar().find(o => o.ad === form.hedef) || {}).id : "";
+  if(ortakKategorisi(form.kategori) && !ortakKim) return hataYaz("Kim? Ortağı seçin.");
   const k = {id:yeniId(), tur:form.tur, tutar, kategori:form.kategori, odeme:form.odeme, musteriId:deger("cari") || null,
-    isEmriId:deger("isEmri") || null, faturaId:form.faturaId, aciklama:deger("aciklama"), tarih:deger("tarih") || bugun(), olusma:Date.now(), ortak:form.ortak || "", hedef:""};
+    isEmriId:deger("isEmri") || null, faturaId:form.faturaId, aciklama:deger("aciklama"), tarih:deger("tarih") || bugun(), olusma:Date.now(), ortak:form.ortak || "", hedef:ortakKim || ""};
   const f = bul("faturalar", k.faturaId);
   if(f && k.musteriId !== f.musteriId) k.faturaId = null;   // cari değiştirildiyse faturadan kopar
   islem(btn, async () => { await Depo.kaydet("hareketler", k); bildir("Kaydedildi: " + para(tutar)); geri(); });
@@ -1154,15 +1164,15 @@ EYLEM.paraKaydet = btn => {
 /* ================= KASA ================= */
 function ekranKasa(){
   const k = kasa();
-  const liste = veri.hareketler.filter(h => h.tur !== "borc" && h.tarih.slice(0, 7) === ayGoster && (filtre.kasa === "hepsi" || h.tur === filtre.kasa)).sort(tarihSira);
+  const liste = veri.hareketler.filter(h => h.tur !== "borc" && h.tarih.slice(0, 7) === ayGoster && (filtre.kasa === "hepsi" || h.tur === filtre.kasa || (filtre.kasa === "ortak" && (h.tur === "aktarim" || ortakKategorisi(h.kategori))))).sort(tarihSira);
   let gir = 0, cik = 0; liste.forEach(h => { if(h.tur === "giris") gir += h.tutar; else if(h.tur === "cikis") cik += h.tutar; });
   let html = '<div class="izgara uc"><div class="kart"><div class="kart-baslik">Kasadaki para (toplam)</div><div class="buyuk-sayi" style="font-size:24px">' + para(k.toplam) + '</div>' +
       '<div class="alt-bilgi">Nakit <b>' + para(k.nakit) + '</b> · Banka <b>' + para(k.banka) + '</b>' + (k.senet ? ' · Çek/Senet <b>' + para(k.senet) + '</b>' : '') + '</div>' + kisiKasaSatiri() + '</div>' +
     '<div class="kart ozet"><div class="kart-baslik">Bu ay giren</div><div class="deger t-giris">' + para(gir) + '</div></div>' +
     '<div class="kart ozet"><div class="kart-baslik">Bu ay çıkan</div><div class="deger t-cikis">' + para(cik) + '</div></div></div>' +
     '<div class="hizli">' + hizliButon("giris", "r-giris", "asagi", "Para Girdi") + hizliButon("cikis", "r-cikis", "yukari", "Para Çıktı") + hizliButon("cekler", "r-borc", "fatura", "Çek / Senet") +
-      (ortaklar().length ? hizliButon("ortaklar", "r-ana", "kisiler", "Ortaklar") : '') + '</div>' +
-    '<div class="ust-arac">' + aySecici() + filtreButonlari("kasa", [["hepsi","Hepsi"], ["giris","Giren"], ["cikis","Çıkan"]]) + '</div>';
+      (ortaklar().length ? '<button data-is="kasaAktarim"><span class="rozet r-ana">' + ik("dondur") + '</span>Kasalar arası aktarım</button>' : '') + '</div>' +
+    '<div class="ust-arac">' + aySecici() + filtreButonlari("kasa", [["hepsi","Hepsi"], ["giris","Giren"], ["cikis","Çıkan"]].concat(ortaklar().length ? [["ortak", "Ortak hareketleri"]] : [])) + '</div>';
   if(!liste.length) return {baslik:"Kasa", html: html + '<div class="kart">' + bos("kasa", "Bu ayda kayıt yok.") + '</div>'};
   const gunler = {}, sira = [];
   liste.forEach(h => { if(!gunler[h.tarih]){ gunler[h.tarih] = []; sira.push(h.tarih); } gunler[h.tarih].push(h); });
@@ -3185,7 +3195,7 @@ function ekranRapor(){
       '<div class="kart ozet"><div class="kart-baslik">Toplam alacak</div><div class="deger t-borc">' + para(alacak) + '</div><div class="alt-bilgi">Bugün itibarıyla</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Toplam borç</div><div class="deger t-cikis">' + para(borc) + '</div><div class="alt-bilgi">Bugün itibarıyla</div></div></div>' +
     '<div class="iki-sutun">' + cubuklar("Para nereye gitti?", giderler, cik, "var(--cikis)") + cubuklar("Para nereden geldi?", gelirler, gir, "var(--giris)") + '</div>' +
-    cubuklar("En çok satış yapılan müşteriler", musteriSatis, fSatis, "var(--borc)", 8) +
+    cubuklar("En çok satış yapılan müşteriler", musteriSatis, fSatis, "var(--borc)", 8) + raporOrtakKarti() +
     rapor2();
   return {baslik:"Rapor", html};
 }
@@ -4767,7 +4777,7 @@ EYLEM.eFatura = (el, id) => {
 // Ortak sermayesi ve şahsi çekişler kasadan geçer ama kâr hesabına girmez: h.ortak = paranın çıktığı / girdiği kasa, h.hedef = ilgili ortak.
 const ORTAK_SERMAYE = "Ortak sermayesi", ORTAK_CEKIS = "Ortak çekişi (şahsi)";
 const ortaklar = () => sistem().ortaklar;
-const ortakAdi = id => !id ? "Ortak kasa" : ((ortaklar().find(o => o.id === id) || {}).ad || "Ortak kasa");
+const ortakAdi = id => !id ? "Kasa" : ((ortaklar().find(o => o.id === id) || {}).ad || "Kasa");
 const ortakHazir = () => !cevrimici || !eksikSutun["hareketler.ortak"];
 // Giriş yapan kullanıcının ortaklığı (Ortaklar ayarındaki kullanıcı veya ad eşleşmesi)
 function benimOrtak(){
@@ -4793,69 +4803,39 @@ const kisiKasaVar = () => ortaklar().length && veri.hareketler.some(h => h.ortak
 function kisiKasaSatiri(){
   if(!kisiKasaVar()) return '';
   const k = kisiKasalari();
-  return '<div class="kisi-kasa">' + [""].concat(ortaklar().map(o => o.id)).filter(id => id === "" || k[id]).map(id => '<span' + (id ? '' : ' class="ortak-kasa"') + '>' + esc(id ? ortakAdi(id) + "'de" : "Ortak kasada") +
+  return '<div class="kisi-kasa">' + [""].concat(ortaklar().map(o => o.id)).filter(id => id === "" || k[id]).map(id => '<span' + (id ? '' : ' class="ortak-kasa"') + '>' + esc(id ? ortakAdi(id) + "'de" : "Kasada") +
     ' <b>' + para(k[id].toplam) + '</b>' + (k[id].nakit && k[id].nakit !== k[id].toplam ? ' <i>(nakit ' + para(k[id].nakit) + ')</i>' : '') + '</span>').join("") + '</div>';
 }
 // Para giriş / çıkış formunda "para kimde" seçimi
 function ortakSecici(secili){
   if(!ortaklar().length || !ortakHazir()) return '';
-  return '<label class="etiket">' + (form.tur === "giris" ? "Para kimde?" : "Kim ödedi?") + '</label><div class="secenekler" data-ad="ortak">' +
-    [["", "Ortak kasa"]].concat(ortaklar().map(o => [o.id, o.ad])).map(([id, ad]) => '<button type="button" class="secenek' + (id === secili ? ' secili' : '') + '" data-deger="' + esc(id) + '">' + esc(ad) + '</button>').join("") + '</div>';
+  return '<label class="etiket" id="ortakEtiket">' + (form.tur === "giris" ? "Para kimde?" : "Kim ödedi?") + '</label><div class="secenekler" data-ad="ortak">' +
+    [["", "Kasa"]].concat(ortaklar().map(o => [o.id, o.ad])).map(([id, ad]) => '<button type="button" class="secenek' + (id === secili ? ' secili' : '') + '" data-deger="' + esc(id) + '">' + esc(ad) + '</button>').join("") + '</div>';
 }
-function ekranOrtaklar(){
-  if(!ortaklar().length) return {baslik:"Ortaklar", geri:true, html:'<div class="kart">' + bos("kisiler", "Ortak tanımlı değil.") + '<button class="buton" data-git="ayarlar/ortaklar">Ortakları ayarla</button></div>'};
-  const uyari = ortakHazir() ? '' : '<div class="uyari">Kişi kasaları ve ortak hesapları için Supabase\'de <b>supabase-guncelleme-11.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>';
-  const d = filtre.ortakDonem || "ay", y = ayGoster.slice(0, 4);
-  const icinde = t => d === "ay" ? t.slice(0, 7) === ayGoster : d === "yil" ? t.slice(0, 4) === y : true;
-  const l = veri.hareketler.filter(h => (h.tur === "giris" || h.tur === "cikis") && icinde(h.tarih));
-  const gelir = l.filter(h => h.tur === "giris" && !ortakKategorisi(h.kategori)).reduce((t, h) => t + h.tutar, 0);
-  const gider = l.filter(h => h.tur === "cikis" && !ortakKategorisi(h.kategori)).reduce((t, h) => t + h.tutar, 0);
-  const kar = yuvarla(gelir - gider), k = kisiKasalari(), toplamPay = ortaklar().reduce((t, o) => t + (Number(o.pay) || 0), 0) || 100;
-  const kart = o => {
-    const cekti = l.filter(h => h.tur === "cikis" && h.kategori === ORTAK_CEKIS && h.hedef === o.id).reduce((t, h) => t + h.tutar, 0);
-    const koydu = l.filter(h => h.tur === "giris" && h.kategori === ORTAK_SERMAYE && h.hedef === o.id).reduce((t, h) => t + h.tutar, 0);
-    const pay = yuvarla(kar * (Number(o.pay) || 0) / toplamPay), fark = yuvarla(pay - cekti);
-    const tumCekti = veri.hareketler.filter(h => h.tur === "cikis" && h.kategori === ORTAK_CEKIS && h.hedef === o.id).reduce((t, h) => t + h.tutar, 0);
-    const tumKoydu = veri.hareketler.filter(h => h.tur === "giris" && h.kategori === ORTAK_SERMAYE && h.hedef === o.id).reduce((t, h) => t + h.tutar, 0);
-    const kk = k[o.id] || {toplam:0, nakit:0};
-    return '<div class="kart ortak-kart"><div class="ortak-ust"><span class="rozet r-ana">' + ik("kisi") + '</span><div><div style="font-size:18px;font-weight:600">' + esc(o.ad) + '</div><div class="alt-bilgi" style="margin:0">Ortaklık payı %' + sayiYaz(o.pay) + '</div></div></div>' +
-      bilgiSatir("Elindeki para", '<b>' + para(kk.toplam) + '</b>' + (kk.nakit !== kk.toplam ? ' <span class="ist">(nakit ' + para(kk.nakit) + ')</span>' : '')) +
-      '<div class="form-bolum" style="margin-top:10px;padding-top:10px">' + DONEM_ADI[d] + '</div>' +
-      bilgiSatir("Kâr payı", '<span class="' + (pay >= 0 ? 't-giris' : 't-cikis') + '">' + para(pay) + '</span>') + bilgiSatir("Şahsi çektiği", '<span class="t-cikis">' + para(cekti) + '</span>') +
-      (koydu ? bilgiSatir("Koyduğu sermaye", para(koydu)) : '') +
-      '<div class="bilgi-satir genel"><span style="color:var(--yazi)">' + (fark >= 0 ? "Daha çekebileceği" : "Payından fazla çektiği") + '</span><b class="' + (fark >= 0 ? 't-giris' : 't-cikis') + '">' + para(Math.abs(fark)) + '</b></div>' +
-      '<div class="alt-bilgi">Başından beri: sermaye ' + para(tumKoydu) + ' · çekiş ' + para(tumCekti) + '</div>' +
-      (ortakHazir() ? '<div class="secenekler" style="margin-top:12px"><button class="secenek" data-is="ortakIslem" data-arg="cekis|' + o.id + '">' + ik("yukari") + ' Para çekti</button>' +
-        '<button class="secenek" data-is="ortakIslem" data-arg="sermaye|' + o.id + '">' + ik("asagi") + ' Sermaye koydu</button>' +
-        '<button class="secenek" data-is="ortakIslem" data-arg="aktarim|' + o.id + '">' + ik("dondur") + ' Kasaya / ortağa aktar</button></div>' : '') + '</div>';
-  };
-  const hareket = veri.hareketler.filter(h => (h.tur === "aktarim" || ortakKategorisi(h.kategori)) && icinde(h.tarih)).sort(tarihSira);
-  const html = uyari + '<div class="ust-arac"><div class="secenekler">' + Object.entries(DONEM_ADI).map(([k_, v]) => '<button class="secenek' + (k_ === d ? ' secili' : '') + '" data-is="ortakDonem" data-arg="' + k_ + '">' + v + '</button>').join("") + '</div>' +
-      (d === "ay" ? aySecici() : '') + '</div>' +
-    '<div class="izgara dort"><div class="kart ozet"><div class="kart-baslik">Giren (ortak sermayesi hariç)</div><div class="deger t-giris">' + para(gelir) + '</div></div>' +
-      '<div class="kart ozet"><div class="kart-baslik">Çıkan (şahsi çekişler hariç)</div><div class="deger t-cikis">' + para(gider) + '</div></div>' +
-      '<div class="kart ozet"><div class="kart-baslik">Dağıtılabilir kâr</div><div class="deger ' + (kar >= 0 ? 't-giris' : 't-cikis') + '">' + para(kar) + '</div><div class="alt-bilgi">kasa esaslı</div></div>' +
-      '<div class="kart ozet"><div class="kart-baslik">Ortak kasada</div><div class="deger">' + para((k[""] || {}).toplam || 0) + '</div><div class="alt-bilgi">dükkândaki / ortak hesaptaki</div></div></div>' +
-    '<div class="iki-sutun">' + ortaklar().map(kart).join("") + '</div>' +
-    '<div class="alt-bilgi" style="margin:0 2px 12px">Kâr, seçilen dönemde kasaya giren ile çıkan arasındaki farktır; ortakların koyduğu sermaye ve şahsi çekişleri dahil edilmez. Pay oranlarını <b data-git="ayarlar/ortaklar" style="cursor:pointer;color:var(--borc)">Ayarlar → Ortaklar</b>\'dan değiştirebilirsiniz.</div>' +
-    bolum("Ortak hareketleri ve aktarımlar") + '<div class="kart liste-kart">' + (hareket.length ? hareket.map(h => hareketSatir(h)).join("") : bos("kasa", "Bu dönemde ortak hareketi yok.")) + '</div>';
-  return {baslik:"Ortaklar", geri: matchMedia("(max-width:899px)").matches, html};
+// Rapor: seçili ayda ortakların kâr payı ve şahsi çekişleri (kasa esaslı kâr; sermaye ve çekişler hariç)
+function raporOrtakKarti(){
+  if(!ortaklar().length) return '';
+  const l = veri.hareketler.filter(h => (h.tur === "giris" || h.tur === "cikis") && h.tarih.slice(0, 7) === ayGoster);
+  const kar = yuvarla(l.filter(h => h.tur === "giris" && !ortakKategorisi(h.kategori)).reduce((t, h) => t + h.tutar, 0) - l.filter(h => h.tur === "cikis" && !ortakKategorisi(h.kategori)).reduce((t, h) => t + h.tutar, 0));
+  const toplamPay = ortaklar().reduce((t, o) => t + (Number(o.pay) || 0), 0) || 100, k = kisiKasalari();
+  return '<div class="kart">' + kartBaslik("Ortaklar · bu ay", "(kasa esaslı kâr " + para(kar) + ")") +
+    '<table class="kesim-ozet"><thead><tr><th>Ortak</th><th>Payı</th><th>Kâr payı</th><th>Şahsi çektiği</th><th>Fark</th><th>Elindeki para</th></tr></thead><tbody>' +
+    ortaklar().map(o => {
+      const pay = yuvarla(kar * (Number(o.pay) || 0) / toplamPay), cekti = l.filter(h => h.tur === "cikis" && h.kategori === ORTAK_CEKIS && h.hedef === o.id).reduce((t, h) => t + h.tutar, 0), fark = yuvarla(pay - cekti);
+      return '<tr><td><b>' + esc(o.ad) + '</b></td><td>%' + sayiYaz(o.pay) + '</td><td>' + para(pay) + '</td><td class="t-cikis">' + para(cekti) + '</td><td class="' + (fark >= 0 ? 't-giris' : 't-cikis') + '">' +
+        (fark >= 0 ? "+" : "−") + para(Math.abs(fark)) + '</td><td>' + para((k[o.id] || {toplam:0}).toplam) + '</td></tr>';
+    }).join("") + '</tbody></table>' +
+    '<div class="alt-bilgi">Kâr: kasaya giren − çıkan (ortak sermayesi ve şahsi çekişler hariç). Fark artıysa ortak payından daha çekebilir, eksiyse payından fazla çekmiş. Pay oranları: Ayarlar → Ortaklar.</div></div>';
 }
-const DONEM_ADI = {ay:"Seçili ay", yil:"Bu yıl", tum:"Tümü"};
-EYLEM.ortakDonem = (el, d) => { filtre.ortakDonem = d; ciz(); };
-// arg: "cekis|ortakId" | "sermaye|ortakId" | "aktarim|ortakId"
-EYLEM.ortakIslem = (el, arg) => {
-  const [tur, oid] = arg.split("|"), o = ortaklar().find(x => x.id === oid) || {id:"", ad:"Ortak kasa"};
-  const kasalar = [["", "Ortak kasa"]].concat(ortaklar().map(x => [x.id, x.ad]));
-  const baslik = tur === "cekis" ? o.ad + " şahsi para çekti" : tur === "sermaye" ? o.ad + " sermaye koydu" : "Kasalar arası aktarım";
-  const sec = (id, sec_, haric) => '<select id="' + id + '" class="kutu">' + kasalar.filter(x => x[0] !== haric).map(([v, a]) => '<option value="' + esc(v) + '"' + (v === sec_ ? ' selected' : '') + '>' + esc(a) + '</option>').join("") + '</select>';
+// Kasalar arası aktarım (örn. İbrahim tahsil ettiği parayı kasaya bıraktı)
+EYLEM.kasaAktarim = () => {
+  const kasalar = [["", "Kasa"]].concat(ortaklar().map(x => [x.id, x.ad])), ben = benimOrtak();
+  const sec = (id, s_) => '<select id="' + id + '" class="kutu">' + kasalar.map(([v, a]) => '<option value="' + esc(v) + '"' + (v === s_ ? ' selected' : '') + '>' + esc(a) + '</option>').join("") + '</select>';
+  if(!ortakHazir()) return uyar("Önce veritabanı güncellemesi", "Supabase'de supabase-guncelleme-11.sql dosyasını çalıştırın.");
   const p = document.createElement("div"); p.className = "perde";
-  p.innerHTML = '<div class="pencere" style="max-width:460px"><p>' + esc(baslik) + '</p>' +
-    '<div class="alt-bilgi">' + (tur === "cekis" ? "Ortağın kendisi için aldığı para. Kâr hesabına gider olarak girmez; kâr payından düşülür." : tur === "sermaye" ? "Ortağın işletmeye koyduğu para. Gelir sayılmaz." :
-      "Örn: " + o.ad + " tahsil ettiği parayı dükkân kasasına bıraktı. Toplam kasa değişmez, gelir / gider sayılmaz.") + '</div>' +
+  p.innerHTML = '<div class="pencere" style="max-width:460px"><p>Kasalar arası aktarım</p><div class="alt-bilgi">Örn: İbrahim tahsil ettiği parayı kasaya bıraktı. Toplam para değişmez, gelir / gider sayılmaz.</div>' +
     '<label class="etiket" for="okTutar">Tutar</label><input id="okTutar" class="kutu tutar-kutu" inputmode="decimal" placeholder="0 ₺">' +
-    (tur === "aktarim" ? '<div class="iki-alan"><div><label class="etiket" for="okKimden">Kimden</label>' + sec("okKimden", o.id) + '</div><div><label class="etiket" for="okKime">Kime</label>' + sec("okKime", o.id ? "" : (ortaklar()[0] || {}).id) + '</div></div>' :
-      '<label class="etiket" for="okKasa">' + (tur === "cekis" ? "Hangi kasadan çıktı?" : "Hangi kasaya girdi?") + '</label>' + sec("okKasa", tur === "cekis" ? "" : "")) +
+    '<div class="iki-alan"><div><label class="etiket" for="okKimden">Kimden</label>' + sec("okKimden", ben) + '</div><div><label class="etiket" for="okKime">Kime</label>' + sec("okKime", ben ? "" : (ortaklar()[0] || {}).id) + '</div></div>' +
     '<label class="etiket">Ödeme şekli</label><div class="secenekler" id="okOdeme">' + ODEME.filter(x => x !== SENET).map((x, i) => '<button type="button" class="secenek' + (i === 0 ? ' secili' : '') + '" data-o="' + esc(x) + '">' + esc(x) + '</button>').join("") + '</div>' +
     '<div class="iki-alan"><div>' + tarihAlani("okTarih", "Tarih", bugun()) + '</div><div><label class="etiket" for="okNot">Not <span class="ist">(isteğe bağlı)</span></label><input id="okNot" class="kutu" maxlength="200"></div></div>' +
     '<div class="hata" id="okHata"></div><div class="buton-sira"><button class="buton ikincil" data-c="hayir">Vazgeç</button><button class="buton" data-c="kaydet">' + ik("tamam") + 'Kaydet</button></div></div>';
@@ -4863,24 +4843,19 @@ EYLEM.ortakIslem = (el, arg) => {
     const oo = e.target.closest("[data-o]"); if(oo){ p.querySelectorAll("#okOdeme .secenek").forEach(x => x.classList.toggle("secili", x === oo)); return; }
     const b = e.target.closest("[data-c]"); if(!b){ if(e.target === p) p.remove(); return; }
     if(b.getAttribute("data-c") === "hayir") return p.remove();
-    const tutar = sayiOku(p.querySelector("#okTutar").value), odeme = p.querySelector("#okOdeme .secili").getAttribute("data-o"), hata = t => { p.querySelector("#okHata").textContent = t; };
+    const tutar = sayiOku(p.querySelector("#okTutar").value), hata = t => { p.querySelector("#okHata").textContent = t; };
+    const h = {id:yeniId(), tur:"aktarim", kategori:"Kasalar arası aktarım", tutar:yuvarla(tutar), odeme:p.querySelector("#okOdeme .secili").getAttribute("data-o"), musteriId:null, isEmriId:null, faturaId:null,
+      aciklama:p.querySelector("#okNot").value.trim(), tarih:p.querySelector("#okTarih").value || bugun(), olusma:Date.now(), ortak:p.querySelector("#okKimden").value, hedef:p.querySelector("#okKime").value};
     if(!(tutar > 0)) return hata("Tutarı yazın.");
-    const h = {id:yeniId(), tutar:yuvarla(tutar), odeme, musteriId:null, isEmriId:null, faturaId:null, aciklama:p.querySelector("#okNot").value.trim(), tarih:p.querySelector("#okTarih").value || bugun(), olusma:Date.now(), hedef:""};
-    if(tur === "aktarim"){
-      Object.assign(h, {tur:"aktarim", kategori:"Kasalar arası aktarım", ortak:p.querySelector("#okKimden").value, hedef:p.querySelector("#okKime").value});
-      if(h.ortak === h.hedef) return hata("Kimden ve kime aynı olamaz.");
-    } else Object.assign(h, {tur: tur === "cekis" ? "cikis" : "giris", kategori: tur === "cekis" ? ORTAK_CEKIS : ORTAK_SERMAYE, ortak:p.querySelector("#okKasa").value, hedef:o.id,
-      aciklama:[o.ad, p.querySelector("#okNot").value.trim()].filter(Boolean).join(" · ")});
-    islem(b, async () => {
-      await Depo.kaydet("hareketler", h); p.remove(); bildir("Kaydedildi"); ciz();
-    });
+    if(h.ortak === h.hedef) return hata("Kimden ve kime aynı olamaz.");
+    islem(b, async () => { await Depo.kaydet("hareketler", h); p.remove(); bildir("Aktarım kaydedildi"); ciz(); });
   });
   document.body.appendChild(p); p.querySelector("#okTutar").focus();
 };
 function ayarOrtaklar(){
   const l = ortaklar(), toplam = l.reduce((t, o) => t + (Number(o.pay) || 0), 0);
   return '<div class="kart">' + kartBaslik("Ortaklar", "(ikisi de patron / yönetici)") +
-    '<div class="alt-bilgi" style="margin:0 0 8px">Kasaya giren her paranın kimin elinde olduğu (Ortak kasa / ortak) seçilebilir; her ortağın elindeki para, şahsi çekişi, sermayesi ve kâr payı <b data-git="ortaklar" style="cursor:pointer;color:var(--borc)">Ortaklar</b> sayfasında görünür.</div>' +
+    '<div class="alt-bilgi" style="margin:0 0 8px">Kasada her paranın kimde olduğu (Kasa / ortak) seçilir; ortakların şahsi çekişi Para Çıktı → “' + ORTAK_CEKIS + '” ile girilir. Kâr payı ve çekişler Rapor sayfasında görünür.</div>' +
     '<div id="ortakListe">' + l.map((o, i) => '<div class="ikalem-alan alan-3" data-i="' + i + '" style="margin-top:8px"><label>Ad<input class="kutu or-ad" maxlength="40" value="' + esc(o.ad) + '"></label>' +
       '<label>Pay (%)<input class="kutu or-pay" inputmode="decimal" value="' + sayiYaz(o.pay) + '"></label>' +
       '<label>Giriş hesabı<select class="kutu or-e"><option value="">— Adına göre eşleşir —</option>' + yetki.liste.map(k => '<option value="' + esc(k.eposta) + '"' + (k.eposta === o.eposta ? ' selected' : '') + '>' + esc((k.ad || "") + " (" + k.eposta.replace("@gunesmobilya.app", "") + ")") + '</option>').join("") + '</select></label>' +
