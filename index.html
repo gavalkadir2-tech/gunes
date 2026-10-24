@@ -289,7 +289,9 @@ a.buton{text-decoration:none}
 .proje-kart{background:var(--kart);border:1px solid var(--cizgi);border-radius:14px;overflow:hidden;padding:0;text-align:left;box-shadow:var(--golge);display:flex;flex-direction:column}
 .proje-kart:hover{border-color:#d6d3d1}
 .kapak{aspect-ratio:4/3;background:#f0eeec;display:flex;align-items:center;justify-content:center;color:#d6d3d1;position:relative;overflow:hidden;width:100%}
-.kapak img{width:100%;height:100%;object-fit:cover;display:block}
+.kapak img,.kapak video,.kat-kutu video{width:100%;height:100%;object-fit:cover;display:block}
+.kat-kutu video{position:absolute;inset:0}
+.kapak .oynat{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.2)}
 .kapak svg{width:34px;height:34px}
 .kapak .sayi{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;border-radius:999px;padding:2px 8px}
 .proje-kart .pk{padding:10px 12px 12px}
@@ -316,7 +318,7 @@ a.buton{text-decoration:none}
 .sunum button:hover{background:rgba(255,255,255,.18)}
 .sunum button.acik{background:#f59e0b;color:#1c1917}
 .sn-orta{flex:1;min-height:0;position:relative;display:flex;align-items:center;justify-content:center}
-.sn-orta img{max-width:100%;max-height:100%;object-fit:contain;transition:opacity .25s}
+.sn-orta img,.sn-orta video{max-width:100%;max-height:100%;object-fit:contain;transition:opacity .25s}
 .sn-orta .ok{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.45)}
 .sn-orta .ok.sol{left:10px} .sn-orta .ok.sag{right:10px}
 .sn-alt{padding:12px 18px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(transparent,rgba(0,0,0,.4))}
@@ -1614,6 +1616,11 @@ function katalogKategorileri(){
   return l;
 }
 const gorselSira = (a, b) => a.sira - b.sira || a.olusma - b.olusma;
+// Katalogda fotoğrafın yanında video da durabilir; kapak olarak ilk fotoğraf kullanılır.
+const videoMu = g => /^video\//.test(g.tur || "") || /\.(mp4|mov|webm|m4v)(\?|$)/i.test(g.yol || "");
+const medyaEtiket = (g, ek) => videoMu(g) ? '<video data-yol="' + esc(g.yol) + '" preload="metadata" muted playsinline></video><span class="oynat">' + ik("oynat") + '</span>'
+  : '<img data-yol="' + esc(g.yol) + '" loading="lazy" alt="' + esc(ek || "") + '">';
+const projeKapak = id => { const l = projeGorselleri(id); return l.find(g => !videoMu(g)) || l[0] || null; };
 const projeGorselleri = id => veri.katalog_gorseller.filter(g => g.projeId === id).sort(gorselSira);
 function projeSirali(liste){
   const kat = katalogKategorileri();
@@ -1630,9 +1637,9 @@ function ekranKatalog(){
   const sec = projeler.filter(p => f === "hepsi" || p.kategori === f);
   const yeniYer = "proje-form/-/" + (f === "hepsi" ? "-" : encodeURIComponent(f));
   const kutu = (ad, d, liste) => {
-    const kp = liste.map(p => projeGorselleri(p.id)[0]).find(Boolean);
+    const kp = liste.map(p => projeKapak(p.id)).find(Boolean);
     return '<button class="kat-kutu' + (kp ? '' : ' bos-kapak') + (f === d ? ' secili' : '') + '" data-is="katalogFiltre" data-arg="' + esc(d) + '">' +
-      (kp ? '<img data-yol="' + esc(kp.yol) + '" loading="lazy" alt="">' : '') + '<span class="yazi"><b>' + esc(ad) + '</b><small>' + liste.length + ' proje</small></span></button>';
+      (kp ? medyaEtiket(kp).replace(/<span class="oynat">.*<\/span>$/, "") : '') + '<span class="yazi"><b>' + esc(ad) + '</b><small>' + liste.length + ' proje</small></span></button>';
   };
   const html = '<div class="vitrin"><div class="marka"><img src="logo-beyaz.png" alt="Güneş Mobilya"></div>' +
       '<div class="alt">Proje kataloğu · ' + projeler.length + ' proje · ' + veri.katalog_gorseller.length + ' fotoğraf</div>' +
@@ -1659,7 +1666,7 @@ function projeListesi(liste){
   return '<div class="proje-izgara">' + l.map(p => {
     const g = projeGorselleri(p.id);
     return '<button class="proje-kart" data-git="proje/' + p.id + '"><span class="kapak">' +
-      (g.length ? '<img data-yol="' + esc(g[0].yol) + '" loading="lazy" alt=""><span class="sayi">' + g.length + ' foto</span>' : ik("resim")) + '</span>' +
+      (g.length ? medyaEtiket(projeKapak(p.id)) + '<span class="sayi">' + g.length + ' ' + (g.some(videoMu) ? 'medya' : 'foto') + '</span>' : ik("resim")) + '</span>' +
       '<span class="pk"><b>' + esc(p.baslik) + '</b><span>' + esc([p.kategori, p.malzeme].filter(Boolean).join(" · ")) + '</span></span></button>';
   }).join("") + '</div>';
 }
@@ -1676,16 +1683,16 @@ function ekranProje(id){
   const g = projeGorselleri(id);
   const isler = veri.is_emirleri.filter(ie => ie.kalemler.some(k => k.katalogId === id)).sort((a, b) => b.olusma - a.olusma);
   const html = '<div class="iki-sutun genis"><div>' +
-    (g.length ? '<button class="kapak buyuk-kapak" data-is="projeSunum" data-arg="' + id + '|0"><img data-yol="' + esc(g[0].yol) + '" alt="' + esc(p.baslik) + '">' +
+    (g.length ? '<button class="kapak buyuk-kapak" data-is="projeSunum" data-arg="' + id + '|' + Math.max(0, g.indexOf(projeKapak(id))) + '">' + medyaEtiket(projeKapak(id), p.baslik).replace(' loading="lazy"', '') +
       '<span class="oynat-rozet">' + ik("oynat") + 'Sunum modu</span></button>' : '') +
     '<div class="kart"><div class="kart-baslik"><span>Fotoğraflar (' + g.length + ')</span></div>' +
     (cevrimici ? '<div class="buton-sira yonetici-ozel" style="margin-top:8px"><button class="buton ikincil kucuk" onclick="document.getElementById(\'kKamera\').click()">' + ik("kamera") + 'Fotoğraf çek</button>' +
-      '<button class="buton ikincil kucuk" onclick="document.getElementById(\'kGaleri\').click()">' + ik("yukle") + 'Fotoğraf yükle</button></div>' +
+      '<button class="buton ikincil kucuk" onclick="document.getElementById(\'kGaleri\').click()">' + ik("yukle") + 'Fotoğraf / video yükle</button></div>' +
       '<input type="file" id="kKamera" accept="image/*" capture="environment" style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">' +
-      '<input type="file" id="kGaleri" accept="image/*" multiple style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">'
+      '<input type="file" id="kGaleri" accept="image/*,video/*" multiple style="display:none" onchange="gorselSecildi(this,\'' + id + '\')">'
       : '<div class="alt-bilgi">Fotoğraf yüklemek için bulut bağlantısı gerekir.</div>') +
-    (g.length ? '<div class="galeri">' + g.map((x, i) => '<div class="foto-sar"><button class="foto" data-is="projeSunum" data-arg="' + id + '|' + i + '"><img data-yol="' + esc(x.yol) + '" loading="lazy" alt="' + esc(x.ad) + '"></button>' +
-        (i === 0 ? '<span class="kapak-rozet">Kapak</span>' : '') + '<button class="menu-dugme yonetici-ozel" data-is="gorselMenu" data-arg="' + x.id + '" aria-label="Fotoğraf işlemleri">⋯</button></div>').join("") + '</div>' +
+    (g.length ? '<div class="galeri">' + g.map((x, i) => '<div class="foto-sar"><button class="foto" data-is="projeSunum" data-arg="' + id + '|' + i + '">' + medyaEtiket(x, x.ad) + '</button>' +
+        (x === projeKapak(id) ? '<span class="kapak-rozet">Kapak</span>' : '') + '<button class="menu-dugme yonetici-ozel" data-is="gorselMenu" data-arg="' + x.id + '" aria-label="Fotoğraf işlemleri">⋯</button></div>').join("") + '</div>' +
       '<div class="alt-bilgi">⋯ ile kapak yapabilir, sırasını değiştirebilir, döndürebilir, başka projeye taşıyabilir veya silebilirsiniz.</div>' : bos("kamera", "Henüz fotoğraf yok.")) + '</div>' +
     '</div><div>' +
     '<div class="kart"><span class="etiket-rozet d-sari">' + esc(p.kategori || "Kategorisiz") + '</span>' +
@@ -1731,7 +1738,7 @@ function ekranProjeForm(id, kategori){
     '<label class="etiket" for="pAciklama">Açıklama <span class="ist">(sunumda görünür)</span></label><textarea id="pAciklama" class="kutu" maxlength="2000">' + esc(p ? p.aciklama : "") + '</textarea>' +
     '<label class="etiket" for="pFiyat">Tahmini fiyat <span class="ist">(KDV hariç, isteğe bağlı; sunumda görünmez, teklife aktarılır)</span></label><input id="pFiyat" class="kutu" inputmode="decimal" value="' + (p ? sayiYaz(p.fiyat) : "") + '" placeholder="0 ₺">' +
     (!p && cevrimici ? '<div class="form-bolum">Fotoğraflar</div><button type="button" class="buton ikincil kucuk" style="margin-top:10px" onclick="document.getElementById(\'pFoto\').click()">' + ik("yukle") + 'Fotoğraf seç</button>' +
-      '<input type="file" id="pFoto" accept="image/*" multiple style="display:none"><div class="alt-bilgi" id="pFotoYazi">Kaydettikten sonra proje sayfasından da ekleyebilirsiniz.</div>' : '') +
+      '<input type="file" id="pFoto" accept="image/*,video/*" multiple style="display:none"><div class="alt-bilgi" id="pFotoYazi">Kaydettikten sonra proje sayfasından da ekleyebilirsiniz.</div>' : '') +
     '<div class="hata" id="hata"></div><button class="buton" data-is="projeKaydet" data-arg="' + (p ? p.id : "") + '">' + ik("tamam") + 'Kaydet</button></div>';
   return {baslik: p ? "Projeyi düzenle" : "Yeni proje", geri:true, html, sonra(){
     secenekBagla();
@@ -1763,14 +1770,14 @@ EYLEM.projeKaydet = (btn, id) => {
 /* --- ZIP'ten toplu içe aktarma --- */
 // Her klasör bir proje olur (Facebook "bilgilerini indir" dosyasında albüm klasörleri gibi).
 // İsteğe bağlı katalog.json: {kategori, projeler:[{klasor, baslik, kategori, aciklama, malzeme, olcu}]}
-const RESIM_UZANTI = {jpg:"image/jpeg", jpeg:"image/jpeg", png:"image/png", webp:"image/webp"};
+const RESIM_UZANTI = {jpg:"image/jpeg", jpeg:"image/jpeg", png:"image/png", webp:"image/webp", mp4:"video/mp4", m4v:"video/mp4", mov:"video/quicktime", webm:"video/webm"};
 const dogalSira = (a, b) => a.localeCompare(b, "tr", {numeric:true});
 function ekranKatalogIce(){
   if(!cevrimici) return {baslik:"ZIP'ten içe aktar", geri:true, html:'<div class="uyari">İçe aktarmak için bulut bağlantısı gerekir.</div>'};
   if(eksikTablo.katalog) return ekranKatalog();
   form = {ice:null};
   const html = '<div class="kart form-kart"><div>Fotoğrafları içeren bir ZIP dosyası seçin. <b>Her klasör bir proje</b> olur; klasör adı proje adı olarak gelir. ' +
-    'Önizlemede istemediğiniz grupları çıkarabilir, adını ve kategorisini değiştirebilirsiniz.</div>' +
+    'Fotoğraf ve videolar (mp4, mov, webm) alınır. Önizlemede istemediğiniz grupları çıkarabilir, adını ve kategorisini değiştirebilirsiniz.</div>' +
     '<div class="alt-bilgi">Facebook\'tan indirdiğiniz yedekte albümler ayrı klasörlerdedir. Büyük dosyalar için bilgisayar ve Wi-Fi önerilir.</div>' +
     '<button class="buton ikincil" onclick="document.getElementById(\'iceZip\').click()">' + ik("yukle") + 'ZIP dosyası seç</button>' +
     '<input type="file" id="iceZip" accept=".zip,application/zip" style="display:none" onchange="iceZipSecildi(this)">' +
@@ -1807,7 +1814,7 @@ async function iceZipSecildi(input){
         var: veri.katalog.some(p => p.baslik === baslik), sec: !veri.katalog.some(p => p.baslik === baslik)};
     });
     // Önizleme küçük resimleri (ilk fotoğraf)
-    for(const g of form.ice) g.onizleme = URL.createObjectURL(await g.dosyalar[0].async("blob"));
+    for(const g of form.ice){ const ilk = g.dosyalar.find(e => !/\.(mp4|m4v|mov|webm)$/i.test(e.name)) || g.dosyalar[0]; g.onizlemeVideo = ilk !== g.dosyalar.find(e => !/\.(mp4|m4v|mov|webm)$/i.test(e.name)); g.onizleme = URL.createObjectURL(await ilk.async("blob")); }
     yuklemeKapat();
     iceOnizlemeCiz();
   }catch(e){ yuklemeKapat(); uyar("ZIP açılamadı", hataMesaji(e)); }
@@ -1819,12 +1826,12 @@ function iceOnizlemeCiz(){
     '<div class="secenekler" style="margin:10px 0"><button type="button" class="secenek" data-is="iceHepsi" data-arg="1">Tümünü seç</button><button type="button" class="secenek" data-is="iceHepsi" data-arg="0">Hiçbirini seçme</button></div>' +
     form.ice.map((g, i) => '<div class="kalem" data-i="' + i + '" style="display:flex;gap:10px;align-items:flex-start' + (g.sec ? '' : ';opacity:.55') + '">' +
       '<input type="checkbox" class="i-sec"' + (g.sec ? ' checked' : '') + ' style="width:20px;height:20px;margin-top:10px;flex-shrink:0" aria-label="İçe aktar">' +
-      '<span class="kapak" style="width:64px;flex:0 0 64px;border-radius:8px"><img src="' + g.onizleme + '" alt=""></span>' +
+      '<span class="kapak" style="width:64px;flex:0 0 64px;border-radius:8px">' + (g.onizlemeVideo ? '<video src="' + g.onizleme + '" muted playsinline preload="metadata"></video>' : '<img src="' + g.onizleme + '" alt="">') + '</span>' +
       '<div style="flex:1;min-width:0"><input class="kutu i-ad" maxlength="120" value="' + esc(g.baslik) + '" style="padding:8px 10px;font-size:15px">' +
       '<div style="display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap"><select class="kutu i-kat" style="width:auto;padding:6px 10px;font-size:14px">' +
         kat.map(k => '<option' + (k === g.kategori ? ' selected' : '') + '>' + esc(k) + '</option>').join("") + '</select>' +
-      '<span class="alt-bilgi" style="margin:0">' + g.dosyalar.length + ' fotoğraf' + (g.var ? ' · <b style="color:#b45309">bu adla proje zaten var</b>' : '') + '</span></div></div></div>').join("") +
-    '<div class="hata" id="hata"></div><button class="buton" data-is="iceAktar"' + (sec.length ? '' : ' disabled') + '>' + ik("yukle") + sec.length + ' proje, ' + foto + ' fotoğraf içe aktar</button>';
+      '<span class="alt-bilgi" style="margin:0">' + g.dosyalar.length + ' dosya' + (g.var ? ' · <b style="color:#b45309">bu adla proje zaten var</b>' : '') + '</span></div></div></div>').join("") +
+    '<div class="hata" id="hata"></div><button class="buton" data-is="iceAktar"' + (sec.length ? '' : ' disabled') + '>' + ik("yukle") + sec.length + ' proje, ' + foto + ' dosya içe aktar</button>';
   const k = document.getElementById("iceOnizleme");
   if(!k.dataset.bagli){
     k.dataset.bagli = 1;
@@ -1876,10 +1883,11 @@ async function gorselSecildi(input, projeId){
 // Sunumda net görünsün diye 2400 piksele kadar küçültülür.
 // toplu: {etiket, sorunlu:[]} verilirse ilerleme yazısına etiket eklenir, hatalar listeye yazılır (toplu içe aktarma).
 async function gorselleriYukle(projeId, liste, toplu){
-  const resimler = liste.filter(f => /^image\//.test(f.type)), sorunlu = liste.filter(f => !/^image\//.test(f.type)).map(f => f.name + " (fotoğraf değil)");
+  const uygun = f => /^(image|video)\//.test(f.type);
+  const resimler = liste.filter(uygun), sorunlu = liste.filter(f => !uygun(f)).map(f => f.name + " (fotoğraf veya video değil)");
   let sira = projeGorselleri(projeId).reduce((m, g) => Math.max(m, g.sira), 0), tamam = 0;
   for(let i = 0; i < resimler.length; i++){
-    yuklemeGoster((toplu ? toplu.etiket + " · " : "") + "Fotoğraf yükleniyor " + (i + 1) + "/" + resimler.length + "…");
+    yuklemeGoster((toplu ? toplu.etiket + " · " : "") + (/^video\//.test(resimler[i].type) ? "Video" : "Fotoğraf") + " yükleniyor " + (i + 1) + "/" + resimler.length + "…");
     let yuklenen = null;
     try{
       const f = await gorselKucult(resimler[i], 2400);
@@ -1897,7 +1905,7 @@ async function gorselleriYukle(projeId, liste, toplu){
   }
   if(toplu){ toplu.sorunlu.push(...sorunlu); return tamam; }
   yuklemeKapat();
-  if(tamam) bildir(tamam + " fotoğraf yüklendi");
+  if(tamam) bildir(tamam + " dosya yüklendi");
   if(sorunlu.length) uyar("Bazı dosyalar yüklenemedi", sorunlu.join("; "));
   return tamam;
 }
@@ -1907,10 +1915,10 @@ EYLEM.gorselMenu = (el, gid) => {
   const digerleri = projeSirali(veri.katalog.filter(p => p.id !== g.projeId));
   const dugme = (k, ikon, yazi) => '<button class="buton ikincil" data-k="' + k + '">' + ik(ikon) + yazi + '</button>';
   const p = document.createElement("div"); p.className = "perde";
-  p.innerHTML = '<div class="pencere"><p>Fotoğraf işlemleri</p><div class="alt-bilgi">' + (i + 1) + '. fotoğraf / ' + liste.length + '</div><div class="secim-liste">' +
-    (i > 0 ? dugme("kapak", "yildiz", "Kapak fotoğrafı yap") + dugme("once", "sol", "Bir öne al") : '') +
+  p.innerHTML = '<div class="pencere"><p>' + (videoMu(g) ? 'Video' : 'Fotoğraf') + ' işlemleri</p><div class="alt-bilgi">' + (i + 1) + '. fotoğraf / ' + liste.length + '</div><div class="secim-liste">' +
+    (i > 0 && !videoMu(g) && projeKapak(g.projeId) !== g ? dugme("kapak", "yildiz", "Kapak fotoğrafı yap") : '') + (i > 0 ? dugme("once", "sol", "Bir öne al") : '') +
     (i < liste.length - 1 ? dugme("sonra", "sag", "Bir sona al") : '') +
-    (cevrimici ? dugme("dondur", "dondur", "90° sağa döndür") : '') +
+    (cevrimici && !videoMu(g) ? dugme("dondur", "dondur", "90° sağa döndür") : '') +
     (digerleri.length ? '<div style="display:flex;gap:8px"><select id="tasiHedef" class="kutu" aria-label="Taşınacak proje">' +
       digerleri.map(x => '<option value="' + x.id + '">' + esc(x.kategori + " · " + x.baslik) + '</option>').join("") + '</select>' +
       '<button class="buton ikincil kucuk" data-k="tasi">Taşı</button></div>' : '') +
@@ -2001,30 +2009,32 @@ function sunumAc(liste, bas, musteri){
     (musteri ? (waNumara(musteri.telefon) ? '<button data-k="sor" aria-label="WhatsApp ile sor">' + ik("mesaj") + '<span class="yazi-gizle">Bilgi al</span></button>' : '') :
       '<button data-k="teklif" class="yonetici-ozel" aria-label="Teklif hazırla">' + ik("is") + '<span class="yazi-gizle">Teklif hazırla</span></button>') +
     '<button data-k="kapat" aria-label="Kapat">' + ik("x") + '</button></div>' +
-    '<div class="sn-orta"><img alt="">' + (liste.length > 1 ? '<button class="ok sol" data-k="geri" aria-label="Önceki">' + ik("sol") + '</button>' +
+    '<div class="sn-orta"><img alt=""><video class="sn-gizli" controls playsinline preload="metadata"></video>' + (liste.length > 1 ? '<button class="ok sol" data-k="geri" aria-label="Önceki">' + ik("sol") + '</button>' +
     '<button class="ok sag" data-k="ileri" aria-label="Sonraki">' + ik("sag") + '</button>' : '') + '</div><div class="sn-alt"></div>';
-  const img = s.querySelector(".sn-orta img");
+  const img = s.querySelector(".sn-orta img"), vid = s.querySelector(".sn-orta video");
   const goster = () => {
-    const {g, p} = liste[i], u = urlOnbellek[g.yol];
-    if(u) img.src = u.url; else img.removeAttribute("src");
+    const {g, p} = liste[i], u = urlOnbellek[g.yol], v = videoMu(g);
+    img.classList.toggle("sn-gizli", v); vid.classList.toggle("sn-gizli", !v);
+    if(v){ img.removeAttribute("src"); if(u && vid.getAttribute("src") !== u.url){ vid.src = u.url; vid.play().catch(() => {}); } }
+    else { vid.pause(); vid.removeAttribute("src"); if(u) img.src = u.url; else img.removeAttribute("src"); }
     img.alt = p.baslik;
     s.querySelector(".sayac").textContent = (i + 1) + " / " + liste.length;
     s.querySelector(".sn-alt").innerHTML = '<div class="k">' + esc(p.kategori) + '</div><h3>' + esc(p.baslik) + '</h3>' +
       (p.malzeme || p.olcu || (musteri && p.fiyat) ? '<div class="o">' + (p.malzeme ? '<div><span>Malzeme:</span> ' + esc(p.malzeme) + '</div>' : '') + (p.olcu ? '<div><span>Ölçü:</span> ' + esc(p.olcu) + '</div>' : '') +
         (musteri && p.fiyat ? '<div><span>Başlangıç fiyatı:</span> ' + para(p.fiyat) + ' + KDV</div>' : '') + '</div>' : '') +
       (p.aciklama ? '<div class="d">' + esc(p.aciklama) + '</div>' : '');
-    [1, -1].forEach(n => { const v = urlOnbellek[liste[(i + n + liste.length) % liste.length].g.yol]; if(v) new Image().src = v.url; });   // komşuları önceden yükle
+    [1, -1].forEach(n => { const x = liste[(i + n + liste.length) % liste.length].g, v = urlOnbellek[x.yol]; if(v && !videoMu(x)) new Image().src = v.url; });   // komşuları önceden yükle
   };
   const adim = n => { i = (i + n + liste.length) % liste.length; goster(); };
   const otoAyarla = ac => {
-    clearInterval(oto); oto = ac ? setInterval(() => adim(1), 5000) : null;
+    clearInterval(oto); oto = ac ? setInterval(() => { if(!videoMu(liste[i].g) || vid.ended || vid.paused) adim(1); }, 5000) : null;   // video oynarken bekler
     const b = s.querySelector('[data-k="oto"]');
     if(b){ b.classList.toggle("acik", !!ac); b.innerHTML = ik(ac ? "duraklat" : "oynat") + '<span class="yazi-gizle">' + (ac ? "Durdur" : "Otomatik") + '</span>'; }
   };
   const bilgi = () => { s.classList.toggle("bilgisiz"); s.querySelector('[data-k="bilgi"]').classList.toggle("acik", !s.classList.contains("bilgisiz")); };
   const tamEkran = () => { if(document.fullscreenElement) document.exitFullscreen().catch(() => {}); else if(s.requestFullscreen) s.requestFullscreen().catch(() => {}); };
   const kapat = () => {
-    otoAyarla(false); document.removeEventListener("keydown", tus); window.removeEventListener("hashchange", kapat);
+    otoAyarla(false); vid.pause(); document.removeEventListener("keydown", tus); window.removeEventListener("hashchange", kapat);
     if(document.fullscreenElement) document.exitFullscreen().catch(() => {});
     s.remove();
   };
@@ -2457,7 +2467,7 @@ function ekranPaylasForm(kategori, projeId){
     (projeler.length ? projeler.map(p => {
       const g = projeGorselleri(p.id);
       return '<label class="satir" style="cursor:pointer"><input type="checkbox" class="pSec" value="' + p.id + '" data-kat="' + esc(p.kategori) + '"' + (secili(p) ? ' checked' : '') + ' style="width:20px;height:20px">' +
-        '<span class="kapak" style="width:56px;flex:0 0 56px;border-radius:8px">' + (g.length ? '<img data-yol="' + esc(g[0].yol) + '" loading="lazy" alt="">' : ik("resim")) + '</span>' +
+        '<span class="kapak" style="width:56px;flex:0 0 56px;border-radius:8px">' + (g.length ? medyaEtiket(projeKapak(p.id)).replace(/<span class="oynat">.*<\/span>$/, "") : ik("resim")) + '</span>' +
         '<span class="orta"><div class="s1">' + esc(p.baslik) + '</div><div class="s2">' + esc(p.kategori + " · " + g.length + " fotoğraf") + '</div></span></label>';
     }).join("") : bos("katalog", "Katalogda proje yok.")) +
     '<label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:14px"><input type="checkbox" id="shFiyat"> Tahmini fiyatları göster <span class="ist" style="color:var(--soluk)">(“Başlangıç: … ₺ + KDV” olarak)</span></label>' +
@@ -2567,8 +2577,9 @@ async function vitrinGoster(anahtar){
       '<h1 style="font-size:22px;margin:14px 0 4px;position:relative">' + esc(v.baslik) + '</h1>' +
       (v.mesaj ? '<div class="alt" style="white-space:pre-wrap">' + esc(v.mesaj) + '</div>' : '<div class="alt"></div>') +
       '<div class="buton-sira"><button class="buton altin" data-is="vitrinSunum" data-arg="-1">' + ik("oynat") + 'Tüm fotoğrafları izle</button>' + iletisim + '</div></div>' +
-    '<div class="proje-izgara">' + v.projeler.map((p, i) => '<button class="proje-kart" data-is="vitrinSunum" data-arg="' + i + '"><span class="kapak"><img src="' + esc(p.gorseller[0]) + '" loading="lazy" alt="' + esc(p.baslik) + '">' +
-      '<span class="sayi">' + p.gorseller.length + ' foto</span></span><span class="pk"><b>' + esc(p.baslik) + '</b><span>' + esc([p.kategori, p.malzeme].filter(Boolean).join(" · ")) + '</span>' +
+    '<div class="proje-izgara">' + v.projeler.map((p, i) => '<button class="proje-kart" data-is="vitrinSunum" data-arg="' + i + '"><span class="kapak">' + (() => { const k = p.gorseller.find(u => !videoMu({yol:u})) || p.gorseller[0];
+        return videoMu({yol:k}) ? '<video src="' + esc(k) + '#t=0.1" muted playsinline preload="metadata"></video>' : '<img src="' + esc(k) + '" loading="lazy" alt="' + esc(p.baslik) + '">'; })() +
+      '<span class="sayi">' + p.gorseller.length + (p.gorseller.some(u => videoMu({yol:u})) ? ' medya' : ' foto') + '</span></span><span class="pk"><b>' + esc(p.baslik) + '</b><span>' + esc([p.kategori, p.malzeme].filter(Boolean).join(" · ")) + '</span>' +
       (p.fiyat ? '<span style="color:var(--yazi);font-weight:600;margin-top:2px;white-space:normal">' + 'Başlangıç: ' + para(p.fiyat) + ' + KDV</span>' : '') + '</span></button>').join("") + '</div>' +
     '<div class="alt-bilgi" style="text-align:center;margin:28px 0 12px">' + esc([fr.ad || FIRMA, fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></main>';
 }
@@ -2897,8 +2908,47 @@ function ekranRapor(){
       '<div class="kart ozet"><div class="kart-baslik">Toplam alacak</div><div class="deger t-borc">' + para(alacak) + '</div><div class="alt-bilgi">Bugün itibarıyla</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Toplam borç</div><div class="deger t-cikis">' + para(borc) + '</div><div class="alt-bilgi">Bugün itibarıyla</div></div></div>' +
     '<div class="iki-sutun">' + cubuklar("Para nereye gitti?", giderler, cik, "var(--cikis)") + cubuklar("Para nereden geldi?", gelirler, gir, "var(--giris)") + '</div>' +
-    cubuklar("En çok satış yapılan müşteriler", musteriSatis, fSatis, "var(--borc)", 8);
+    cubuklar("En çok satış yapılan müşteriler", musteriSatis, fSatis, "var(--borc)", 8) +
+    rapor2();
   return {baslik:"Rapor", html};
+}
+// İşletme analizi: teslim edilen işlerin kârı, kategoriye göre siparişler, teklif dönüşümü, personel gideri (seçili ay).
+function isTeslimTarihi(ie){
+  const n = veri.is_notlari.filter(x => x.isEmriId === ie.id && /→ Teslim edildi$/.test(x.metin)).sort((a, b) => b.olusma - a.olusma)[0];
+  return n ? tarihStr(new Date(n.olusma)) : ie.durum === "Teslim edildi" ? ie.teslimTarihi || "" : "";
+}
+function rapor2(){
+  const ay = ayGoster, ayda = t => t && t.slice(0, 7) === ay, ayMs = ms => ayda(tarihStr(new Date(ms)));
+  // Teslim edilen işler ve kârları
+  // Kâr KDV hariç: faturalıysa faturaların ara toplamı, değilse teklifin KDV hariç tutarı
+  const netSatis = ie => { const fs = veri.faturalar.filter(f => f.isEmriId === ie.id && f.tur === "satis"); return fs.length ? fs.reduce((t, f) => t + f.araToplam, 0) : isHesap(ie.kalemler, isTeklif(ie)).net; };
+  const teslim = veri.is_emirleri.filter(ie => ie.durum === "Teslim edildi" && ayda(isTeslimTarihi(ie))).map(ie => {
+    const o = isOzet(ie.id), fiyat = yuvarla(netSatis(ie)); return {ie, o:{fiyat, maliyet:o.maliyet, kar:yuvarla(fiyat - o.maliyet)}};
+  }).sort((a, b) => b.o.kar - a.o.kar);
+  const tCiro = teslim.reduce((t, x) => t + x.o.fiyat, 0), tKar = teslim.reduce((t, x) => t + x.o.kar, 0);
+  // Bu ay açılan siparişler (KDV hariç) — katalog kategorisine göre
+  const kat = {}; let siparis = 0;
+  veri.is_emirleri.filter(ie => ayMs(ie.olusma) && ie.durum !== "İptal" && ie.durum !== "Teklif").forEach(ie => {
+    const h = isHesap(ie.kalemler, isTeklif(ie)); siparis += h.net;
+    const k = ie.kalemler.map(x => (bul("katalog", x.katalogId) || {}).kategori).find(Boolean) || "Diğer";
+    kat[k] = (kat[k] || 0) + h.net;
+  });
+  // Teklif dönüşümü: bu ay teklif olarak açılan işlerin durumu
+  const teklifler = veri.is_emirleri.filter(ie => ayMs(ie.olusma) && (ie.durum === "Teklif" || veri.is_notlari.some(n => n.isEmriId === ie.id && /Teklif onaylandı|Durum: Teklif →|Katalogdan teklif/.test(n.metin))));
+  const onay = teklifler.filter(ie => ie.durum !== "Teklif" && ie.durum !== "İptal").length;
+  // Personel gideri (ödeme + avans)
+  const pers = veri.personel_hareket.filter(h => (h.tur === "odeme" || h.tur === "avans") && ayda(h.tarih)).reduce((t, h) => t + h.tutar, 0);
+  return bolum("İşletme analizi") +
+    '<div class="izgara dort"><div class="kart ozet"><div class="kart-baslik">Teslim edilen iş</div><div class="deger">' + teslim.length + '</div><div class="alt-bilgi">Ciro ' + para(tCiro) + ' (KDV hariç)</div></div>' +
+      '<div class="kart ozet"><div class="kart-baslik">Teslim edilen işlerin kârı</div><div class="deger ' + (tKar >= 0 ? 't-giris' : 't-cikis') + '">' + para(tKar) + '</div><div class="alt-bilgi">' + (tCiro ? 'Kâr oranı %' + Math.round(tKar / tCiro * 100) : '—') + '</div></div>' +
+      '<div class="kart ozet"><div class="kart-baslik">Teklif → sipariş</div><div class="deger">' + (teklifler.length ? '%' + Math.round(onay / teklifler.length * 100) : '—') + '</div><div class="alt-bilgi">' + onay + ' / ' + teklifler.length + ' teklif onaylandı</div></div>' +
+      '<div class="kart ozet"><div class="kart-baslik">Personel ödemesi</div><div class="deger t-cikis">' + para(pers) + '</div><div class="alt-bilgi">' + (siparis ? 'Siparişlerin %' + Math.round(pers / siparis * 100) + '’i' : 'Maaş + avans') + '</div></div></div>' +
+    '<div class="iki-sutun">' + cubuklar("Bu ay alınan siparişler (KDV hariç, kategoriye göre)", kat, siparis, "var(--ana)") +
+    '<div class="kart"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Bu ay teslim edilen işler (kâra göre)</div>' +
+      (teslim.length ? teslim.slice(0, 10).map(x => '<button class="satir" data-git="is/' + x.ie.id + '"><span class="orta"><div class="s1">' + esc(x.ie.no + " · " + x.ie.baslik) + '</div><div class="s2">' +
+        esc(cariAdi(x.ie.musteriId)) + ' · satış ' + para(x.o.fiyat) + ' · maliyet ' + para(x.o.maliyet) + '</div></span><span class="tutar ' + (x.o.kar >= 0 ? 't-giris' : 't-cikis') + '">' + para(x.o.kar) + '</span></button>').join("") :
+        bos("is", "Bu ay teslim edilen iş yok.")) +
+      '<div class="alt-bilgi">Satış KDV hariç; maliyet: işe bağlı alış faturaları ve giderler. Doğru kâr için malzeme alımlarını ilgili iş emrine bağlayın.</div></div></div>';
 }
 function cubuklar(baslik, obj, toplam, renk, sinir){
   const anahtar = Object.keys(obj).sort((a, b) => obj[b] - obj[a]).slice(0, sinir || 99);
