@@ -4,6 +4,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { STLLoader } from "three/addons/loaders/STLLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 import { acisGeometri } from "./acis.js";
 
 const DWG_CDN = "https://cdn.jsdelivr.net/npm/@mlightcad/libredwg-web@0.7.17/";
@@ -46,8 +47,51 @@ async function dwgOku(veri){
     const isle = l => (l || []).forEach(e => { if(kati(e)) e._acis = acisKopyala(d, e.data); });
     isle(db.entities);
     ((db.tables.BLOCK_RECORD || {}).entries || []).forEach(b => isle(b.entities));
+    cokyuzluEkle(d, dwg, db);
     return db;
   } finally { try{ d.lib.dwg_free(dwg); }catch(e){} }
+}
+// Çokyüzlü mesh (POLYLINE_PFACE) dönüştürücüde yok: ham nesnelerden okunur. ADeko gibi programlar dolapları böyle kaydeder.
+// Her bloğun sahip olduğu nesneler dolaşılır (sahip bilgisi kayıp nesneler de böylece doğru bloğa düşer).
+const TUR_BLOK = 49, TUR_PFACE = 29, TUR_PFACE_KOSE = 13, TUR_PFACE_YUZ = 14;
+const kimlik = v => v.toString(16).toUpperCase();
+function cokyuzluEkle(d, dwg, db){
+  const L = d.lib, w = L.wasmInstance;
+  const katmanAdi = {}; ((db.tables.LAYER || {}).entries || []).forEach(k => { katmanAdi[k.handle] = k.name; });
+  const bloklar = {}; let model = null;
+  ((db.tables.BLOCK_RECORD || {}).entries || []).forEach(b => { bloklar[b.handle] = b; if(/^\*model_space$/i.test(b.name)) model = b.handle; });
+  let ofset = null;
+  const n = w.dwg_get_num_objects(dwg);
+  for(let i = 0; i < n; i++){
+    const o = w.dwg_get_object(dwg, i);
+    if(!o || L.dwg_object_get_fixedtype(o) !== TUR_BLOK) continue;
+    const bh = kimlik(L.dwg_object_get_handle_object(o).value);
+    let e = w.get_first_owned_entity(o), k = 0;
+    while(e && k++ < 1e6){
+      if(L.dwg_object_get_fixedtype(e) === TUR_PFACE){
+        try{
+          const ent = L.dwg_object_to_entity(e), c = L.dwg_object_entity_get_color_object(ent);
+          const pf = {type:"PFACE", ownerBlockRecordSoftId:bh, isVisible:!L.dwg_object_entity_get_invisible(ent),
+            layer: katmanAdi[kimlik(L.dwg_object_entity_get_layer_object_ref(ent).handleref.value)] || "0",
+            colorIndex:c.index, color: c.method == 194 || (c.rgb >>> 24 & 255) === 194 ? c.rgb & 0xffffff : undefined, kose:[], yuz:[]};
+          let s = w.get_first_owned_subentity(e), m = 0;
+          while(s && m++ < 1e6){
+            const ft = L.dwg_object_get_fixedtype(s), t = L.dwg_object_to_entity_tio(s);
+            if(ft === TUR_PFACE_KOSE){ const p = L.dwg_dynapi_entity_data(t, "point"); pf.kose.push([p.x, p.y, p.z]); }
+            else if(ft === TUR_PFACE_YUZ){
+              if(ofset === null) ofset = w.dwg_dynapi_entity_field_offset(t, "vertind");
+              if(ofset >= 0){ const dv = new DataView(d.bellek().buffer); pf.yuz.push([0, 1, 2, 3].map(q => dv.getInt16(t + ofset + q * 2, true))); }
+            }
+            s = w.get_next_owned_subentity(e, s);
+          }
+          if(pf.kose.length && pf.yuz.length){
+            if(bh === model) db.entities.push(pf); else if(bloklar[bh]) (bloklar[bh].entities = bloklar[bh].entities || []).push(pf);
+          }
+        }catch(hata){}
+      }
+      e = w.get_next_owned_entity(o, e);
+    }
+  }
 }
 
 /* ---------- Renk (AutoCAD renk dizini) ---------- */
@@ -156,7 +200,8 @@ function sahneTopla(db){
     if(e.isVisible === false) return;
     const katman = e.layer === "0" && ust ? ust.katman : e.layer || "0";
     if(gizli(katman)) return;
-    const ci = e.colorIndex, renk = ci === 0 && ust ? ust.renk : ci === 256 || ci === undefined || ci === 0 ? katmanRenk(katman) : aciRenk(ci);
+    const ci = e.colorIndex;
+    const renk = typeof e.color === "number" ? e.color : ci === 0 && ust ? ust.renk : ci === 256 || ci === undefined || ci === 0 ? katmanRenk(katman) : aciRenk(ci);
     const g = () => T.grup(katman, renk), W = p => uygula(M, p);
     switch(e.type){
       case "LINE": {
@@ -219,6 +264,19 @@ function sahneTopla(db){
         }
         break;
       }
+      case "PFACE": {
+        // Yüz köşe numaraları 1'den başlar; eksi = o kenar görünmez, 0 = dördüncü köşe yok
+        const gg = g(), kg = T.grup(katman, koyulas(renk)), K = e.kose.map(W);
+        e.yuz.forEach(f => {
+          const ix = f.filter(v => v !== 0).map(v => Math.abs(v) - 1);
+          if(ix.length < 3 || ix.some(v => !K[v])) return;
+          T.ucgen(gg, K[ix[0]], K[ix[1]], K[ix[2]]);
+          if(ix.length === 4) T.ucgen(gg, K[ix[0]], K[ix[2]], K[ix[3]]);
+          const fv = f.filter(v => v !== 0);
+          for(let q = 0; q < fv.length; q++) if(fv[q] > 0) T.cizgi(kg, K[Math.abs(fv[q]) - 1], K[Math.abs(fv[(q + 1) % fv.length]) - 1], true);
+        });
+        break;
+      }
       case "3DSOLID": case "REGION": case "BODY": {
         if(!e._acis){ T.sayac.katiBos++; break; }
         let geo; try{ geo = acisGeometri(e._acis); }catch(hata){ T.sayac.katiSorun++; break; }
@@ -262,6 +320,32 @@ function stlTopla(veri){
   return {T, birim:""};
 }
 
+/* ---------- Sunum malzemeleri ---------- */
+// ADeko, IntelliCAD vb. mutfak programlarının katman adlarına göre gerçekçi malzeme seçilir.
+// Eşleşmeyen katmanlar CAD rengini korur. "CAD renkleri" düğmesi orijinal renklere döner.
+const KREM = 0xdfdbc4, PASLANMAZ = {renk:0xc4c7c9, metal:.75, puruz:.32};
+const SUNUM = [
+  [/hitbox|ceiling|tavan|^defpoints$/i, null],
+  [/glass|cam/i, {renk:0xd4e6ea, puruz:.05, saydam:.3}],
+  [/handle|knob|kulp|alumin/i, {renk:0x9a9a9a, metal:.85, puruz:.3}],
+  [/worktop|tezgah|counter|backsplash/i, {renk:0xf1efea, puruz:.18}],
+  [/floor|zemin|döşeme|doseme/i, {renk:0x3b3633, puruz:.35}],
+  [/^(walls?|duvar)/i, {renk:0xf3f1ec, puruz:.9}],
+  [/leg|ayak/i, {renk:0x2f2f2f, metal:.4, puruz:.45}],
+  [/refrig|buzdolab|app|hood|davlumbaz|sink|evye|sanitary|batarya|_defaultmaterial/i, "cihaz"],
+  [/cab|door|kapak|govde|gövde|cornice|korniş|kornis|plinth|baza|panel|shel|raf|dolap/i, {renk:KREM, puruz:.55}],
+];
+function sunumMalzemesi(katman, renk){
+  for(const [d, m] of SUNUM){
+    if(!d.test(katman)) continue;
+    if(m === "cihaz"){ const c = new THREE.Color(renk), l = c.r * .3 + c.g * .59 + c.b * .11; return l < .3 ? {renk:0x262626, puruz:.15} : renk === 0xbce1ff ? {renk:0x2c3438, puruz:.1} : PASLANMAZ; }
+    return m;
+  }
+  return undefined;
+}
+const ODA = /floor|zemin|döşeme|doseme|ceiling|tavan|hitbox|^(walls?|duvar)/i;
+const sunumGizli = katman => SUNUM.some(([d, m]) => m === null && d.test(katman));
+
 /* ---------- Görüntüleyici ---------- */
 const CSS = `
 .cad{position:fixed;inset:0;z-index:76;background:#eceae6;display:flex;flex-direction:column;font-family:inherit;color:#1c1917}
@@ -290,7 +374,7 @@ export async function cadGoster(o){
   const k = document.createElement("div"); k.className = "cad";
   k.innerHTML = '<div class="cad-ust"><b></b>' +
     '<button data-g="iso">3B</button><button data-g="ust">Üst</button><button data-g="on">Ön</button><button data-g="sag">Yan</button><button data-g="tum">Tümü</button>' +
-    '<button data-m="kati" class="acik">Katı</button><button data-m="tel">Tel kafes</button><button data-m="katman">Katmanlar</button>' +
+    '<button data-m="sunum" class="acik">Gerçekçi</button><button data-m="kati" class="acik">Katı</button><button data-m="tel">Tel kafes</button><button data-m="katman">Katmanlar</button>' +
     (o.kaydet ? '<button data-m="kaydet"></button>' : '') + '<button data-m="indir">Görüntü indir</button><button data-m="kapat" aria-label="Kapat">✕</button></div>' +
     '<div class="cad-alan"><div class="cad-yuk">Çizim hazırlanıyor…</div></div><div class="cad-bilgi"></div>';
   k.querySelector("b").textContent = o.ad || "Çizim";
@@ -329,6 +413,10 @@ export async function cadGoster(o){
   // Kadraj: 3B yüzeyler varsa onlara, yoksa çizgilerin %1–%99 aralığına göre (uzaktaki tek tük çizgiler modeli küçültmesin).
   // Hassasiyet için çizim bu kutunun merkezine taşınır.
   let omin = T.ymin, omax = T.ymax;
+  // Zemin, tavan, duvar gibi oda parçaları kadraja katılmaz; mobilya ekranı doldursun
+  { const a = [Infinity, Infinity, Infinity], b = [-Infinity, -Infinity, -Infinity];
+    T.gruplar.forEach(g => { if(ODA.test(g.katman)) return; const u = g.ucgen; for(let i = 0; i < u.length; i += 3) for(let q = 0; q < 3; q++){ const v = u[i + q]; if(v < a[q]) a[q] = v; if(v > b[q]) b[q] = v; } });
+    if(isFinite(a[0])){ omin = a; omax = b; } }
   if(!isFinite(omin[0])){
     const l = []; T.gruplar.forEach(g => { const c = g.cizgi.length ? g.cizgi : g.kenar, adim = Math.max(1, Math.floor(c.length / 3 / 50000)) * 3; for(let i = 0; i < c.length; i += adim) l.push([c[i], c[i + 1], c[i + 2]]); });
     const q = (eks, o) => { const v = l.map(p => p[eks]).sort((a, b) => a - b); return v[Math.min(v.length - 1, Math.max(0, Math.round(o * (v.length - 1))))]; };
@@ -337,32 +425,46 @@ export async function cadGoster(o){
   const mrk = [0, 1, 2].map(i => (omin[i] + omax[i]) / 2), boy = [0, 1, 2].map(i => omax[i] - omin[i]);
   const tumBoy = [0, 1, 2].map(i => T.max[i] - T.min[i]), tumMrk = [0, 1, 2].map(i => (T.min[i] + T.max[i]) / 2 - mrk[i]);
   const cap = Math.max(...boy) || Math.max(...tumBoy) || 1, kosegen = Math.hypot(...boy) || cap;
-  const sahne = new THREE.Scene(); sahne.background = new THREE.Color(0xeceae6);
+  const sahne = new THREE.Scene(); sahne.background = new THREE.Color(0xf2f0ec);
   const kamera = new THREE.PerspectiveCamera(40, 1, cap / 1000, Math.max(cap * 100, Math.hypot(...tumBoy) * 4)); kamera.up.set(0, 0, 1);
-  sahne.add(new THREE.HemisphereLight(0xffffff, 0x8a8580, 1.6));
+  const hemi = new THREE.HemisphereLight(0xffffff, 0x8a8580, 1.6); hemi.position.set(0, 0, 1); sahne.add(hemi);
   const isik = new THREE.DirectionalLight(0xffffff, 1.6); isik.position.set(0.4, 0.3, 1); kamera.add(isik); sahne.add(kamera);
-  const katmanNesne = {}, kenarlar = [], yuzeyler = [];
+  const katmanNesne = {}, kenarlar = [], yuzeyler = [], cizgiler = [];
+  let sunum = true;
   const diz = (l) => { const a = new Float32Array(l.length); for(let i = 0; i < l.length; i += 3){ a[i] = l[i] - mrk[0]; a[i + 1] = l[i + 1] - mrk[1]; a[i + 2] = l[i + 2] - mrk[2]; } return a; };
   T.gruplar.forEach(g => {
     const grup = katmanNesne[g.katman] || (katmanNesne[g.katman] = {g:new THREE.Group(), renk:g.renk});
     if(g.ucgen.length){
       const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(diz(g.ucgen), 3)); geo.computeVertexNormals();
       // AutoCAD'in 7 numaralı rengi (siyah / beyaz) yüzeylerde açık gri gösterilir; çizgiler koyu kalır
-      const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: g.renk === ACI_TEMEL[7] ? 0xd9d5cf : g.renk, side:THREE.DoubleSide, flatShading:true, roughness:.85, metalness:0,
-        polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1}));
+      const ortak = {side:THREE.DoubleSide, flatShading:true, polygonOffset:true, polygonOffsetFactor:1, polygonOffsetUnits:1};
+      const cad = new THREE.MeshStandardMaterial({...ortak, color: g.renk === ACI_TEMEL[7] ? 0xd9d5cf : g.renk, roughness:.85, metalness:0});
+      const s = sunumMalzemesi(g.katman, g.renk);
+      const gercek = s ? new THREE.MeshStandardMaterial({...ortak, color:s.renk, roughness:s.puruz, metalness:s.metal || 0,
+        transparent:!!s.saydam, opacity:s.saydam || 1, depthWrite:!s.saydam}) : cad;
+      const m = new THREE.Mesh(geo, gercek); m.userData = {cad, gercek};
       grup.g.add(m); yuzeyler.push(m);
+      if(s && grup.sunumRenk === undefined) grup.sunumRenk = s.renk;
     }
     [["cizgi", false], ["kenar", true]].forEach(([alanAdi, kenar]) => {
       if(!g[alanAdi].length) return;
       const geo = new THREE.BufferGeometry(); geo.setAttribute("position", new THREE.BufferAttribute(diz(g[alanAdi]), 3));
-      const l = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({color:g.renk})); grup.g.add(l); if(kenar) kenarlar.push(l);
+      // Gerçekçi görünümde kenarlar malzemenin koyu tonunda ve hafif saydam: panel çizgileri seçilir ama ağ gibi durmaz
+      const s = sunumMalzemesi(g.katman, g.renk), cad = new THREE.LineBasicMaterial({color:g.renk});
+      const gercek = kenar && s ? new THREE.LineBasicMaterial({color:new THREE.Color(s.renk).multiplyScalar(.55), transparent:true, opacity:.45}) : cad;
+      const l = new THREE.LineSegments(geo, gercek); l.userData = {cad, gercek}; grup.g.add(l); (kenar ? kenarlar : cizgiler).push(l);
     });
   });
-  Object.values(katmanNesne).forEach(x => sahne.add(x.g));
+  Object.entries(katmanNesne).forEach(([ad, x]) => { if(sunumGizli(ad)) x.g.visible = false; sahne.add(x.g); });
 
   yuk.remove();
   renderer = new THREE.WebGLRenderer({antialias:true, preserveDrawingBuffer:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+  // Yansımalar için yumuşak oda ışığı (metal kulplar, cam, parlak zemin)
+  const pmrem = new THREE.PMREMGenerator(renderer), ortam = pmrem.fromScene(new RoomEnvironment(), .04).texture; pmrem.dispose();
+  const ortamAyarla = () => { sahne.environment = sunum ? ortam : null; hemi.intensity = sunum ? .7 : 1.6; isik.intensity = sunum ? 1.2 : 1.6; };
+  ortamAyarla();
   alan.appendChild(renderer.domElement);
   const kontrol = new OrbitControls(kamera, renderer.domElement); kontrol.screenSpacePanning = true;
   const ciz = () => renderer.render(sahne, kamera);
@@ -390,7 +492,13 @@ export async function cadGoster(o){
     const b = e.target.closest("button"); if(!b) return;
     const gAd = b.getAttribute("data-g"), m = b.getAttribute("data-m");
     if(gAd) return gorunum(gAd, gAd === "tum");
-    if(m === "kati" || m === "tel"){
+    if(m === "sunum"){
+      sunum = !sunum; b.classList.toggle("acik", sunum); b.textContent = sunum ? "Gerçekçi" : "CAD renkleri";
+      yuzeyler.concat(kenarlar, cizgiler).forEach(x => { x.material = sunum ? x.userData.gercek : x.userData.cad; });
+      ortamAyarla(); sahne.background.set(sunum ? 0xf2f0ec : 0xeceae6);
+      const p = alan.querySelector(".cad-katman"); if(p){ p.remove(); k.querySelector('[data-m="katman"]').classList.remove("acik"); }
+      ciz();
+    } else if(m === "kati" || m === "tel"){
       yuzeyler.forEach(x => { x.visible = m === "kati"; }); kenarlar.forEach(x => { x.visible = true; });
       k.querySelector('[data-m="kati"]').classList.toggle("acik", m === "kati"); k.querySelector('[data-m="tel"]').classList.toggle("acik", m === "tel"); ciz();
     } else if(m === "katman"){
@@ -398,7 +506,7 @@ export async function cadGoster(o){
       b.classList.add("acik");
       const d = document.createElement("div"); d.className = "cad-katman";
       d.innerHTML = Object.keys(katmanNesne).sort().map(ad => '<label><input type="checkbox" data-k="' + ad.replace(/"/g, "&quot;") + '"' + (katmanNesne[ad].g.visible ? ' checked' : '') + '><i style="background:#' +
-        katmanNesne[ad].renk.toString(16).padStart(6, "0") + '"></i>' + ad.replace(/[<>&]/g, "") + '</label>').join("");
+        (sunum && katmanNesne[ad].sunumRenk !== undefined ? katmanNesne[ad].sunumRenk : katmanNesne[ad].renk).toString(16).padStart(6, "0") + '"></i>' + ad.replace(/[<>&]/g, "") + '</label>').join("");
       d.addEventListener("change", ev => { const ad = ev.target.getAttribute("data-k"); if(katmanNesne[ad]){ katmanNesne[ad].g.visible = ev.target.checked; ciz(); } });
       alan.appendChild(d);
     } else if(m === "indir" || m === "kaydet"){
