@@ -285,47 +285,89 @@ EYLEM.plakaOlcu = (el, mid) => plakaOlcuPenceresi(mid, () => {
   const y = document.getElementById("vpYazi"); if(y){ y.textContent = varsayilanPlaka().en + "×" + varsayilanPlaka().boy; return; }   // malzeme listesindeki düzenlemeler kaybolmasın
   if(yol()[0] === "kesim" && kesimForm) kesimOku(); ciz(); });
 
-// MaxRects (en kısa kenar uyumu): parçalar büyükten küçüğe yerleştirilir; testere payı her parçaya eklenir.
+// İki yöntem:
+//  "kolay" (varsayılan): şeritli giyotin kesim — plaka önce boydan boya şeritlere ayrılır, her şerit enine parçalara bölünür.
+//            Aynı enli parçalar aynı şeride toplanır; atölyede az ayar, düz kesim. Biraz daha fazla fire olabilir.
+//  "fire":   serbest yerleşim (MaxRects, en kısa kenar uyumu) — en az plaka / fire, kesim sırası daha karışık.
+// Testere payı her parçaya eklenir. Sonuçta "diger": öbür yöntemle kaç plaka çıktığı (karşılaştırma için).
 function kesimHesapla(parcalar, o){
-  const testere = Number(o.testere) || 0, pay = Number(o.pay) || 0, sonuc = {};
+  const testere = Number(o.testere) || 0, pay = Number(o.pay) || 0, yontem = o.yontem === "fire" ? "fire" : "kolay", sonuc = {};
   const gruplar = {};
   parcalar.forEach((p, i) => { if(!(p.en > 0 && p.boy > 0 && p.adet > 0)) return; (gruplar[p.malzemeId || ""] = gruplar[p.malzemeId || ""] || []).push(Object.assign({no:i + 1}, p)); });
   for(const [mid, l] of Object.entries(gruplar)){
     const m = plakaBul(mid), W = m.en - 2 * pay + testere, H = m.boy - 2 * pay + testere;
     const tek = [];
     l.forEach(p => { for(let k = 0; k < p.adet; k++) tek.push(p); });
-    // Birkaç sıralama ve yerleştirme kuralı denenir; en az plaka, sonra son plakası en boş olan seçilir
-    const sira = [
-      (a, b) => Math.max(b.en, b.boy) - Math.max(a.en, a.boy) || b.en * b.boy - a.en * a.boy,
-      (a, b) => b.en * b.boy - a.en * a.boy,
-      (a, b) => b.boy - a.boy || b.en - a.en,
-      (a, b) => b.en - a.en || b.boy - a.boy,
-      (a, b) => (b.damar ? 1 : 0) - (a.damar ? 1 : 0) || b.en * b.boy - a.en * a.boy,
-      (a, b) => Math.min(b.en, b.boy) - Math.min(a.en, a.boy) || b.en * b.boy - a.en * a.boy];
-    let en = null;
-    for(const s of sira) for(const kural of ["kisa", "alan"]){
-      const dizi = tek.slice().sort(s), pls = [], sig = [];
-      for(const p of dizi){
-        const w = p.en + testere, h = p.boy + testere, don = !p.damar;
-        let yer = null;
-        for(const pl of pls){ yer = mrBul(pl, w, h, don, kural); if(yer){ mrKoy(pl, yer, p); break; } }
-        if(!yer){
-          const pl = {free:[{x:0, y:0, w:W, h:H}], used:[]};
-          yer = mrBul(pl, w, h, don, kural);
-          if(!yer){ if(sig.indexOf(p) < 0) sig.push(p); continue; }
-          mrKoy(pl, yer, p); pls.push(pl);
-        }
-      }
-      const sonDoluluk = pls.length ? pls[pls.length - 1].used.reduce((t, u) => t + u.w * u.h, 0) : 0;
-      if(!en || pls.length < en.pls.length || (pls.length === en.pls.length && sonDoluluk < en.son)) en = {pls, sig, son:sonDoluluk};
-    }
-    const plakalar = en ? en.pls : [], sigmayan = en ? en.sig : [];
+    const kolay = seritYerlestir(tek, W, H, testere), serbest = serbestYerlestir(tek, W, H, testere);
+    const en = yontem === "fire" ? serbest : kolay;
+    const plakalar = en.pls, sigmayan = en.sig;
     const alan = plakalar.length * m.en * m.boy, kullanilan = plakalar.reduce((t, pl) => t + pl.used.reduce((a, u) => a + u.p.en * u.p.boy, 0), 0);
     const bant = tek.reduce((t, p) => t + ((p.bantU || 0) * Math.max(p.en, p.boy) + (p.bantK || 0) * Math.min(p.en, p.boy)) / 1000, 0);
-    sonuc[mid] = {m, plakalar:plakalar.map(pl => pl.used), sigmayan, parcaSayisi:tek.length, kullanim: alan ? kullanilan / alan * 100 : 0,
-      fireM2:(alan - kullanilan) / 1e6, kullanilanM2:kullanilan / 1e6, bant, maliyet:plakalar.length * (m.fiyat || 0), pay, testere};
+    sonuc[mid] = {m, plakalar:plakalar.map(pl => pl.used), seritler:yontem === "kolay" ? plakalar.map(pl => pl.seritler) : null, sigmayan, parcaSayisi:tek.length,
+      kullanim: alan ? kullanilan / alan * 100 : 0, fireM2:(alan - kullanilan) / 1e6, kullanilanM2:kullanilan / 1e6, bant, maliyet:plakalar.length * (m.fiyat || 0), pay, testere,
+      yontem, diger:(yontem === "fire" ? kolay : serbest).pls.length};
   }
   return sonuc;
+}
+// Şeritli (giyotin) yerleşim: şeritler plakanın boy yönünde, şerit eni = parçanın plaka enine gelen kenarı.
+// Damarlı parça döndürülmez. Parçanın dar kenarı şerit eni olacak şekilde ve tersi denenir; az plaka, sonra az şerit seçilir.
+function seritYerlestir(tek, W, H, t){
+  let en = null;
+  for(const yon of ["dar", "genis"]){
+    const birim = tek.map(p => {
+      let x = p.en, y = p.boy;
+      if(!p.damar && p.en !== p.boy){
+        const k = Math.min(p.en, p.boy), u = Math.max(p.en, p.boy);
+        [x, y] = yon === "dar" ? [k, u] : [u, k];
+        if(x + t > W + 1e-6 || y + t > H + 1e-6) [x, y] = [y, x];
+      }
+      return {p, x, y, dondu:x !== p.en};
+    }).sort((a, b) => b.x - a.x || b.y - a.y);
+    const pls = [], sig = [];
+    const koy = (s, u) => { s.pl.used.push({x:s.x0, y:s.dolu, w:u.x + t, h:u.y + t, dondu:u.dondu, p:u.p}); s.dolu += u.y + t; s.parcalar.push(u); };
+    const yeniSerit = (pl, w) => { const s = {pl, x0:W - pl.kalan, w, dolu:0, parcalar:[]}; pl.kalan -= w + t; pl.seritler.push(s); return s; };
+    for(const u of birim){
+      if(u.x + t > W + 1e-6 || u.y + t > H + 1e-6){ if(sig.indexOf(u.p) < 0) sig.push(u.p); continue; }
+      const seritler = pls.flatMap(pl => pl.seritler), sigar = s => s.dolu + u.y + t <= H + 1e-6;
+      let s = seritler.find(x => x.w === u.x && sigar(x));                                  // aynı enli şerit
+      if(!s){ const pl = pls.find(x => x.kalan >= u.x + t - 1e-6); if(pl) s = yeniSerit(pl, u.x); }   // aynı plakada yeni şerit
+      if(!s) s = seritler.filter(x => x.w > u.x && sigar(x)).sort((a, b) => a.w - b.w)[0];  // daha geniş şeritte (enine kırpılır)
+      if(!s){ const pl = {kalan:W, seritler:[], used:[]}; pls.push(pl); s = yeniSerit(pl, u.x); }
+      koy(s, u);
+    }
+    const seritSay = pls.reduce((a, pl) => a + pl.seritler.length, 0), kirpma = pls.reduce((a, pl) => a + pl.seritler.reduce((b, s) => b + s.parcalar.filter(u => u.x < s.w).length, 0), 0);
+    if(!en || pls.length < en.pls.length || (pls.length === en.pls.length && (seritSay < en.seritSay || (seritSay === en.seritSay && kirpma < en.kirpma)))) en = {pls, sig, seritSay, kirpma};
+  }
+  en.pls.forEach(pl => { pl.seritler = pl.seritler.map(s => ({w:s.w, parcalar:s.parcalar.map(u => ({no:u.p.no, x:u.x, y:u.y}))})); });
+  return en;
+}
+// Serbest yerleşim (MaxRects): birkaç sıralama ve kural denenir; en az plaka, sonra son plakası en boş olan seçilir
+function serbestYerlestir(tek, W, H, testere){
+  const sira = [
+    (a, b) => Math.max(b.en, b.boy) - Math.max(a.en, a.boy) || b.en * b.boy - a.en * a.boy,
+    (a, b) => b.en * b.boy - a.en * a.boy,
+    (a, b) => b.boy - a.boy || b.en - a.en,
+    (a, b) => b.en - a.en || b.boy - a.boy,
+    (a, b) => (b.damar ? 1 : 0) - (a.damar ? 1 : 0) || b.en * b.boy - a.en * a.boy,
+    (a, b) => Math.min(b.en, b.boy) - Math.min(a.en, a.boy) || b.en * b.boy - a.en * a.boy];
+  let en = null;
+  for(const s of sira) for(const kural of ["kisa", "alan"]){
+    const dizi = tek.slice().sort(s), pls = [], sig = [];
+    for(const p of dizi){
+      const w = p.en + testere, h = p.boy + testere, don = !p.damar;
+      let yer = null;
+      for(const pl of pls){ yer = mrBul(pl, w, h, don, kural); if(yer){ mrKoy(pl, yer, p); break; } }
+      if(!yer){
+        const pl = {free:[{x:0, y:0, w:W, h:H}], used:[]};
+        yer = mrBul(pl, w, h, don, kural);
+        if(!yer){ if(sig.indexOf(p) < 0) sig.push(p); continue; }
+        mrKoy(pl, yer, p); pls.push(pl);
+      }
+    }
+    const sonDoluluk = pls.length ? pls[pls.length - 1].used.reduce((t, u) => t + u.w * u.h, 0) : 0;
+    if(!en || pls.length < en.pls.length || (pls.length === en.pls.length && sonDoluluk < en.son)) en = {pls, sig, son:sonDoluluk};
+  }
+  return en || {pls:[], sig:[]};
 }
 function mrBul(pl, w, h, don, kural){
   let en = null;
@@ -350,7 +392,13 @@ function mrKoy(pl, r, p){
   });
   pl.free = yeni.filter((a, i) => a.w > 1 && a.h > 1 && !yeni.some((b, j) => j !== i && b.x <= a.x && b.y <= a.y && b.x + b.w >= a.x + a.w && b.y + b.h >= a.y + a.h && (j < i || b.w * b.h > a.w * a.h)));
 }
-function plakaSvg(m, used, sira, toplam, o){
+// Kolay kesim talimatı: önce boyuna şeritler, sonra her şeridin enine kesimleri
+function seritTalimati(seritler){
+  if(!seritler || !seritler.length) return '';
+  return '<div class="kesim-talimat"><div><b>1) Boyuna kes</b> (plaka boyunca ' + seritler.length + ' şerit): ' + seritler.map(s => '<span class="serit">' + s.w + '</span>').join(" ") + ' mm</div>' +
+    '<div><b>2) Şeritleri enine kes:</b></div><ol>' + seritler.map(s => '<li><b>' + s.w + ' mm şerit:</b> ' + s.parcalar.map(u => '<span class="serit-parca">#' + u.no + ' ' + u.y + (u.x < s.w ? ' <i>(ene ' + u.x + ')</i>' : '') + '</span>').join(" ") + '</li>').join("") + '</ol></div>';
+}
+function plakaSvg(m, used, sira, toplam, o, seritler){
   const pay = o.pay || 0, t = o.testere || 0, fs = Math.max(28, Math.min(m.en, m.boy) / 40);
   const parca = used.map(u => {
     const w = u.w - t, h = u.h - t, x = pay + u.x, y = pay + u.y, olcu = (u.dondu ? u.p.boy + "×" + u.p.en : u.p.en + "×" + u.p.boy);
@@ -361,7 +409,7 @@ function plakaSvg(m, used, sira, toplam, o){
   }).join("");
   return '<div class="plaka"><div class="plaka-baslik"><b>' + esc(m.ad) + ' — plaka ' + sira + '/' + toplam + '</b><span>' + m.en + ' × ' + m.boy + ' mm · ' + used.length + ' parça · doluluk %' +
     Math.round(used.reduce((a, u) => a + u.p.en * u.p.boy, 0) / (m.en * m.boy) * 100) + '</span></div>' +
-    '<svg viewBox="-10 -10 ' + (m.en + 20) + ' ' + (m.boy + 20) + '" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="' + m.en + '" height="' + m.boy + '" class="kp-plaka"/>' + parca + '</svg></div>';
+    '<svg viewBox="-10 -10 ' + (m.en + 20) + ' ' + (m.boy + 20) + '" preserveAspectRatio="xMidYMid meet"><rect x="0" y="0" width="' + m.en + '" height="' + m.boy + '" class="kp-plaka"/>' + parca + '</svg>' + seritTalimati(seritler) + '</div>';
 }
 // "220x240x60" → en, boy, derinlik (mm). 1000'den küçük sayılar santimetre sayılır.
 function olcuOku(s){
@@ -394,7 +442,7 @@ function ekranKesim(isId){
   if(!ie) return {baslik:"Kesim listesi", geri:true, html:'<div class="kart">' + bos("is", "İş emri bulunamadı.") + '</div>'};
   if(!kesimForm || kesimForm.isId !== isId){
     const k = ie.kesim || {};
-    kesimForm = {isId, parcalar:(k.parcalar || []).map(x => Object.assign({}, x)), testere:k.testere != null ? k.testere : 4, pay:k.pay != null ? k.pay : 10, degisti:false};
+    kesimForm = {isId, parcalar:(k.parcalar || []).map(x => Object.assign({}, x)), testere:k.testere != null ? k.testere : 4, pay:k.pay != null ? k.pay : 10, yontem:k.yontem || "kolay", degisti:false};
   }
   const f = kesimForm, pm = plakaMalzemeleri(), sonuc = kesimHesapla(f.parcalar, f), Y = yetki.yonetici;
   const vp = varsayilanPlaka();
@@ -420,13 +468,18 @@ function ekranKesim(isId){
       '<table class="kesim-tablo"><thead><tr><th>#</th><th>Parça adı</th><th>En (mm)</th><th>Boy (mm)</th><th>Adet</th><th>Malzeme</th><th title="Bantlı uzun kenar">Bant U</th><th title="Bantlı kısa kenar">Bant K</th><th title="Desen yönü: döndürülmez">Damar</th><th></th></tr></thead>' +
       '<tbody id="kpGovde">' + f.parcalar.map(satir).join("") + '</tbody></table>' +
       '<div class="buton-sira" style="margin-top:10px"><button class="buton ikincil kucuk" style="margin:0" data-is="kpEkle">' + ik("arti") + 'Parça ekle</button>' + (f.parcalar.length ? '<button class="buton ikincil kucuk" style="margin:0" data-is="kpTemizle">Listeyi temizle</button>' : '') + '</div>' +
-      '<div class="izgara uc" style="margin:12px 0 0"><div><label class="etiket" for="kTestere">Testere kalınlığı (mm)</label><input id="kTestere" class="kutu" inputmode="decimal" value="' + f.testere + '"></div>' +
+      '<div class="izgara dort" style="margin:12px 0 0"><div><label class="etiket" for="kYontem">Kesim yöntemi</label><select id="kYontem" class="kutu">' +
+        [["kolay", "Kolay kesim (şeritli)"], ["fire", "En az fire"]].map(([v, a]) => '<option value="' + v + '"' + (v === f.yontem ? ' selected' : '') + '>' + a + '</option>').join("") + '</select></div>' +
+        '<div><label class="etiket" for="kTestere">Testere kalınlığı (mm)</label><input id="kTestere" class="kutu" inputmode="decimal" value="' + f.testere + '"></div>' +
         '<div><label class="etiket" for="kPay">Plaka kenar payı (mm)</label><input id="kPay" class="kutu" inputmode="decimal" value="' + f.pay + '"></div>' +
         '<div><label class="etiket">&nbsp;</label><button class="buton" style="margin:0" data-is="kesimKaydet">' + ik("tamam") + 'Kaydet</button></div></div></div>' +
     // Yazdırılan kısım
     '<div class="kesim-baski-baslik"><img src="logo.png" alt="" style="height:34px"><div><b>KESİM PLANI</b> · ' + esc(ie.no + " " + ie.baslik) + '<br><span>' + esc(cariAdi(ie.musteriId)) + ' · ' + tarihYaz(bugun()) + '</span></div></div>' +
     (sigmayan.length ? '<div class="uyari">Plakaya sığmayan parça: ' + esc(Array.from(new Set(sigmayan.map(p => "#" + p.no + " " + p.ad + " " + p.en + "×" + p.boy))).join(", ")) + '. Ölçüyü veya malzemenin plaka ölçüsünü kontrol edin.</div>' : '') +
-    (toplamPlaka ? '<div class="izgara dort"><div class="kart ozet"><div class="kart-baslik">Plaka</div><div class="deger">' + toplamPlaka + '</div></div>' +
+    (toplamPlaka ? '<div class="izgara dort"><div class="kart ozet"><div class="kart-baslik">Plaka</div><div class="deger">' + toplamPlaka + '</div>' +
+        (() => { const d = Object.values(sonuc).reduce((t, x) => t + (x.plakalar.length ? x.diger : 0), 0);
+          return d === toplamPlaka ? '<div class="alt-bilgi">' + (f.yontem === "fire" ? "Kolay kesimde de" : "En az fire yönteminde de") + ' aynı</div>' :
+            '<div class="alt-bilgi">' + (f.yontem === "fire" ? "Kolay kesimde " : "En az fire yönteminde ") + d + ' plaka</div>'; })() + '</div>' +
       '<div class="kart ozet"><div class="kart-baslik">Kenar bandı</div><div class="deger">' + miktarYaz(Math.ceil(toplamBant * 1.1 * 10) / 10) + ' m</div><div class="alt-bilgi">%10 payla</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Fire</div><div class="deger">%' + Math.round(100 - Object.values(sonuc).reduce((t, s) => t + s.kullanilanM2, 0) / Math.max(1e-9, Object.values(sonuc).reduce((t, s) => t + s.kullanilanM2 + s.fireM2, 0)) * 100) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Plaka maliyeti</div><div class="deger">' + (Y ? para(toplamMaliyet) : '—') + '</div><div class="alt-bilgi">KDV hariç</div></div></div>' +
@@ -442,7 +495,7 @@ function ekranKesim(isId){
       '<div class="kart kesim-parcalar"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Kesilecek parçalar</div><table class="kesim-ozet"><thead><tr><th>#</th><th>Parça</th><th>Ölçü (mm)</th><th>Adet</th><th>Malzeme</th><th>Bant</th></tr></thead><tbody>' +
         f.parcalar.map((p, i) => p.en > 0 && p.boy > 0 && p.adet > 0 ? '<tr><td><b>' + (i + 1) + '</b></td><td>' + esc(p.ad) + (p.damar ? ' <span class="ist">(damar)</span>' : '') + '</td><td>' + p.en + ' × ' + p.boy + '</td><td>' + p.adet + '</td><td>' + esc(plakaBul(p.malzemeId).ad) + '</td><td>' +
           [p.bantU ? p.bantU + " uzun" : "", p.bantK ? p.bantK + " kısa" : ""].filter(Boolean).join(", ") + '</td></tr>' : '').join("") + '</tbody></table></div>' +
-      Object.values(sonuc).map(s => s.plakalar.map((u, i) => plakaSvg(s.m, u, i + 1, s.plakalar.length, s)).join("")).join("") :
+      Object.values(sonuc).map(s => s.plakalar.map((u, i) => plakaSvg(s.m, u, i + 1, s.plakalar.length, s, s.seritler && s.seritler[i])).join("")).join("") :
       '<div class="kart">' + bos("cetvel", "Parça ekleyin veya sipariş kaleminden dolap gövdesi üretin; plaka planı burada çıkar.") + '</div>');
   return {baslik:"Kesim listesi · " + ie.no, geri:true, baskiLogo:false, html, sonra(){
     const g = document.getElementById("kpGovde"); if(!g) return;
@@ -453,10 +506,10 @@ function ekranKesim(isId){
         p.adet = Math.round(sayiOku(tr.querySelector(".kp-adet").value) || 0); p.malzemeId = tr.querySelector(".kp-m").value; p.damar = tr.querySelector(".kp-d").checked;
         p.bantU = Number(tr.querySelector(".kp-bu").value); p.bantK = Number(tr.querySelector(".kp-bk").value);
       });
-      f.testere = Math.max(0, sayiOku(deger("kTestere")) || 0); f.pay = Math.max(0, sayiOku(deger("kPay")) || 0); f.degisti = true;
+      f.testere = Math.max(0, sayiOku(deger("kTestere")) || 0); f.pay = Math.max(0, sayiOku(deger("kPay")) || 0); f.yontem = deger("kYontem") || "kolay"; f.degisti = true;
     };
     // Alandan çıkınca (değişince) plan yeniden hesaplanır; odak bir sonraki alanda kalır
-    const izle = e => e.target.closest("#kpGovde") || e.target.id === "kTestere" || e.target.id === "kPay";
+    const izle = e => e.target.closest("#kpGovde") || e.target.id === "kTestere" || e.target.id === "kPay" || e.target.id === "kYontem";
     const sayfa = document.querySelector(".sayfa");
     sayfa.addEventListener("input", e => { if(izle(e)) oku(); });
     sayfa.addEventListener("change", e => {
@@ -481,7 +534,7 @@ EYLEM.kesimKaydet = btn => {
   if(cevrimici && eksikSutun.kesim) return uyar("Önce veritabanı güncellemesi", "Supabase'de supabase-guncelleme-10.sql dosyasını çalıştırın.");
   const parcalar = f.parcalar.filter(p => p.en > 0 && p.boy > 0 && p.adet > 0);
   islem(btn, async () => {
-    await Depo.kaydet("is_emirleri", Object.assign({}, ie, {kesim:{parcalar, testere:f.testere, pay:f.pay}}));
+    await Depo.kaydet("is_emirleri", Object.assign({}, ie, {kesim:{parcalar, testere:f.testere, pay:f.pay, yontem:f.yontem}}));
     f.parcalar = parcalar.map(p => Object.assign({}, p)); f.degisti = false; bildir("Kesim listesi kaydedildi"); ciz();
   });
 };

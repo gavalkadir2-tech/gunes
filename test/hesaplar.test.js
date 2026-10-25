@@ -53,6 +53,37 @@ module.exports = ({test}) => {
     await pg.kapat();
   });
 
+  test("Kolay kesim: şeritli (giyotin), damar korunur; en az fire yöntemi de geçerli", async (o, a) => {
+    const pg = await o.sayfa();
+    await pg.evaluate(ornekVeri);
+    const r = await pg.evaluate(() => {
+      const parcalar = [{ad:"Yan", en:560, boy:720, adet:6, malzemeId:"mz1"}, {ad:"Raf", en:530, boy:540, adet:5, malzemeId:"mz1"}, {ad:"Kapak", en:396, boy:716, adet:8, malzemeId:"mz1", damar:true},
+        {ad:"Tabla", en:1164, boy:560, adet:2, malzemeId:"mz1"}, {ad:"Kuşak", en:1164, boy:100, adet:4, malzemeId:"mz1"}, {ad:"Dar", en:80, boy:2000, adet:3, malzemeId:"mz1"}];
+      const k = kesimHesapla(parcalar, {testere:4, pay:10}).mz1, f = kesimHesapla(parcalar, {testere:4, pay:10, yontem:"fire"}).mz1;
+      const W = k.m.en - 20 + 4, H = k.m.boy - 20 + 4;
+      let hata = [];
+      for(const s of [k, f]) s.plakalar.forEach(u => u.forEach((p, i) => {
+        if(p.x < -0.01 || p.y < -0.01 || p.x + p.w > W + .01 || p.y + p.h > H + .01) hata.push("taşma");
+        if(p.p.damar && p.dondu) hata.push("damar döndü");
+        u.forEach((q, j) => { if(i < j && p.x < q.x + q.w && q.x < p.x + p.w && p.y < q.y + q.h && q.y < p.y + p.h) hata.push("çakışma"); }); }));
+      // Şerit kuralı: aynı şeritteki parçalar aynı x'ten başlar, şerit eninden geniş değildir; şerit toplamı plakayı aşmaz
+      k.plakalar.forEach((u, i) => { const sr = k.seritler[i], xler = Array.from(new Set(u.map(p => p.x)));
+        if(xler.length !== sr.length) hata.push("şerit sayısı");
+        if(sr.reduce((t, s) => t + s.w + 4, 0) > W + .01) hata.push("şerit toplamı");
+        sr.forEach(s => s.parcalar.forEach(x => { if(x.x > s.w) hata.push("şeritten geniş"); })); });
+      return {hata, kolay:k.plakalar.length, fire:f.plakalar.length, diger:[k.diger, f.diger], sig:k.sigmayan.length + f.sigmayan.length,
+        adet:k.plakalar.reduce((t, u) => t + u.length, 0), seritVar:!!k.seritler && f.seritler === null};
+    });
+    a.esit(r.hata, []);
+    a.esit([r.sig, r.adet, r.seritVar, r.diger], [0, 28, true, [r.fire, r.kolay]]);
+    a.dogru(r.fire <= r.kolay, "En az fire yöntemi daha fazla plaka kullanmamalı");
+    await pg.git("kesim/i1");
+    a.dogru(/Boyuna kes/.test(await pg.textContent(".kesim-talimat")), "Kesim talimatı");
+    await pg.selectOption("#kYontem", "fire"); await pg.waitForTimeout(150);
+    a.esit(await pg.evaluate(() => [kesimForm.yontem, document.querySelectorAll(".kesim-talimat").length]), ["fire", 0]);
+    await pg.kapat();
+  });
+
   test("KDV özeti, kârlılık, araç tüketimi, VKN / TCKN", async (o, a) => {
     const pg = await o.sayfa();
     await pg.evaluate(ornekVeri);
