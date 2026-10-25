@@ -1,7 +1,8 @@
 // Güneş Mobilya — çevrimdışı açılış için önbellek.
 // Uygulama dosyaları önbellekten de açılır; Supabase istekleri (veri, giriş, dosya) asla önbelleğe alınmaz.
-const SURUM = "gunes-v1";
-const TEMEL = ["./", "index.html", "manifest.webmanifest", "logo.png", "logo-beyaz.png", "logo-ikon.png", "favicon.png", "apple-touch-icon.png", "ikon-192.png", "ikon-512.png",
+const SURUM = "gunes-v2";
+const TEMEL = ["./", "index.html", "css/uygulama.css", "js/01-cekirdek.js", "js/02-arayuz.js", "js/03-kasa-cari.js", "js/04-is-emirleri.js", "js/05-katalog.js", "js/06-hatirlatma-stok-kesif.js", "js/07-paylasim-fatura.js", "js/08-rapor-personel.js", "js/09-takvim-usta-arama.js", "js/10-uretim.js", "js/11-cek-cevrimdisi-efatura.js", "js/12-ortak-yedek-arac.js", "js/13-iletisim-banka.js", "js/14-sistem-ayarlar.js", "js/15-giris-acilis.js",
+  "manifest.webmanifest", "logo.png", "logo-beyaz.png", "logo-ikon.png", "favicon.png", "apple-touch-icon.png", "ikon-192.png", "ikon-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];
 
 self.addEventListener("install", e => {
@@ -24,11 +25,9 @@ self.addEventListener("fetch", e => {
     e.respondWith(caches.match(r).then(y => y || fetch(r).then(z => { if(z.ok || z.type === "opaque"){ const k = z.clone(); caches.open(SURUM).then(c => c.put(r, k)); } return z; })));
     return;
   }
-  // Kendi dosyalarımız: önbellekten hemen ver, arkada yenile
+  // Kendi dosyalarımız: önce ağ (sayfa ile kod hep aynı sürümde kalsın), internet yoksa önbellek
   if(u.origin === location.origin){
-    e.respondWith(caches.match(r).then(y => {
-      const ag = fetch(r).then(z => { if(z.ok){ const k = z.clone(); caches.open(SURUM).then(c => c.put(r, k)); } return z; }).catch(() => y);
-      return y || ag;
-    }));
+    e.respondWith(fetch(r).then(z => { if(z.ok){ const k = z.clone(); caches.open(SURUM).then(c => c.put(r, k)); } return z; })
+      .catch(() => caches.match(r, {ignoreSearch:true})));
   }
 });

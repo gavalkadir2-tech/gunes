@@ -7,6 +7,14 @@ Telefondan ve bilgisayardan kullanılan sade kasa ve veresiye defteri.
 ## Neler var?
 - **Katalog (showroom)**: Mutfak, banyo, gardırop, TV ünitesi (kategoriler Ayarlar'dan değiştirilebilir) projeleri; proje adı, açıklama, malzeme, ölçü ve isteğe bağlı tahmini fiyat. Telefondan fotoğraf çekme veya toplu fotoğraf / video yükleme; kapak seçme, sıralama, döndürme, başka projeye taşıma, silme
 - **ZIP'ten toplu içe aktarma**: Klasörlere ayrılmış fotoğrafları (ör. Facebook yedeğindeki albümler) tek seferde içe aktarır; her klasör bir proje olur. Önizlemede gruplar seçilir, adı ve kategorisi değiştirilir. İsteğe bağlı `katalog.json` ile proje adı, kategori, malzeme ve açıklama hazır gelir
+- **Ustalardan fiyat gizleme**: İş emrinin tutarı, teklif ve kalem fiyatları, maliyetleri ayrı bir tabloda durur; yalnız yönetici okuyabilir (usta teknik yolla da göremez). Malzeme maliyet listesi de yalnız yöneticiye açıktır; usta kesim planı için plaka adlarını ve ölçülerini fiyatsız görür.
+- **Çakışma uyarısı**: Bir kaydı siz açtıktan sonra başka biri (örn. diğer ortak) değiştirdiyse kaydederken “Bu kaydı İbrahim 14:32'de değiştirdi” penceresi çıkar; farklar gösterilir, “Onun halini kullan” veya “Benimkini yine de kaydet” seçilir. İş emrinde son değişikliği kimin yaptığı görünür.
+- **Hızlı açılış**: Uygulama cihazdaki son kopyayla hemen açılır, ardından yalnız değişen ve silinen kayıtları çeker; ilk açılışta tüm tablolar aynı anda yüklenir.
+- **Toplu tahsilat hatırlatması**: Cariler → Tahsilat hatırlat; vadesi geçen alacaklar, düzenlenebilir mesaj şablonu, WhatsApp'tan sırayla gönderim, son hatırlatma tarihi.
+- **Banka ekstresi**: Kasa → Banka ekstresi; bankadan indirilen Excel / CSV okunur, gelen havaleler müşteri adı ve açık fatura tutarıyla eşleştirilir, kasada zaten olanlar işaretlenir, seçilenler kasaya işlenir.
+- **Tedarikçi fiyat karşılaştırma**: Stok → Tedarikçi fiyatları; alış faturaları ve siparişlerden her malzemenin tedarikçi bazında son / en düşük / en yüksek fiyatı, en ucuz tedarikçi; sipariş önerisinde de gösterilir.
+- **Müşteri kampanyası**: Cariler → Kampanya mesajı; son işi belirli yıl önce olan, iş türüne göre süzülmüş müşterilere katalog bağlantısıyla sıralı WhatsApp mesajı.
+- **Önce / sonra görseli**: İş emrinin fotoğraflarından keşif ve teslim fotoğrafı yan yana (kare, dikey, yatay), logolu; indirme, paylaşma, kataloğa ekleme.
 - **Otomatik günlük yedek**: Her gece 03:15'te (Supabase pg_cron) tüm kayıtların kopyası sunucuda alınır, son 30 gün saklanır; pg_cron yoksa yönetici uygulamayı her gün ilk açtığında alınır. Ayarlar → Yedek ve veri'den yedek dosya olarak indirilir veya “Bu yedeğe dön” ile geri yazılır (önce o anki durumun da yedeği alınır).
 - **KDV özeti**: Rapor → KDV özeti; seçilen ayın satış (hesaplanan) ve alış (indirilecek) KDV'si oranlara göre, ödenecek / devreden KDV; muhasebeci için 3 sayfalık Excel (özet, satış ve alış faturaları), telefonda doğrudan paylaşma.
 - **Toplu fiyat güncelleme**: Stok → Toplu fiyat; malzeme maliyetlerini (ada / tedarikçiye göre süzerek) veya katalog fiyatlarını (kategoriye göre, yuvarlayarak) yüzdeyle güncelleme, önizleme ve açık tekliflerin kârına etkisi.
@@ -60,8 +68,8 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 ### 1. Veritabanı (Supabase, ücretsiz)
 1. https://supabase.com → **Start your project** → yeni proje açın (bölge: Frankfurt).
 2. **En kolayı:** Sol menü **SQL Editor → New query** → `supabase-tum-kurulum.sql` dosyasının tamamını yapıştırıp **Run**. Bu tek dosya tüm kurulum ve güncellemeleri doğru sırayla içerir; yeni kurulumda da, eskiyi güncellemede de çalışır, tekrar çalıştırmak zarar vermez. Uygulamada **Ayarlar → Yedek ve veri → Veritabanı durumu** eksik bir güncelleme olup olmadığını gösterir.
-   Ayrı ayrı çalıştırmak isterseniz: Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif), `supabase-guncelleme-5.sql` (personel), `supabase-guncelleme-6.sql` (yetkiler) `supabase-guncelleme-7.sql` (stok, taksit, video) `supabase-guncelleme-8.sql` (dosya boyutu sınırını kaldırır) `supabase-guncelleme-9.sql` (çöp kutusu, işlem geçmişi) `supabase-guncelleme-10.sql` (takvim, kesim, maliyet, sipariş, çek / senet) `supabase-guncelleme-11.sql` (ortaklar, kişi kasaları) ve `supabase-guncelleme-12.sql` (otomatik yedek, araçlar) dosyalarını çalıştırın. Ücretsiz Supabase planında tek dosya en çok 50 MB olabilir; daha büyük dosyalar için Pro planda **Storage → Settings → Global file size limit** değerini artırın.
-   **Önemli:** Eski dosyalardan birini sonradan tekrar çalıştırırsanız `supabase-guncelleme-6.sql`, `-7.sql`, `-8.sql`, `-9.sql`, `-10.sql`, `-11.sql` ve `-12.sql` dosyalarını da yeniden çalıştırın (eski dosyalar tablolara herkese tam yetki verir ve dosya sınırını 50 MB’a geri alır).
+   Ayrı ayrı çalıştırmak isterseniz: Sol menü **SQL Editor** → `supabase.sql` dosyasının içeriğini yapıştırın → **Run**. Ardından aynı şekilde sırayla `supabase-guncelleme.sql`, `supabase-guncelleme-2.sql` (dosya deposunu kurar) `supabase-guncelleme-3.sql` (katalog) `supabase-guncelleme-4.sql` (müşteri bağlantısı, teklif, keşif), `supabase-guncelleme-5.sql` (personel), `supabase-guncelleme-6.sql` (yetkiler) `supabase-guncelleme-7.sql` (stok, taksit, video) `supabase-guncelleme-8.sql` (dosya boyutu sınırını kaldırır) `supabase-guncelleme-9.sql` (çöp kutusu, işlem geçmişi) `supabase-guncelleme-10.sql` (takvim, kesim, maliyet, sipariş, çek / senet) `supabase-guncelleme-11.sql` (ortaklar, kişi kasaları) `supabase-guncelleme-12.sql` (otomatik yedek, araçlar) ve `supabase-guncelleme-13.sql` (fiyat gizleme, çakışma uyarısı, hızlı açılış) dosyalarını çalıştırın. Ücretsiz Supabase planında tek dosya en çok 50 MB olabilir; daha büyük dosyalar için Pro planda **Storage → Settings → Global file size limit** değerini artırın.
+   **Önemli:** Eski dosyalardan birini sonradan tekrar çalıştırırsanız `supabase-guncelleme-6.sql`, `-7.sql`, `-8.sql`, `-9.sql`, `-10.sql`, `-11.sql`, `-12.sql` ve `-13.sql` dosyalarını da yeniden çalıştırın (eski dosyalar tablolara herkese tam yetki verir ve dosya sınırını 50 MB’a geri alır).
    (Önceki dosyalar daha önce çalıştırıldıysa sadece eksik olanları çalıştırın; örneğin katalog kuruluysa sadece `supabase-guncelleme-4.sql` yeterli.)
    Firma telefonu, adresi, IBAN ve teklif notu uygulamada **Ayarlar → Firma bilgileri**'nden girilir.
 3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" kapalı olsun.
@@ -79,3 +87,17 @@ Bir cihazda kaydedilen bilgi diğer cihazlarda anında görünür.
 Repo → **Settings → Pages** → Source: *Deploy from a branch* → dalı seçin → **Save**.
 Birkaç dakika sonra adres verilir; telefon ve bilgisayarda o adres açılır.
 Telefonda tarayıcı menüsünden **"Ana ekrana ekle"** denirse uygulama gibi açılır.
+
+
+## Geliştirici notları
+
+- **Dosya yapısı:** `index.html` (sayfa iskeleti ve bulut ayarı), `css/uygulama.css`, `js/01-cekirdek.js` … `js/15-giris-acilis.js` (sırayla yüklenen, aynı genel kapsamı paylaşan düz JavaScript dosyaları; derleme adımı yok), `cad3b.js` + `acis.js` (3B çizim, gerektiğinde yüklenir), `sw.js` (çevrimdışı önbellek; yeni dosya eklenirse `TEMEL` listesine de ekleyin).
+- **Testler:** `test/` klasöründe. Supabase yerine tarayıcıda çalışan sahte bir istemci (`test/sahte-supabase.js`) kullanılır; gerçek veriye dokunmaz.
+  ```
+  cd test
+  npm install
+  npx playwright install chromium
+  npm test              # hepsi
+  node calistir.js bulut   # yalnız adı "bulut" içeren dosya
+  ```
+  Testler: tüm ekranların dört modda (yönetici, koyu tema, usta, telefon) açılması; kasa / ortak / çek / kesim / KDV / kârlılık / banka ekstresi hesapları; çöp kutusu ve işlem geçmişi; fiyat gizleme, çakışma uyarısı, hızlı açılış ve çevrimdışı kuyruk; Excel / CSV / e-Fatura XML / QR çıktıları. GitHub'a her gönderimde `.github/workflows/testler.yml` ile kendiliğinden çalışır.

@@ -1,0 +1,13 @@
+{
+  "name": "gunes-mobilya-testler",
+  "private": true,
+  "description": "Güneş Mobilya uygulamasının tarayıcı testleri",
+  "scripts": {
+    "test": "node calistir.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0",
+    "qrcode-generator": "1.4.4",
+    "xlsx": "0.18.5"
+  }
+}
