@@ -148,6 +148,33 @@ module.exports = ({test}) => {
     await pg.kapat();
   });
 
+  test("Listeler: varsayılan 20 satır, sıralama ve satır sayısı kullanıcıda", async (o, a) => {
+    const pg = await o.sayfa(); await pg.evaluate(ornekVeri);
+    await pg.evaluate(async () => { const l = []; for(let i = 1; i <= 30; i++) l.push({id:"x" + i, ad:"Müşteri " + String(i).padStart(2, "0"), tip:"musteri", telefon:"", adres:"", vergiNo:"", olusma:100 + i});
+      await Depo.kaydet("musteriler", l); });
+    const say = () => pg.evaluate(() => document.querySelectorAll("#cariListe .satir").length);
+    const ilk = () => pg.evaluate(() => document.querySelector("#cariListe .satir .s1").textContent);
+    await pg.git("cariler");
+    a.esit(await say(), 20, "Varsayılan 20 satır");
+    a.dogru(/34 kayıttan 20/.test(await pg.textContent(".daha-fazla")), "Kaç kayıt gösterildiği yazmalı");
+    await pg.click('[data-is="listeDahaFazla"][data-arg="cariler"]'); await pg.waitForTimeout(150);
+    a.esit(await say(), 34, "Daha fazla");
+    await pg.selectOption('[data-liste-satir="cariler"]', "10"); await pg.waitForTimeout(150);
+    a.esit(await say(), 10, "10 satır");
+    await pg.selectOption('[data-liste-sira="cariler"]', "yeni"); await pg.waitForTimeout(150);
+    a.esit(await ilk(), "Müşteri 30");
+    await pg.selectOption('[data-liste-sira="cariler"]', "ad"); await pg.waitForTimeout(150);
+    a.esit(await ilk(), "Ali Osman Yılmaz");
+    // Seçim cihazda kalır; diğer listeler etkilenmez
+    await pg.reload(); await pg.waitForFunction(() => hazir); await pg.git("cariler");
+    a.esit([await say(), await ilk()], [10, "Ali Osman Yılmaz"]);
+    a.esit(await pg.evaluate(() => listeAyari("isler", isSiralari())), {sira:"teslim", satir:20});
+    // Kasa tutara göre düz liste
+    await pg.git("kasa"); await pg.selectOption('[data-liste-sira="kasa"]', "tutar"); await pg.waitForTimeout(150);
+    a.esit(await pg.evaluate(() => [document.querySelectorAll(".gun-baslik").length, document.querySelector("main .liste-kart .satir .tutar").textContent]), [0, "−3.000 ₺"]);
+    await pg.kapat();
+  });
+
   test("Uygulama dosyalarında aynı adlı genel tanım yok", async (o, a) => {
     const fs = require("fs"), path = require("path"), d = path.join(__dirname, "..", "js"), gor = {};
     const cift = [];

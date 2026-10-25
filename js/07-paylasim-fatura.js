@@ -12,12 +12,13 @@ const paylasimBitti = k => k.bitis > 0 && k.bitis < Date.now();
 const msTarih = ms => { const d = new Date(ms); return d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear(); };
 const vitrinWaLink = (tel, yazi) => "https://wa.me/" + waNumara(tel) + "?text=" + encodeURIComponent("Merhaba, " + yazi);
 
+const PAYLASIM_SIRA = {yeni:["En yeni", kiyas(k => k.olusma, true)], eski:["En eski", kiyas(k => k.olusma)], cari:["Müşteri (A–Z)", kiyas(k => cariAdi(k.musteriId))]};
 function ekranPaylasimlar(){
   if(eksikTablo.paylasimlar) return {baslik:"Müşteri bağlantıları", geri:true, html:'<div class="uyari">Bu özellik için Supabase\'de <b>supabase-guncelleme-4.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};
-  const l = veri.paylasimlar.slice().sort((a, b) => b.olusma - a.olusma);
+  const hz = listeHazirla("paylasimlar", PAYLASIM_SIRA, veri.paylasimlar), l = hz.l;
   const html = (firma().telefon ? '' : '<div class="uyari">Müşterinin size WhatsApp\'tan yazabilmesi için <b data-git="ayarlar" style="cursor:pointer;text-decoration:underline">Ayarlar</b>\'dan firma telefonunu girin.</div>') +
     '<div class="ust-arac"><div class="alt-bilgi" style="margin:0">Müşteri bu bağlantıları giriş yapmadan açar. Kapattığınız bağlantı çalışmaz.</div>' +
-    '<button class="buton kucuk" data-git="paylas-form">' + ik("arti") + 'Yeni bağlantı</button></div>' +
+    '<button class="buton kucuk" data-git="paylas-form">' + ik("arti") + 'Yeni bağlantı</button></div>' + listeArac("paylasimlar", PAYLASIM_SIRA) +
     '<div class="kart liste-kart">' + (l.length ? l.map(k => {
       const ic = k.icerik || {}, pl = ic.projeler || [], biten = paylasimBitti(k);
       const alt = [cariAdi(k.musteriId), pl.length + " proje", pl.reduce((t, p) => t + p.gorseller.length, 0) + " fotoğraf",
@@ -26,7 +27,7 @@ function ekranPaylasimlar(){
         '<div class="s2"' + (biten ? ' style="color:#b91c1c"' : '') + '>' + esc(alt) + '</div></span>' +
         '<span class="sag" style="display:flex;gap:6px">' + (biten ? '' : '<button class="ikon-buton" data-is="paylasimAc" data-arg="' + k.id + '">' + ik("mesaj") + '<span class="yazi-gizle">Gönder</span></button>') +
         '<button class="ikon-buton" data-is="paylasimSil" data-arg="' + k.id + '" aria-label="Bağlantıyı kapat">' + ik("sil") + '</button></span></div>';
-    }).join("") : bos("mesaj", "Henüz müşteriye gönderilmiş bağlantı yok.")) + '</div>';
+    }).join("") + dahaFazla("paylasimlar", hz) : bos("mesaj", "Henüz müşteriye gönderilmiş bağlantı yok.")) + '</div>';
   return {baslik:"Müşteri bağlantıları", geri:true, html};
 }
 function ekranPaylasForm(kategori, projeId){
@@ -205,9 +206,11 @@ EYLEM.teklifYazdir = async (el, id) => {
 };
 
 /* ================= FATURALAR ================= */
+const FATURA_SIRA = {yeni:["Tarih (yeni → eski)", tarihSira], eski:["Tarih (eski → yeni)", (a, b) => tarihSira(b, a)], tutar:["Tutar (büyük)", kiyas(f => f.toplam, true)],
+  kalan:["Ödenmemiş tutar", kiyas(f => odemeDurumu(f).kalan, true)], cari:["Cari (A–Z)", kiyas(f => cariAdi(f.musteriId))], no:["Fatura no", kiyas(f => f.no, true)]};
 function ekranFaturalar(){
   const ay = veri.faturalar.filter(f => f.tarih.slice(0, 7) === ayGoster);
-  const liste = ay.filter(f => filtre.fatura === "hepsi" || f.tur === filtre.fatura).sort(tarihSira);
+  const liste = ay.filter(f => filtre.fatura === "hepsi" || f.tur === filtre.fatura), hz = listeHazirla("faturalar", FATURA_SIRA, liste);
   let satis = 0, alis = 0, odenmemis = 0;
   ay.forEach(f => { if(f.tur === "satis") satis += f.toplam; else alis += f.toplam; });
   veri.faturalar.forEach(f => { if(f.tur === "satis") odenmemis += odemeDurumu(f).kalan; });
@@ -215,8 +218,8 @@ function ekranFaturalar(){
       '<div class="kart ozet"><div class="kart-baslik">Bu ay alış faturaları</div><div class="deger t-cikis">' + para(alis) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Tahsil edilmemiş satış</div><div class="deger t-borc">' + para(odenmemis) + '</div></div></div>' +
     '<div class="hizli" style="grid-template-columns:1fr 1fr">' + hizliButon("fatura-form/satis", "r-borc", "fatura", "Satış Faturası") + hizliButon("fatura-form/alis", "r-gri", "fatura", "Alış Faturası") + '</div>' +
-    '<div class="ust-arac">' + aySecici() + filtreButonlari("fatura", [["hepsi","Hepsi"], ["satis","Satış"], ["alis","Alış"]]) + '</div>' +
-    '<div class="kart liste-kart">' + (liste.length ? liste.map(f => faturaSatir(f)).join("") : bos("fatura", "Bu ayda fatura yok.")) + '</div>';
+    '<div class="ust-arac">' + aySecici() + filtreButonlari("fatura", [["hepsi","Hepsi"], ["satis","Satış"], ["alis","Alış"]]) + '</div>' + listeArac("faturalar", FATURA_SIRA) +
+    '<div class="kart liste-kart">' + (liste.length ? hz.l.map(f => faturaSatir(f)).join("") + dahaFazla("faturalar", hz) : bos("fatura", "Bu ayda fatura yok.")) + '</div>';
   return {baslik:"Faturalar", html};
 }
 function kalemHtml(k, i){

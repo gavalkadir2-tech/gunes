@@ -11,15 +11,17 @@ const CEK_RENK = {portfoy:"d-mavi", tahsilde:"d-sari", tahsil:"d-yesil", ciro:"d
 const cekAcik = c => c.tur === "alinan" ? c.durum === "portfoy" || c.durum === "tahsilde" : c.durum === "verildi";
 const belgeAdi = c => c.belge === "senet" ? "Senet" : "Çek";
 function cekOlay(c, olay, ek){ return Object.assign({}, c, ek || {}, {gecmis:(c.gecmis || []).concat([{tarih:bugun(), olay, kim:kullaniciGorunen()}])}); }
+const CEK_SIRA = {vade:["Vade (yakın)", kiyas(c => c.vade || "9999")], uzak:["Vade (uzak)", kiyas(c => c.vade || "", true)], tutar:["Tutar (büyük)", kiyas(c => c.tutar, true)],
+  cari:["Cari (A–Z)", kiyas(c => cariAdi(c.musteriId) || c.kesideci || "")], yeni:["En yeni kayıt", kiyas(c => c.olusma, true)]};
 function ekranCekler(id){
   if(eksikTablo.cekler) return {baslik:"Çek / senet", geri:true, html:'<div class="uyari">Çek / senet portföyü için Supabase\'de <b>supabase-guncelleme-10.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};
   if(id && bul("cekler", id)) setTimeout(() => cekDetay(id), 0);
   const tur = filtre.cekTur || "alinan", gor = filtre.cekGor || "acik", bg = bugun(), s30 = gunEkle(bg, 30);
-  const l = veri.cekler.filter(c => c.tur === tur && (gor === "hepsi" || cekAcik(c))).sort((a, b) => (a.vade || "") < (b.vade || "") ? -1 : 1);
+  const hz = listeHazirla("cekler", CEK_SIRA, veri.cekler.filter(c => c.tur === tur && (gor === "hepsi" || cekAcik(c)))), l = hz.l, ayliMi = hz.sira === "vade" || hz.sira === "uzak";
   const toplam = (t, f) => veri.cekler.filter(c => c.tur === t && cekAcik(c) && (!f || f(c))).reduce((x, c) => x + c.tutar, 0);
   const bagsiz = veri.hareketler.filter(h => h.odeme === SENET && (h.tur === "giris" || h.tur === "cikis") && !/karşılıksız|iade/i.test(h.kategori || "") && !veri.cekler.some(c => c.hareketId === h.id));
   const ayGrup = {};
-  l.forEach(c => { const a = (c.vade || "").slice(0, 7); (ayGrup[a] = ayGrup[a] || []).push(c); });
+  l.forEach(c => { const a = ayliMi ? (c.vade || "").slice(0, 7) : "tumu"; (ayGrup[a] = ayGrup[a] || []).push(c); });
   const html = '<div class="izgara dort">' +
       '<div class="kart ozet"><div class="kart-baslik">Portföydeki alınan</div><div class="deger t-borc">' + para(toplam("alinan")) + '</div><div class="alt-bilgi">' + veri.cekler.filter(c => c.tur === "alinan" && cekAcik(c)).length + ' belge</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">30 gün içinde tahsil</div><div class="deger">' + para(toplam("alinan", c => c.vade <= s30)) + '</div><div class="alt-bilgi">vadesi geçenler dahil</div></div>' +
@@ -29,14 +31,15 @@ function ekranCekler(id){
       '<span style="width:8px"></span>' + [["acik", tur === "alinan" ? "Portföyde" : "Ödenecek"], ["hepsi", "Tümü"]].map(([k, v]) => '<button class="secenek' + (k === gor ? ' secili' : '') + '" data-is="cekFiltre" data-arg="cekGor|' + k + '">' + v + '</button>').join("") + '</div>' +
       '<div class="buton-sira" style="margin:0"><button class="buton kucuk" data-is="cekYeni" data-arg="alinan">' + ik("asagi") + 'Çek / senet al</button><button class="buton kucuk ikincil" data-is="cekYeni" data-arg="verilen">' + ik("yukari") + 'Çek / senet ver</button></div></div>' +
     (bagsiz.length ? '<div class="uyari">Kasada “' + SENET + '” ile işlenmiş ' + bagsiz.length + ' kayıt portföyde yok. <b data-is="cekBagsiz" style="cursor:pointer;text-decoration:underline">Bilgilerini girin</b> ki vadesi takip edilsin.</div>' : '') +
-    (l.length ? Object.entries(ayGrup).map(([a, cl]) => bolum((a ? AYLAR[Number(a.slice(5)) - 1] + " " + a.slice(0, 4) : "Vadesiz") + ' <span class="t-soluk" style="font-weight:400;font-size:13px">· ' + para(cl.reduce((t, c) => t + c.tutar, 0)) + '</span>') +
+    listeArac("cekler", CEK_SIRA) +
+    (l.length ? Object.entries(ayGrup).map(([a, cl]) => (a === "tumu" ? '' : bolum((a ? AYLAR[Number(a.slice(5)) - 1] + " " + a.slice(0, 4) : "Vadesiz") + ' <span class="t-soluk" style="font-weight:400;font-size:13px">· ' + para(cl.reduce((t, c) => t + c.tutar, 0)) + '</span>')) +
       '<div class="kart liste-kart">' + cl.map(c => {
         const gec = cekAcik(c) && c.vade && c.vade < bg, yakin = cekAcik(c) && c.vade && c.vade <= gunEkle(bg, sistem().vadeGun);
         return '<button class="satir" data-is="cekAc" data-arg="' + c.id + '"><span class="rozet ' + (c.tur === "alinan" ? 'r-borc' : 'r-cikis') + '">' + ik(c.tur === "alinan" ? "asagi" : "yukari") + '</span>' +
           '<span class="orta"><div class="s1">' + esc(belgeAdi(c) + (c.no ? " " + c.no : "") + " · " + (cariAdi(c.musteriId) || c.kesideci || "—")) + '</div>' +
           '<div class="s2"' + (gec ? ' style="color:#b91c1c"' : '') + '>' + esc([(gec ? "⚠ Vadesi geçti: " : "Vade: ") + tarihYaz(c.vade, true), c.banka, c.durum === "ciro" ? "→ " + cariAdi(c.ciroId) : ""].filter(Boolean).join(" · ")) + '</div></span>' +
           '<span class="sag"><div class="tutar">' + para(c.tutar) + '</div><span class="etiket-rozet ' + (yakin && !gec ? 'd-sari' : CEK_RENK[c.durum]) + '">' + CEK_DURUM[c.durum] + '</span></span></button>';
-      }).join("") + '</div>').join("") : '<div class="kart">' + bos("kasa", gor === "acik" ? (tur === "alinan" ? "Portföyde çek / senet yok." : "Ödenecek çek / senet yok.") : "Kayıt yok.") + '</div>');
+      }).join("") + '</div>').join("") + dahaFazla("cekler", hz) : '<div class="kart">' + bos("kasa", gor === "acik" ? (tur === "alinan" ? "Portföyde çek / senet yok." : "Ödenecek çek / senet yok.") : "Kayıt yok.") + '</div>');
   return {baslik:"Çek / senet portföyü", geri: matchMedia("(max-width:899px)").matches, html};
 }
 EYLEM.cekFiltre = (el, arg) => { const [k, v] = arg.split("|"); filtre[k] = v; ciz(); };

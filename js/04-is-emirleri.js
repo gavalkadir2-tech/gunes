@@ -15,14 +15,14 @@ const notEkle = (ieId, metin, tur) => Depo.kaydet("is_notlari", {id:yeniId(), is
 
 function ekranIsler(){
   const f = filtre.is;
-  const liste = veri.is_emirleri.filter(ie => f === "hepsi" || (f === "teslim" ? ie.durum === "Teslim edildi" : f === "acil" ? ac(ie) && ie.oncelik === "Acil" : ac(ie)))
-    .sort((a, b) => f === "teslim" || f === "hepsi" ? b.olusma - a.olusma : ((a.teslimTarihi || "9999") < (b.teslimTarihi || "9999") ? -1 : 1));
+  const liste = veri.is_emirleri.filter(ie => f === "hepsi" || (f === "teslim" ? ie.durum === "Teslim edildi" : f === "acil" ? ac(ie) && ie.oncelik === "Acil" : ac(ie)));
   const sayac = {}; veri.is_emirleri.forEach(ie => { sayac[ie.durum] = (sayac[ie.durum] || 0) + 1; });
   const html = '<div class="izgara dort">' + ["Sipariş alındı", "Üretimde", "Hazır", "Teklif"].map(d =>
       '<div class="kart ozet"><div class="kart-baslik">' + d + '</div><div class="deger">' + (sayac[d] || 0) + '</div></div>').join("") + '</div>' +
     '<div class="ust-arac">' + filtreButonlari("is", [["acik","Açık işler"], ["acil","Acil"], ["teslim","Teslim edilenler"], ["hepsi","Hepsi"]]) +
     '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="kapasite">' + ik("grafik") + 'Atölye yükü</button>' +
     (yetki.yonetici ? '<button class="buton kucuk" data-git="is-form">' + ik("arti") + 'Yeni iş emri</button>' : '') + '</div></div>' +
+    listeArac("isler", isSiralari()) +
     (veri.is_emirleri.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="İş, müşteri veya numara ara…" value="' + esc(aramaYazi) + '"></div>' : '') +
     '<div class="kart liste-kart" id="isListe">' + isListesi(liste) + '</div>';
   return {baslik:"İş Emirleri", html, sonra(){
@@ -30,11 +30,14 @@ function ekranIsler(){
     if(a) a.addEventListener("input", () => { aramaYazi = a.value; document.getElementById("isListe").innerHTML = isListesi(liste); });
   }};
 }
+const isSiralari = () => Object.assign({teslim:["Teslim tarihi (yakın)", kiyas(ie => ie.teslimTarihi || "9999")], yeni:["En yeni", kiyas(ie => ie.olusma, true)], eski:["En eski", kiyas(ie => ie.olusma)],
+  no:["İş no", kiyas(ie => ie.no, true)], musteri:["Müşteri (A–Z)", kiyas(ie => cariAdi(ie.musteriId))], durum:["Durum", kiyas(ie => DURUMLAR.indexOf(ie.durum))]},
+  yetki.yonetici ? {tutar:["Tutar (yüksek)", kiyas(ie => Number(ie.tutar) || 0, true)]} : {});
 function isListesi(liste){
   if(!liste.length) return bos("is", "Burada iş emri yok.");
   const q = aramaYazi.toLocaleLowerCase("tr");
-  const l = liste.filter(ie => !q || (ie.no + " " + ie.baslik + " " + cariAdi(ie.musteriId) + " " + ie.sorumlu).toLocaleLowerCase("tr").indexOf(q) >= 0);
-  return l.length ? l.map(ie => isSatir(ie)).join("") : bos("ara", "Bulunamadı.");
+  const h = listeHazirla("isler", isSiralari(), liste.filter(ie => !q || (ie.no + " " + ie.baslik + " " + cariAdi(ie.musteriId) + " " + ie.sorumlu).toLocaleLowerCase("tr").indexOf(q) >= 0));
+  return h.toplam ? h.l.map(ie => isSatir(ie)).join("") + dahaFazla("isler", h) : bos("ara", "Bulunamadı.");
 }
 
 /* --- İş emri formu --- */

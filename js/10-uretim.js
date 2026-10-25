@@ -116,12 +116,13 @@ function siparisMesaji(s){
   return sablonDoldur(mesajSablonu("tedarikci"), {ad:t.ad || "", no:s.no, liste:s.kalemler.map(k => "• " + k.ad + ": " + miktarYaz(k.miktar) + " " + k.birim).join("\n"),
     not:s.aciklama ? "\n\nNot: " + s.aciklama : "", firma:FIRMA, telefon:firma().telefon ? " · " + firma().telefon : ""});
 }
+const SIPARIS_SIRA = {yeni:["En yeni", kiyas(s => s.olusma, true)], eski:["En eski", kiyas(s => s.olusma)], tedarikci:["Tedarikçi (A–Z)", kiyas(s => cariAdi(s.tedarikciId))]};
 function ekranSiparisler(){
   if(eksikTablo.siparisler) return {baslik:"Malzeme siparişi", geri:true, html:'<div class="uyari">Sipariş için Supabase\'de <b>supabase-guncelleme-10.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};
   const ml = malzemeListesi(), az = stokAzalanlar().filter(m => yoldaki(m.id) + stokMiktar(m.id) <= m.min), af = alisFiyatlari();
   const gruplar = {}; az.forEach(m => { (gruplar[m.tedarikciId || ""] = gruplar[m.tedarikciId || ""] || []).push(m); });
   const acik = veri.siparisler.filter(s => s.durum === "bekliyor" || s.durum === "kismi").sort((a, b) => b.olusma - a.olusma);
-  const kapali = veri.siparisler.filter(s => acik.indexOf(s) < 0).sort((a, b) => b.olusma - a.olusma).slice(0, 30);
+  const hz = listeHazirla("siparisGecmis", SIPARIS_SIRA, veri.siparisler.filter(s => acik.indexOf(s) < 0)), kapali = hz.l;
   const siparisSatir = s => {
     const t = bul("musteriler", s.tedarikciId), d = SIPARIS_DURUM[s.durum] || SIPARIS_DURUM.bekliyor, f = bul("faturalar", s.faturaId);
     return '<div class="satir" style="flex-wrap:wrap"><span class="rozet r-gri">' + ik("koli") + '</span><span class="orta"><div class="s1">' + esc(s.no + " · " + (t ? t.ad : "Tedarikçi yok")) + '</div>' +
@@ -145,7 +146,7 @@ function ekranSiparisler(){
             (ucuz ? '<div class="alt-bilgi" style="margin:2px 0 0;color:var(--giris)">En ucuz son fiyat: ' + esc(cariAdi(ucuz.tid)) + ' ' + para(ucuz.son.fiyat) + '</div>' : ''), 'öneri ' + miktarYaz(oneriMiktar(m)) + ' ' + esc(m.birim)); }).join("") + '</div>';
     }).join("") : '<div class="kart">' + bos("koli", "Azalan malzeme yok (yoldaki siparişler sayıldı).") + '</div>') +
     bolum("Bekleyen siparişler (" + acik.length + ")") + '<div class="kart liste-kart">' + (acik.length ? acik.map(siparisSatir).join("") : bos("koli", "Bekleyen sipariş yok.")) + '</div>' +
-    (kapali.length ? bolum("Geçmiş siparişler") + '<div class="kart liste-kart">' + kapali.map(siparisSatir).join("") + '</div>' : '');
+    (kapali.length ? bolum("Geçmiş siparişler (" + hz.toplam + ")") + listeArac("siparisGecmis", SIPARIS_SIRA) + '<div class="kart liste-kart">' + kapali.map(siparisSatir).join("") + dahaFazla("siparisGecmis", hz) + '</div>' : '');
   return {baslik:"Malzeme siparişi", geri:true, html};
 }
 // arg: "tedarikciId|malzemeId,malzemeId"

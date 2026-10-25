@@ -60,6 +60,38 @@ function ciz(){
 
 /* ================= ORTAK PARÇALAR ================= */
 const bos = (ikon, yazi) => '<div class="bos">' + ik(ikon) + yazi + '</div>';
+/* --- Liste sıralama ve satır sayısı --- */
+// Her listenin sırası ve kaç satır gösterileceği kullanıcının seçimi (bu cihazda saklanır); varsayılan 20 satır.
+// siralar: {anahtar: [etiket, karşılaştırma]} — ilki varsayılan sıralamadır.
+const SATIR_SECENEK = [10, 20, 50, 100, 0];   // 0 = tümü
+const listeFazla = {};   // "Daha fazla göster" ile açılan ek satırlar (sayfa yenilenene kadar)
+const kiyas = (f, ters) => (a, b) => { const x = f(a), y = f(b);
+  const r = typeof x === "number" && typeof y === "number" ? x - y : String(x == null ? "" : x).localeCompare(String(y == null ? "" : y), "tr", {numeric:true});
+  return ters ? -r : r; };
+function listeAyari(ad, siralar){
+  const c = cihaz(), l = (c.listeler || {})[ad] || {};
+  return {sira:siralar[l.sira] ? l.sira : Object.keys(siralar)[0], satir:l.satir != null ? Number(l.satir) : Number(c.satir)};
+}
+// Sıralanmış ve kesilmiş liste: {l, toplam, kalan, sira}
+function listeHazirla(ad, siralar, l){
+  const a = listeAyari(ad, siralar), s = l.slice().sort(siralar[a.sira][1]), n = a.satir ? a.satir + (listeFazla[ad] || 0) : s.length;
+  return {l:s.slice(0, n), toplam:s.length, kalan:Math.max(0, s.length - n), sira:a.sira};
+}
+function listeArac(ad, siralar){
+  const a = listeAyari(ad, siralar);
+  return '<div class="liste-arac"><label>Sırala<select class="kutu" data-liste-sira="' + ad + '">' + Object.entries(siralar).map(([k, v]) => '<option value="' + k + '"' + (k === a.sira ? ' selected' : '') + '>' + v[0] + '</option>').join("") + '</select></label>' +
+    '<label>Göster<select class="kutu" data-liste-satir="' + ad + '">' + SATIR_SECENEK.concat(SATIR_SECENEK.indexOf(a.satir) < 0 ? [a.satir] : []).map(n => '<option value="' + n + '"' + (n === a.satir ? ' selected' : '') + '>' + (n ? n + " satır" : "Tümü") + '</option>').join("") + '</select></label></div>';
+}
+const dahaFazla = (ad, h) => h.kalan ? '<div class="daha-fazla"><span>' + h.toplam + ' kayıttan ' + (h.toplam - h.kalan) + ' tanesi gösteriliyor</span>' +
+  '<button class="buton ikincil kucuk" data-is="listeDahaFazla" data-arg="' + ad + '">Daha fazla göster</button><button class="baglanti" data-is="listeDahaFazla" data-arg="' + ad + '|tumu">Tümünü göster</button></div>' : '';
+const dahaFazlaSonra = (h, ad, html) => html + dahaFazla(ad, h);
+const yerindeCiz = () => { const y = window.scrollY; ciz(); window.scrollTo(0, y); };
+EYLEM.listeDahaFazla = (el, arg) => { const [ad, t] = arg.split("|"); listeFazla[ad] = t ? 1e9 : (listeFazla[ad] || 0) + (Number((cihaz().listeler || {})[ad] && cihaz().listeler[ad].satir) || Number(cihaz().satir) || 20); yerindeCiz(); };
+document.addEventListener("change", e => {
+  const t = e.target, ad = t.getAttribute && (t.getAttribute("data-liste-sira") || t.getAttribute("data-liste-satir")); if(!ad) return;
+  const l = Object.assign({}, cihaz().listeler || {}); l[ad] = Object.assign({}, l[ad], t.hasAttribute("data-liste-sira") ? {sira:t.value} : {satir:Number(t.value)});
+  delete listeFazla[ad]; cihazKaydet({listeler:l}); yerindeCiz();
+});
 const hizliButon = (yer, renk, ikon, yazi) => '<button data-git="' + yer + '"><span class="rozet ' + renk + '">' + ik(ikon) + '</span>' + yazi + '</button>';
 const durumRozet = d => '<span class="etiket-rozet ' + (DURUM_SINIF[d] || "d-gri") + '">' + esc(d) + '</span>';
 const bolum = (baslik, sag) => '<div class="bolum-baslik"><h2>' + baslik + '</h2>' + (sag || '') + '</div>';

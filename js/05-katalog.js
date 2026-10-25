@@ -59,6 +59,7 @@ function ekranKatalog(){
     '<div class="kat-izgara">' + kutu("Tümü", "hepsi", projeler) + kat.map(k => kutu(k, k, projeler.filter(p => p.kategori === k))).join("") + '</div>' +
     bolum((f === "hepsi" ? "Tüm projeler" : esc(f)) + " (" + sec.length + ")", '<span class="yonetici-ozel" style="display:flex;gap:14px">' +
       (cevrimici ? '<button data-git="katalog-ice">ZIP\'ten içe aktar</button>' : '') + '<button data-git="' + yeniYer + '">+ Yeni proje</button></span>') +
+    listeArac("katalog", KATALOG_SIRA) +
     (veri.katalog.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="Proje, malzeme veya ölçü ara…" value="' + esc(katalogArama) + '"></div>' : '') +
     '<div id="projeListe">' + projeListesi(sec) + '</div>' +
     (veri.paylasimlar.length ? bolum("Müşteriye gönderilen bağlantılar (" + veri.paylasimlar.filter(k => !paylasimBitti(k)).length + " açık)", '<button data-git="paylasimlar">Tümü</button>') : '');
@@ -68,17 +69,20 @@ function ekranKatalog(){
     galeriDoldur();
   }};
 }
+// "Katalog sırası": projelerin elle verilen sırası (liste zaten o sırada gelir)
+const KATALOG_SIRA = {sira:["Katalog sırası", () => 0], yeni:["En yeni", kiyas(p => p.olusma, true)], eski:["En eski", kiyas(p => p.olusma)], ad:["Ad (A–Z)", kiyas(p => p.baslik)],
+  fiyat:["Fiyat (yüksek)", kiyas(p => Number(p.fiyat) || 0, true)]};
 function projeListesi(liste){
   if(!veri.katalog.length) return '<div class="kart">' + bos("katalog", "Henüz proje yok. “Yeni proje” ile ilk mutfak, banyo, gardırop veya TV ünitesi projenizi ekleyin.") + '</div>';
   const q = katalogArama.toLocaleLowerCase("tr");
-  const l = liste.filter(p => !q || [p.baslik, p.kategori, p.malzeme, p.olcu, p.aciklama].join(" ").toLocaleLowerCase("tr").indexOf(q) >= 0);
+  const hz = listeHazirla("katalog", KATALOG_SIRA, liste.filter(p => !q || [p.baslik, p.kategori, p.malzeme, p.olcu, p.aciklama].join(" ").toLocaleLowerCase("tr").indexOf(q) >= 0)), l = hz.l;
   if(!l.length) return '<div class="kart">' + (q ? bos("ara", "Bulunamadı.") : bos("katalog", "Bu kategoride henüz proje yok.")) + '</div>';
   return '<div class="proje-izgara">' + l.map(p => {
     const g = projeMedya(p.id), cz = projeCizimleri(p.id).length;
     return '<button class="proje-kart" data-git="proje/' + p.id + '"><span class="kapak">' +
       (g.length ? medyaEtiket(projeKapak(p.id)) + '<span class="sayi">' + g.length + ' ' + (g.some(videoMu) ? 'medya' : 'foto') + (cz ? ' · 3B' : '') + '</span>' : cz ? ik("kup") + '<span class="sayi">' + cz + ' çizim</span>' : ik("resim")) + '</span>' +
       '<span class="pk"><b>' + esc(p.baslik) + '</b><span>' + esc([p.kategori, p.malzeme].filter(Boolean).join(" · ")) + '</span></span></button>';
-  }).join("") + '</div>';
+  }).join("") + '</div>' + dahaFazla("katalog", hz);
 }
 EYLEM.katalogFiltre = (el, k) => { filtre.katalog = k; ciz(); };
 EYLEM.katalogSunum = () => {

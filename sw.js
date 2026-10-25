@@ -1,6 +1,6 @@
 // Güneş Mobilya — çevrimdışı açılış için önbellek.
 // Uygulama dosyaları önbellekten de açılır; Supabase istekleri (veri, giriş, dosya) asla önbelleğe alınmaz.
-const SURUM = "gunes-v5";
+const SURUM = "gunes-v6";
 const TEMEL = ["./", "index.html", "css/uygulama.css", "js/01-cekirdek.js", "js/02-arayuz.js", "js/03-kasa-cari.js", "js/04-is-emirleri.js", "js/05-katalog.js", "js/06-hatirlatma-stok-kesif.js", "js/07-paylasim-fatura.js", "js/08-rapor-personel.js", "js/09-takvim-usta-arama.js", "js/10-uretim.js", "js/11-cek-cevrimdisi-efatura.js", "js/12-ortak-yedek-arac.js", "js/13-iletisim-banka.js", "js/14-sistem-ayarlar.js", "js/15-bildirim-ayar.js", "js/16-modul-kapasite.js", "js/17-gider-muhasebe.js", "js/18-push-paylas.js", "js/19-giris-acilis.js",
   "manifest.webmanifest", "logo.png", "logo-beyaz.png", "logo-ikon.png", "favicon.png", "apple-touch-icon.png", "ikon-192.png", "ikon-512.png",
   "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"];

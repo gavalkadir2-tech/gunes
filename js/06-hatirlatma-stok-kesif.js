@@ -226,19 +226,22 @@ const STOK_TUR = {giris:"Giriş", cikis:"Çıkış", duzeltme:"Sayım düzeltmes
 const miktarYaz = n => String(Math.round(n * 1000) / 1000).replace(".", ",");
 const stokMiktar = mid => Math.round(veri.stok_hareket.reduce((t, h) => h.malzemeId === mid ? t + h.miktar : t, 0) * 1000) / 1000;
 const stokAzalanlar = () => malzemeListesi().filter(m => m.min > 0 && stokMiktar(m.id) <= m.min);
+const STOK_SIRA = {ad:["Ad (A–Z)", kiyas(m => m.ad)], az:["Stok (azdan çoğa)", kiyas(m => stokMiktar(m.id))], cok:["Stok (çoktan aza)", kiyas(m => stokMiktar(m.id), true)],
+  deger:["Stok değeri (yüksek)", kiyas(m => Math.max(0, stokMiktar(m.id)) * (m.fiyat || 0), true)]};
+const STOK_HAREKET_SIRA = {yeni:["En yeni", kiyas(h => h.olusma, true)], eski:["En eski", kiyas(h => h.olusma)], miktar:["Miktar (büyük)", kiyas(h => Math.abs(h.miktar), true)]};
 function ekranStok(){
   if(eksikTablo.stok_hareket) return {baslik:"Stok", geri:true, html:'<div class="uyari">Stok için Supabase\'de <b>supabase-guncelleme-7.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};
   const ml = malzemeListesi(), f = filtre.stok || "hepsi";
   const deger_ = ml.reduce((t, m) => t + Math.max(0, stokMiktar(m.id)) * (m.fiyat || 0), 0), az = stokAzalanlar();
-  const l = ml.filter(m => f === "hepsi" || az.indexOf(m) >= 0).sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
-  const son = veri.stok_hareket.slice().sort((a, b) => b.olusma - a.olusma).slice(0, 25);
+  const hz = listeHazirla("stok", STOK_SIRA, ml.filter(m => f === "hepsi" || az.indexOf(m) >= 0)), l = hz.l;
+  const hh = listeHazirla("stokHareket", STOK_HAREKET_SIRA, veri.stok_hareket), son = hh.l;
   const malzemeAdi = id => (ml.find(m => m.id === id) || {ad:"Silinmiş malzeme"}).ad;
   const html = '<div class="izgara uc"><div class="kart ozet"><div class="kart-baslik">Malzeme</div><div class="deger">' + ml.length + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Azalan</div><div class="deger' + (az.length ? ' t-cikis' : '') + '">' + az.length + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Stok değeri (maliyet)</div><div class="deger">' + para(deger_) + '</div></div></div>' +
     '<div class="ust-arac">' + filtreButonlari("stok", [["hepsi", "Hepsi"], ["azalan", "Azalanlar"]]) + '<div class="buton-sira" style="margin:0"><button class="buton kucuk' + (az.length ? '' : ' ikincil') + '" data-git="siparisler">' + ik("mesaj") + 'Sipariş' + (az.length ? ' ver (' + az.length + ')' : 'ler') + '</button>' +
       '<button class="buton kucuk ikincil" data-git="malzemeler">' + ik("kalem") + 'Malzeme listesi</button><button class="buton kucuk ikincil" data-git="moduller">' + ik("kup") + 'Modüller</button><button class="buton kucuk ikincil" data-git="fiyat">' + ik("grafik") + 'Toplu fiyat</button><button class="buton kucuk ikincil" data-git="fiyatkarsilastir">' + ik("kasa") + 'Tedarikçi fiyatları</button></div></div>' +
-    (ml.length ? '<div class="kart liste-kart">' + (l.length ? l.map(m => {
+    (ml.length ? listeArac("stok", STOK_SIRA) + '<div class="kart liste-kart">' + (l.length ? l.map(m => {
       const q = stokMiktar(m.id), azMi = m.min > 0 && q <= m.min;
       return '<div class="satir" style="flex-wrap:wrap"><span class="rozet ' + (azMi ? 'r-cikis' : 'r-gri') + '">' + ik("koli") + '</span><span class="orta"><div class="s1">' + esc(m.ad) + '</div>' +
         '<div class="s2">' + (m.min ? 'Asgari ' + miktarYaz(m.min) + ' ' + esc(m.birim) + ' · ' : '') + (m.fiyat ? para(m.fiyat) + ' / ' + esc(m.birim) : 'fiyat yok') + '</div></span>' +
@@ -246,15 +249,15 @@ function ekranStok(){
         '<span class="secenekler" style="width:100%;justify-content:flex-end;margin-top:6px">' +
           '<button class="secenek" data-is="stokIslem" data-arg="' + m.id + '|giris">+ Giriş</button><button class="secenek" data-is="stokIslem" data-arg="' + m.id + '|cikis">− Çıkış</button>' +
           '<button class="secenek" data-is="stokIslem" data-arg="' + m.id + '|duzeltme">Sayım</button></span></div>';
-    }).join("") : bos("koli", "Azalan malzeme yok.")) + '</div>' :
+    }).join("") + dahaFazla("stok", hz) : bos("koli", "Azalan malzeme yok.")) + '</div>' :
       '<div class="kart">' + bos("koli", "Önce malzeme listesine malzeme ekleyin.") + '<button class="buton" data-git="malzemeler">' + ik("arti") + 'Malzeme listesi</button></div>') +
-    bolum("Son hareketler") + '<div class="kart liste-kart">' + (son.length ? son.map(h => {
+    bolum("Son hareketler") + listeArac("stokHareket", STOK_HAREKET_SIRA) + '<div class="kart liste-kart">' + (son.length ? son.map(h => {
       const m = ml.find(x => x.id === h.malzemeId) || {birim:""}, ie = bul("is_emirleri", h.isEmriId);
       return '<div class="satir"><span class="rozet ' + (h.miktar >= 0 ? 'r-giris' : 'r-cikis') + '">' + ik(h.miktar >= 0 ? "asagi" : "yukari") + '</span><span class="orta"><div class="s1">' + esc(malzemeAdi(h.malzemeId)) + '</div>' +
         '<div class="s2">' + esc([STOK_TUR[h.tur], tarihYaz(h.tarih, true), ie ? ie.no + " " + ie.baslik : "", h.aciklama].filter(Boolean).join(" · ")) + '</div></span>' +
         '<span class="tutar ' + (h.miktar >= 0 ? 't-giris' : 't-cikis') + '">' + (h.miktar > 0 ? "+" : "") + miktarYaz(h.miktar) + ' ' + esc(m.birim) + '</span>' +
         '<button class="ikon-buton" style="margin-left:6px" data-is="stokSil" data-arg="' + h.id + '" aria-label="Sil">' + ik("sil") + '</button></div>';
-    }).join("") : bos("koli", "Henüz stok hareketi yok.")) + '</div>';
+    }).join("") + dahaFazla("stokHareket", hh) : bos("koli", "Henüz stok hareketi yok.")) + '</div>';
   return {baslik:"Stok", geri: matchMedia("(max-width:899px)").matches, html};
 }
 EYLEM.stokIslem = (el, arg) => {

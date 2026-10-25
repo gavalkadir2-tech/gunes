@@ -148,11 +148,13 @@ async function personelOdemeKaydet(p, tur, tutar, o){
   }catch(e){ if(hid) await Depo.sil("hareketler", hid, {cop:false}).catch(() => {}); throw e; }
 }
 
+const PERSONEL_SIRA = {ad:["Ad (A–Z)", kiyas(p => p.ad)], bakiye:["Alacağı (çok)", kiyas(p => personelBakiye(p.id), true)], giris:["İşe giriş (yeni)", kiyas(p => p.giris || "", true)],
+  ucret:["Ücret (yüksek)", kiyas(p => Number(p.ucret) || 0, true)]};
 function ekranPersonel(){
   if(personelEksik()) return {baslik:"Personel", html:personelUyari()};
   const bg = bugun(), ayB = donemBilgi("ay", bg), f = filtre.personel;
   const aktif = veri.personel.filter(p => calisiyor(p, bg));
-  const liste = veri.personel.filter(p => f === "hepsi" || (f === "ayrilan" ? !calisiyor(p, bg) : calisiyor(p, bg))).sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
+  const hz = listeHazirla("personel", PERSONEL_SIRA, veri.personel.filter(p => f === "hepsi" || (f === "ayrilan" ? !calisiyor(p, bg) : calisiyor(p, bg)))), liste = hz.l;
   const bugunKayit = aktif.filter(p => veri.puantaj.some(x => x.personelId === p.id && x.tarih === bg)).length;
   const odenen = veri.personel_hareket.filter(h => (h.tur === "odeme" || h.tur === "avans") && h.tarih >= ayB.bas && h.tarih <= ayB.bit).reduce((t, h) => t + h.tutar, 0);
   const borc = veri.personel.reduce((t, p) => t + Math.max(personelBakiye(p.id), 0), 0);
@@ -163,13 +165,13 @@ function ekranPersonel(){
       '<div class="kart ozet"><div class="kart-baslik">Personele borcumuz</div><div class="deger">' + para(borc) + '</div></div></div>' +
     '<div class="hizli" style="grid-template-columns:repeat(3,1fr)">' + hizliButon("puantaj", "r-giris", "tamam", "Puantaj") +
       hizliButon("maas/ay", "r-cikis", "kasa", "Maaş / Ödeme") + hizliButon("personel-form", "r-ana", "arti", "Yeni Personel") + '</div>' +
-    '<div class="ust-arac">' + filtreButonlari("personel", [["aktif", "Çalışanlar"], ["ayrilan", "Ayrılanlar"], ["hepsi", "Hepsi"]]) + '</div>' +
+    '<div class="ust-arac">' + filtreButonlari("personel", [["aktif", "Çalışanlar"], ["ayrilan", "Ayrılanlar"], ["hepsi", "Hepsi"]]) + '</div>' + listeArac("personel", PERSONEL_SIRA) +
     '<div class="kart liste-kart">' + (liste.length ? liste.map(p => {
       const b = personelBakiye(p.id);
       return '<button class="satir" data-git="personel/' + p.id + '"><span class="rozet r-ana">' + ik("kisi") + '</span><span class="orta"><div class="s1">' + esc(p.ad) + '</div>' +
         '<div class="s2">' + esc([p.gorev, UCRET_TIPI[p.ucretTipi] + " " + para(p.ucret), calisiyor(p, bg) ? "" : "Ayrıldı"].filter(Boolean).join(" · ")) + '</div></span>' +
         '<span class="sag"><div class="tutar ' + (b > 0 ? 't-cikis' : b < 0 ? 't-borc' : 't-soluk') + '">' + para(Math.abs(b)) + '</div><div class="s2">' + (b > 0 ? "Alacağı" : b < 0 ? "Avans fazlası" : "Hesap kapalı") + '</div></span></button>';
-    }).join("") : bos("kisiler", f === "ayrilan" ? "Ayrılan personel yok." : "Henüz personel eklenmedi.")) + '</div>' +
+    }).join("") + dahaFazla("personel", hz) : bos("kisiler", f === "ayrilan" ? "Ayrılan personel yok." : "Henüz personel eklenmedi.")) + '</div>' +
     personelAyarKarti();
   return {baslik:"Personel", geri: matchMedia("(max-width:899px)").matches, html};
 }
