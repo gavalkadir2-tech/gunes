@@ -68,7 +68,7 @@ function ekranTakvim(bas){
         esc(cariAdi(ie.musteriId) + " · teslim " + tarihYaz(ie.teslimTarihi, true)) + '</div></span>' + (yetki.yonetici ? '<button class="buton kucuk ikincil" data-is="randevuAc" data-arg="' + ie.id + '|">Planla</button>' : '') + '</div>').join("") + '</div>' : '') +
     '<div class="hafta">' + gunler.map(t => {
       const g = l.filter(x => x.r.tarih === t), d = tarihOku(t);
-      return '<div class="hafta-gun' + (t === bg ? ' bugun' : '') + (t < bg ? ' gecmis' : '') + '"><div class="hafta-baslik"><span><b>' + d.getDate() + ' ' + AYLAR[d.getMonth()].slice(0, 3) + '</b> ' + GUN_UZUN[d.getDay()] + (t === bg ? ' · bugün' : '') + '</span>' +
+      return '<div class="hafta-gun' + (t === bg ? ' bugun' : '') + (t < bg ? ' gecmis' : '') + (takvimAyar().gunler.indexOf(d.getDay()) < 0 ? ' kapali' : '') + '"><div class="hafta-baslik"><span><b>' + d.getDate() + ' ' + AYLAR[d.getMonth()].slice(0, 3) + '</b> ' + GUN_UZUN[d.getDay()] + (t === bg ? ' · bugün' : '') + '</span>' +
         (yetki.yonetici ? '<button class="hafta-ekle" data-is="randevuAc" data-arg="||' + t + '" aria-label="Bu güne randevu ekle">' + ik("arti") + '</button>' : '') + '</div>' +
         (g.length ? g.map(x => randevuKarti(x)).join("") : '<div class="hafta-bos">—</div>') + '</div>';
     }).join("") + '</div>';
@@ -81,7 +81,7 @@ EYLEM.randevuAc = (el, arg) => {
   const [isId, rid, gun] = (arg || "").split("|"), ie0 = bul("is_emirleri", isId), r0 = ie0 && rid ? ie0.montaj.find(x => x.id === rid) : null;
   if(!yetki.yonetici && !r0) return;
   const isler = veri.is_emirleri.filter(ie => ac(ie) || ie.id === isId).sort((a, b) => b.olusma - a.olusma);
-  const r = Object.assign({id:yeniId(), tarih:gun || (ie0 && ie0.teslimTarihi >= bugun() ? ie0.teslimTarihi : gunSonra(1)), saat:"09:00", sure:3, tur:ie0 && ie0.durum === "Teklif" ? "Ölçü / keşif" : "Montaj",
+  const r = Object.assign({id:yeniId(), tarih:gun || (ie0 && ie0.teslimTarihi >= bugun() ? ie0.teslimTarihi : gunSonra(1)), saat:takvimAyar().saat, sure:takvimAyar().sure, tur:ie0 && ie0.durum === "Teklif" ? "Ölçü / keşif" : "Montaj",
     ekip: ie0 && ie0.sorumlu ? [ie0.sorumlu] : [], not:"", hatirlatildi:false, tamam:false}, r0 ? JSON.parse(JSON.stringify(r0)) : {});
   const ekip = ekipListesi(); r.ekip.forEach(e => { if(ekip.indexOf(e) < 0) ekip.push(e); });
   const p = document.createElement("div"); p.className = "perde";
@@ -110,7 +110,11 @@ EYLEM.randevuAc = (el, arg) => {
     r.not = p.querySelector("#rNot").value.trim(); if(p.querySelector("#rTamam")) r.tamam = p.querySelector("#rTamam").checked;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(r.tarih)) return p.querySelector("#rHata").textContent = "Tarihi seçin.";
     const c = r.tamam ? [] : cakisanlar(r);
-    if(c.length && !zorla){
+    if(!(zorla >= 1) && !r.tamam && takvimAyar().gunler.indexOf(tarihOku(r.tarih).getDay()) < 0){
+      p.querySelector("#rHata").innerHTML = "⚠ " + GUN_UZUN[tarihOku(r.tarih).getDay()] + " çalışma günü değil (Ayarlar → Takvim). " + '<button class="baglanti" data-c="zorlaGun">Yine de kaydet</button>';
+      return;
+    }
+    if(c.length && !(zorla >= 2)){
       p.querySelector("#rHata").innerHTML = "⚠ " + esc(c.map(x => (x.r.ekip || []).filter(e => r.ekip.some(y => trKucuk(y) === trKucuk(e))).join(", ") + " aynı saatte " + x.ie.no + " (" + saatYazi(x.r) + ") işinde").join("; ")) +
         ' <button class="baglanti" data-c="zorla">Yine de kaydet</button>';
       return;
@@ -133,7 +137,7 @@ EYLEM.randevuAc = (el, arg) => {
     if(c === "kisi"){ const v = p.querySelector("#rYeniKisi").value.trim(); if(!v) return; const y = document.createElement("button"); y.type = "button"; y.className = "secenek secili"; y.setAttribute("data-e", v); y.textContent = v; p.querySelector("#rEkip").appendChild(y); p.querySelector("#rYeniKisi").value = ""; return; }
     if(c === "sil") return onayla("Randevu silinsin mi?", "", "Sil", () => islem(null, async () => { await Depo.kaydet("is_emirleri", Object.assign({}, ie0, {montaj:ie0.montaj.filter(x => x.id !== r.id)})); p.remove(); bildir("Randevu silindi"); ciz(); }));
     b.disabled = true;
-    kaydet(c === "zorla").catch(err => { p.querySelector("#rHata").textContent = hataMesaji(err); }).finally(() => { b.disabled = false; });
+    kaydet(c === "zorla" ? 2 : c === "zorlaGun" ? 1 : 0).catch(err => { p.querySelector("#rHata").textContent = hataMesaji(err); }).finally(() => { b.disabled = false; });
   });
   document.body.appendChild(p);
 };
@@ -141,8 +145,7 @@ function randevuMesaji(ie, r){
   const m = bul("musteriler", ie.musteriId) || {}, d = tarihOku(r.tarih), fark = Math.round((d - tarihOku(bugun())) / 86400000);
   const gun = fark === 0 ? "bugün" : fark === 1 ? "yarın" : d.getDate() + " " + AYLAR[d.getMonth()] + " " + GUN_UZUN[d.getDay()];
   const ne = {"Montaj":"montaj", "Teslimat":"teslimat", "Ölçü / keşif":"ölçü almak", "Servis":"servis"}[r.tur] || "montaj";
-  return "Merhaba " + (m.ad || "") + ",\n" + ie.baslik + " siparişiniz için " + gun + (r.saat ? " saat " + r.saat + " civarında" : "") + " " + ne + " için geleceğiz." +
-    (ie.adres ? "\nAdres: " + ie.adres : "") + "\nUygun değilseniz lütfen bize haber verin.\n\n" + FIRMA;
+  return sablonDoldur(mesajSablonu("randevu"), {ad:m.ad || "", is:ie.baslik, gun, saat:r.saat ? " saat " + r.saat + " civarında" : "", ne, adres:ie.adres ? "\nAdres: " + ie.adres : "", firma:FIRMA});
 }
 EYLEM.randevuHatirlat = (el, arg) => {
   const [isId, rid] = arg.split("|"), ie = bul("is_emirleri", isId), r = ie && ie.montaj.find(x => x.id === rid); if(!r) return;

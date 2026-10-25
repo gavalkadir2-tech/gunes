@@ -46,6 +46,7 @@ function ciz(){
       (s.geri ? '<button class="ikon-buton" onclick="geri()" aria-label="Geri">' + ik("sol") + '</button>' : '<div class="logo"><img src="logo-ikon.png" alt="Güneş Mobilya" class="logo-ikon"></div>') +
       '<h1>' + esc(s.baslik) + '</h1>' +
       durumYazisi() +
+ zilDugmesi() +
       '<button class="ikon-buton arama-dugme" data-is="aramaAc" aria-label="Ara" title="Ara (Ctrl+K)">' + ik("ara") + '<span class="masaustu-yazi">Ara</span><kbd>Ctrl K</kbd></button>' +
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="takvim" aria-label="Takvim">' + ik("takvim") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + (s.baskiLogo === false ? '' : '<div class="baski-logo"><img src="logo.png" alt="Güneş Mobilya"></div>') + cevrimdisiUyari() + s.html + '</main>';

@@ -27,7 +27,7 @@ async function sistemKaydet(degisen){
   const a = veri.ayarlar.find(x => x.anahtar === "sistem"), eski = a && a.deger && typeof a.deger === "object" ? a.deger : {};
   await Depo.kaydet("ayarlar", {anahtar:"sistem", deger:Object.assign({}, eski, degisen)});
 }
-const CIHAZ_VARSAYILAN = {tema:"acik", yazi:1, acilis:"ana", otoCikis:0};
+const CIHAZ_VARSAYILAN = {tema:"acik", yazi:1, acilis:"ana", otoCikis:0, pin:"", kilitDk:5};
 function cihaz(){ try{ return Object.assign({}, CIHAZ_VARSAYILAN, JSON.parse(ayarOku("cihaz") || "{}")); }catch(e){ return Object.assign({}, CIHAZ_VARSAYILAN); } }
 function cihazKaydet(d){ ayarYaz("cihaz", JSON.stringify(Object.assign(cihaz(), d))); ayarlariUygula(); }
 // İki rengi karıştırır (oran 0 → a, 1 → b)
@@ -303,14 +303,18 @@ const AYAR_BOLUM = [
   ["personel", "Personel", "kisi", "Çalışma günü, saat, mesai"],
   ["kullanicilar", "Kullanıcılar ve yetkiler", "kisiler", "Yönetici ve usta hesapları"],
   ["gorunum", "Görünüm ve modüller", "resim", "Tema, renk, yazı boyutu, menü"],
-  ["guvenlik", "Bildirim ve güvenlik", "kilit", "Bildirimler, otomatik çıkış"],
+  ["bildirim", "Bildirimler", "zil", "Zil, ses, sessiz saatler, yapılacaklar"],
+  ["guvenlik", "Güvenlik", "kilit", "Ekran kilidi (PIN), otomatik çıkış"],
+  ["mesajlar", "Mesaj şablonları", "mesaj", "WhatsApp mesajları"],
+  ["belge", "Yazdırma ve belgeler", "fatura", "Teklif çıktısı: başlık, logo, imza"],
+  ["takvim", "Takvim ve randevular", "takvim", "Varsayılan saat, süre, çalışma günleri"],
   ["yedek", "Yedek ve veri", "bulut", "Yedek, geri yükleme, ayar aktarımı"],
   ["cop", "Çöp kutusu", "sil", "Silinenler, geri yükleme"],
   ["gecmis", "İşlem geçmişi", "gecmis", "Kim, ne zaman, ne yaptı"],
   ["hedef", "Aylık hedefler", "grafik", "Sipariş, kâr, teklif dönüşümü"],
   ["hesap", "Hesap", "cikis", "Oturum"]
 ];
-const USTA_AYAR = {gorunum:1, guvenlik:1, hesap:1};
+const USTA_AYAR = {gorunum:1, bildirim:1, guvenlik:1, hesap:1};
 const kartBaslik = (b, ek) => '<div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">' + b + (ek ? ' <span class="ist" style="font-weight:400">' + ek + '</span>' : '') + '</div>';
 const sayiAlan = (id, etiket, v, ek) => '<div><label class="etiket" for="' + id + '">' + etiket + (ek ? ' <span class="ist">' + ek + '</span>' : '') + '</label><input id="' + id + '" class="kutu" inputmode="numeric" value="' + esc(v) + '"></div>';
 const yaziAlan = (id, etiket, v, o = {}) => '<div><label class="etiket" for="' + id + '">' + etiket + (o.ek ? ' <span class="ist">' + o.ek + '</span>' : '') + '</label><input id="' + id + '" class="kutu"' +
@@ -433,12 +437,13 @@ function ayarGorunum(){
     '</div>' : '');
 }
 function ayarGuvenlik(){
-  const c = cihaz(), izin = window.Notification ? Notification.permission : "yok";
-  return '<div class="kart">' + kartBaslik("Bildirimler") +
-      '<div class="alt-bilgi" style="margin:0">' + (izin === "granted" ? "Bildirimler açık. Uygulamayı günün ilk açılışında acil işler için tek bir özet bildirim gelir." :
-        izin === "denied" ? "Bildirimler tarayıcı ayarlarından engellenmiş. Telefonun / tarayıcının site ayarlarından izin verin." : izin === "yok" ? "Bu tarayıcı bildirim desteklemiyor." :
-        "Acil işler (bugün teslim, geciken tahsilat) için telefon bildirimi alabilirsiniz.") + '</div>' +
-      (izin === "default" ? '<button class="buton ikincil" data-is="bildirimIzni">' + ik("zil") + 'Bildirimlere izin ver</button>' : '') + '</div>' +
+  const c = cihaz();
+  return '<div class="kart">' + kartBaslik("Ekran kilidi", "(bu cihaz)") +
+      '<div class="alt-bilgi" style="margin:0 0 8px">Uygulama açılırken ve bir süre işlem yapılmayınca PIN sorulur. Ortak kullanılan bilgisayar veya atölyedeki tablet için.</div>' +
+      (c.pin ? '<div style="display:flex;gap:8px;align-items:center;color:var(--giris);font-weight:500;margin-bottom:8px">' + ik("kilit") + 'Ekran kilidi açık</div>' +
+        '<label class="etiket">Kilitlenme süresi</label><div class="secenekler">' + [[1, "1 dk"], [5, "5 dk"], [15, "15 dk"], [30, "30 dk"], [0, "Yalnız açılışta"]].map(([d, y]) => '<button type="button" class="secenek' + (d === Number(c.kilitDk) ? ' secili' : '') + '" data-is="cihazSec" data-arg="kilitDk|' + d + '">' + y + '</button>').join("") + '</div>' : '') +
+      '<div class="buton-sira"><button class="buton ' + (c.pin ? 'ikincil' : '') + '" data-is="pinAyarla">' + ik("kilit") + (c.pin ? "PIN'i değiştir / kaldır" : "PIN belirle") + '</button>' +
+        (c.pin ? '<button class="buton ikincil" data-is="simdiKilitle">Şimdi kilitle</button>' : '') + '</div></div>' +
     (cevrimici ? '<div class="kart">' + kartBaslik("Otomatik çıkış", "(bu cihaz)") +
       '<div class="alt-bilgi" style="margin:0 0 8px">Ortak kullanılan bilgisayar veya telefonda, işlem yapılmazsa oturum kendiliğinden kapanır.</div>' +
       '<div class="secenekler">' + [[0, "Kapalı"], [15, "15 dk"], [30, "30 dk"], [60, "1 saat"], [240, "4 saat"]].map(([d, y]) => '<button type="button" class="secenek' + (d === Number(c.otoCikis) ? ' secili' : '') + '" data-is="cihazSec" data-arg="otoCikis|' + d + '">' + y + '</button>').join("") + '</div></div>' : '');
@@ -470,6 +475,7 @@ function ayarYedek(){
     html += '<div class="kart">' + kartBaslik("Bu cihazdaki eski kayıtlar") + '<div>Bu cihazda bulut öncesinden kalan <b>' + eski.hareketler.length + ' kayıt</b> ve <b>' + eski.musteriler.length + ' cari</b> var.</div>' +
       '<div class="hata" id="hata"></div><button class="buton" data-is="buluttaAktar">' + ik("bulut") + 'Buluta aktar</button></div>';
   if(!cevrimici) html += '<div class="uyari">Bilgiler şu an <b>sadece bu cihazda</b> saklanıyor.</div>';
+  html += depolamaKarti();
   html += sunucuYedekKarti();
   html += '<div class="kart">' + kartBaslik("Yedek") + '<div>Tüm kayıtları küçük bir dosya olarak indirir (fotoğraf ve videolar dahil değildir).</div>' +
     '<div class="alt-bilgi">Son yedek (bu cihazda): <b>' + (son ? tarihYaz(tarihStr(new Date(son))) : "Hiç alınmadı") + '</b></div>' +
@@ -484,7 +490,9 @@ function ayarYedek(){
   html += '<div class="kart">' + kartBaslik("Ayarları aktar") + '<div>Firma bilgileri, listeler, kategoriler, malzeme fiyatları ve sistem ayarlarını tek dosyaya alır; başka bir hesaba / cihaza yükleyebilirsiniz.</div>' +
     '<div class="buton-sira" style="margin-top:12px"><button class="buton ikincil" data-is="ayarDisa">' + ik("indir") + 'Ayarları indir</button>' +
     '<button class="buton ikincil" onclick="document.getElementById(\'ayarDosya\').click()">' + ik("yukle") + 'Ayarları yükle</button></div>' +
-    '<input type="file" id="ayarDosya" accept=".json,application/json" style="display:none" onchange="ayarIceAktar(this)"></div>';
+    '<input type="file" id="ayarDosya" accept=".json,application/json" style="display:none" onchange="ayarIceAktar(this)"></div>' +
+    '<div class="kart">' + kartBaslik("Varsayılan ayarlar") + '<div>Sistem ayarlarını (numaralar, listeler, hatırlatma süreleri, şablonlar, belge ve takvim ayarları, görünüm) ilk haline döndürür. Firma bilgileri, ortaklar, hedefler ve kayıtlar değişmez.</div>' +
+    '<button class="buton tehlike" data-is="ayarSifirla">' + ik("dondur") + 'Tüm ayarları varsayılana döndür</button></div>';
   html += '<div class="kart">' + bilgiSatir("Cari", veri.musteriler.length) + bilgiSatir("İş emri", veri.is_emirleri.length) + bilgiSatir("Fatura", veri.faturalar.length) + bilgiSatir("Kasa hareketi", veri.hareketler.length) +
     bilgiSatir("Katalog projesi", veri.katalog.length + " (" + veri.katalog_gorseller.length + " fotoğraf)") + bilgiSatir("Personel", veri.personel.length) + bilgiSatir("Çöp kutusunda", cop.length) + '</div>';
   return html;
@@ -584,11 +592,13 @@ function ekranAyarlar(){
   let b = yol()[1];
   if(!bolumler.some(x => x[0] === b)) b = masaustu ? bolumler[0][0] : null;
   const ozet = x => x[0] === "cop" ? (cop.length ? cop.length + " kayıt" : "Boş") : x[0] === "yedek" && veritabaniEksikleri().length ? "⚠ Veritabanı güncellemesi eksik" : x[3];
-  const menu = '<div class="ayar-menu' + (b ? '' : ' tam') + '">' + bolumler.map(x => '<button data-git="ayarlar/' + x[0] + '" class="' + (x[0] === b ? 'aktif' : '') + '">' +
-    '<span class="rozet r-gri">' + ik(x[2]) + '</span><span class="orta"><div class="s1">' + x[1] + '</div><div class="s2">' + esc(ozet(x)) + '</div></span>' + ik("sag") + '</button>').join("") + '</div>';
+  const menu = '<div class="ayar-menu' + (b ? '' : ' tam') + '"><input class="kutu ayar-ara" id="ayarAra" type="search" placeholder="Ayarlarda ara… (KDV, PIN, şablon)" autocomplete="off">' +
+    bolumler.map(x => '<button data-git="ayarlar/' + x[0] + '" data-anahtar="' + esc((x[1] + " " + x[3] + " " + (AYAR_ANAHTAR[x[0]] || "")).toLocaleLowerCase("tr")) + '" class="' + (x[0] === b ? 'aktif' : '') + '">' +
+    '<span class="rozet r-gri">' + ik(x[2]) + '</span><span class="orta"><div class="s1">' + x[1] + '</div><div class="s2">' + esc(ozet(x)) + '</div></span>' + ik("sag") + '</button>').join("") + '<div class="bos ayar-yok" style="display:none">Eşleşen ayar yok</div>' +
+    (yetki.yonetici ? '<button class="baglanti" style="margin:14px 4px" data-git="ayarlar/gecmis">' + ik("gecmis") + ' Ayar değişiklik geçmişi</button>' : '') + '</div>';
   if(!b) return {baslik:"Ayarlar", html:menu};
   const icerik = {hedef:ayarHedef, ortaklar:ayarOrtaklar, firma:ayarFirma, teklif:ayarTeklif, is:ayarIs, liste:ayarListe, personel:() => personelAyarKarti().replace('style="margin-top:12px"', ''), kullanicilar:kullaniciKarti,
-    gorunum:ayarGorunum, guvenlik:ayarGuvenlik, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
+    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
   const baslik = bolumler.find(x => x[0] === b)[1];
   const sonra = () => {
     if(b === "gecmis") gecmisYukle(false);
@@ -812,4 +822,16 @@ EYLEM.buluttaAktar = btn => islem(btn, async () => {
   await hepsiniKaydet(yerelOku());
   try{ localStorage.removeItem(YEREL_ANAHTAR); }catch(e){}
   bildir("Eski kayıtlar buluta aktarıldı"); ciz();
+});
+
+EYLEM.ayarSifirla = () => onayla("Tüm ayarlar varsayılana dönsün mü?", "Önce “Ayarları indir” ile yedek almanızı öneririz. Firma bilgileri, ortaklar, hedefler ve kayıtlar değişmez. Bu cihazın tema, bildirim ve kilit ayarları da sıfırlanır.", "Varsayılana döndür", () => {
+  const s = sistem(), c = cihaz();
+  islem(null, async () => { await Depo.kaydet("ayarlar", {anahtar:"sistem", deger:{ortaklar:s.ortaklar, hedefler:s.hedefler}}); ayarYaz("cihaz", JSON.stringify({pin:c.pin, kilitDk:c.kilitDk})); ayarlariUygula(); bildir("Ayarlar varsayılana döndü"); ciz(); });
+});
+EYLEM.simdiKilitle = () => kilitGoster();
+document.addEventListener("input", e => {
+  if(e.target.id !== "ayarAra") return;
+  const q = e.target.value.trim().toLocaleLowerCase("tr").split(/\s+/).filter(Boolean); let n = 0;
+  document.querySelectorAll(".ayar-menu [data-anahtar]").forEach(b => { const v = !q.length || q.every(k => b.getAttribute("data-anahtar").indexOf(k) >= 0); b.style.display = v ? "" : "none"; if(v) n++; });
+  const y = document.querySelector(".ayar-yok"); if(y) y.style.display = n ? "none" : "";
 });

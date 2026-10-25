@@ -113,9 +113,8 @@ const oneriMiktar = m => { const q = stokMiktar(m.id), hedef = (m.min || 0) * 2;
 const yoldaki = mid => veri.siparisler.filter(s => s.durum === "bekliyor" || s.durum === "kismi").reduce((t, s) => t + s.kalemler.filter(k => k.malzemeId === mid).reduce((a, k) => a + Math.max(0, k.miktar - (k.gelen || 0)), 0), 0);
 function siparisMesaji(s){
   const t = bul("musteriler", s.tedarikciId) || {};
-  return "Merhaba " + (t.ad || "") + ",\nAşağıdaki malzemeleri sipariş etmek istiyoruz (" + s.no + "):\n\n" +
-    s.kalemler.map(k => "• " + k.ad + ": " + miktarYaz(k.miktar) + " " + k.birim).join("\n") + (s.aciklama ? "\n\nNot: " + s.aciklama : "") +
-    "\n\nFiyat ve teslim tarihini bildirir misiniz?\n" + FIRMA + (firma().telefon ? " · " + firma().telefon : "");
+  return sablonDoldur(mesajSablonu("tedarikci"), {ad:t.ad || "", no:s.no, liste:s.kalemler.map(k => "• " + k.ad + ": " + miktarYaz(k.miktar) + " " + k.birim).join("\n"),
+    not:s.aciklama ? "\n\nNot: " + s.aciklama : "", firma:FIRMA, telefon:firma().telefon ? " · " + firma().telefon : ""});
 }
 function ekranSiparisler(){
   if(eksikTablo.siparisler) return {baslik:"Malzeme siparişi", geri:true, html:'<div class="uyari">Sipariş için Supabase\'de <b>supabase-guncelleme-10.sql</b> dosyasını çalıştırın, sonra sayfayı yenileyin.</div>'};

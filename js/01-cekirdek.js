@@ -189,7 +189,9 @@ function bellegeYaz(t, k, sunucudan){
   const id = anahtarAdi(t), l = veri[t];
   const i = l.findIndex(x => x[id] === k[id]);
   if(sunucudan && t === "is_emirleri" && i >= 0) fiyatKoru(k, l[i]);
+  const eski = i >= 0 ? l[i] : null;
   if(i >= 0) l[i] = k; else l.push(k);
+  if(sunucudan && typeof uzakDegisiklik === "function") uzakDegisiklik(t, eski, k);   // bildirim merkezi
 }
 
 // Sayfa sayfa (1000'er) tüm satırları getirir; sorgu her sayfa için yeniden kurulur
@@ -263,7 +265,8 @@ const Depo = {
       const gelen = await Promise.all(tablolar.map(t => sayfali(() => sb.from(t).select("*").gt("degisme", bas).order("degisme")).then(l => [t, l], e => { if(SONRADAN[t] && eksikMi(e)){ eksikTablo[t] = 1; return [t, []]; } throw e; })));
       const fiyat = fiyatAyri && yetki.yonetici ? await sayfali(() => sb.from("is_emri_fiyat").select("*").gt("degisme", bas).order("degisme")) : [];
       const silinen = await sayfali(() => sb.from("silinenler").select("tablo,kayit_id,zaman").gt("zaman", bas).order("zaman"));
-      gelen.forEach(([t, l]) => l.forEach(x => { bellegeYaz(t, buluttanCevir(t, x), true); if(x.degisme > enBuyuk) enBuyuk = Number(x.degisme); }));
+      toplu++;
+      try{ gelen.forEach(([t, l]) => l.forEach(x => { bellegeYaz(t, buluttanCevir(t, x), true); if(x.degisme > enBuyuk) enBuyuk = Number(x.degisme); })); }finally{ toplu--; }
       fiyat.forEach(f => { const ie = bul("is_emirleri", f.id); if(ie) fiyatBirlestir(ie, f); if(f.degisme > enBuyuk) enBuyuk = Number(f.degisme); });
       silinen.forEach(x => { if(veri[x.tablo]){ const a = anahtarAdi(x.tablo); veri[x.tablo] = veri[x.tablo].filter(y => y[a] !== x.kayit_id); } if(x.zaman > enBuyuk) enBuyuk = Number(x.zaman); });
       imlec = enBuyuk; cevrimdisi = false; sonEsitleme = Date.now();

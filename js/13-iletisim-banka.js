@@ -58,7 +58,7 @@ const TAHSILAT_SABLON = "Merhaba {ad},\nhesabınızda {tutar} tutarında ödenme
 function ekranTahsilat(){
   const f = filtre.tahsilat || "geciken", l = alacakListesi().filter(x => f === "hepsi" || x.geciken.length), gecmis = gonderimGecmisi("tahsilat");
   if(!filtre.tahsilatSecili) filtre.tahsilatSecili = {};
-  const sec = filtre.tahsilatSecili, sablon = filtre.tahsilatSablon || TAHSILAT_SABLON;
+  const sec = filtre.tahsilatSecili, sablon = filtre.tahsilatSablon || mesajSablonu("tahsilat");
   l.forEach(x => { if(sec[x.m.id] === undefined) sec[x.m.id] = !!x.m.telefon && !(gecmis[x.m.id] && Date.now() - gecmis[x.m.id] < 3 * 86400000); });
   const toplam = l.reduce((t, x) => t + x.bakiye, 0), secili = l.filter(x => sec[x.m.id]);
   const html = '<div class="izgara uc"><div class="kart ozet"><div class="kart-baslik">Alacaklı müşteri</div><div class="deger">' + l.length + '</div></div>' +
@@ -77,9 +77,9 @@ function ekranTahsilat(){
     const t = document.getElementById("tsSablon"); t.addEventListener("input", () => { filtre.tahsilatSablon = t.value; });
   }};
 }
-EYLEM.tahsilatSablonSifirla = () => { filtre.tahsilatSablon = TAHSILAT_SABLON; ciz(); };
+EYLEM.tahsilatSablonSifirla = () => { filtre.tahsilatSablon = mesajSablonu("tahsilat"); ciz(); };
 EYLEM.tahsilatGonder = () => {
-  const f = filtre.tahsilat || "geciken", fr = firma(), sablon = filtre.tahsilatSablon || TAHSILAT_SABLON;
+  const f = filtre.tahsilat || "geciken", fr = firma(), sablon = filtre.tahsilatSablon || mesajSablonu("tahsilat");
   const l = alacakListesi().filter(x => (f === "hepsi" || x.geciken.length) && filtre.tahsilatSecili[x.m.id] && x.m.telefon);
   const gonderilen = [];
   siraliWhatsapp("Tahsilat hatırlatması", l.map(x => ({tel:x.m.telefon, ad:x.m.ad, kimlik:x.m.id, metin:sablonDoldur(sablon, {ad:x.m.ad, tutar:para(x.bakiye), firma:FIRMA,
@@ -269,7 +269,7 @@ function kampanyaListesi(){
   }).filter(Boolean).sort((a, b) => a.sonTarih < b.sonTarih ? -1 : 1);
 }
 function ekranKampanya(){
-  if(!filtre.kampanya) filtre.kampanya = {yil:2, tur:"", aktifHaric:true, sablon:KAMPANYA_SABLON, baglanti:"", secili:{}};
+  if(!filtre.kampanya) filtre.kampanya = {yil:2, tur:"", aktifHaric:true, sablon:mesajSablonu("kampanya"), baglanti:"", secili:{}};
   const f = filtre.kampanya, l = kampanyaListesi(), gecmis = gonderimGecmisi("kampanya");
   l.forEach(x => { if(f.secili[x.m.id] === undefined) f.secili[x.m.id] = !(gecmis[x.m.id] && Date.now() - gecmis[x.m.id] < 90 * 86400000); });
   const secili = l.filter(x => f.secili[x.m.id]);

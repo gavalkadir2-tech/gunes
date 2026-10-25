@@ -250,12 +250,15 @@ function waIsSablonlari(ie, m){
   const o = isOzet(ie.id), tes = ie.teslimTarihi ? tarihYaz(ie.teslimTarihi) : "";
   const bas = "Merhaba " + (m.ad || "") + ", ", imza = "\n\n" + FIRMA, isAd = "“" + ie.baslik + "”";
   const ozet = o.fiyat ? "\nToplam tutar: " + para(o.fiyat) + "\nAlınan: " + para(o.tahsilat) + "\nKalan: " + para(Math.max(o.kalan, 0)) : "";
+  // Ayarlar → Mesaj şablonları
+  const al = {ad:m.ad || "", no:ie.no, is:ie.baslik, ozet, firma:FIRMA, tutar:para(Math.max(o.kalan, 0)), kalan:o.kalan > 0 ? "\nTeslimatta kalan ödeme: " + para(o.kalan) : ""};
+  const sb_ = (k, tesYazi) => sablonDoldur(mesajSablonu(k), Object.assign({teslim:tes ? tesYazi + tes : ""}, al));
   return [
-    {ad:"Sipariş onayı", metin: bas + ie.no + " numaralı " + isAd + " siparişinizi aldık." + ozet + (tes ? "\nTahmini teslim: " + tes : "") + imza},
-    {ad:"Üretimde", metin: bas + isAd + " siparişiniz üretime alındı." + (tes ? "\nTahmini teslim tarihi: " + tes : "") + imza},
-    {ad:"Hazır", metin: bas + isAd + " siparişiniz hazır. Teslimat için uygun olduğunuz gün ve saati bildirir misiniz?" + (o.kalan > 0 ? "\nTeslimatta kalan ödeme: " + para(o.kalan) : "") + imza},
-    {ad:"Teslim edildi", metin: bas + isAd + " siparişiniz teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz." + imza},
-    {ad:"Ödeme hatırlatma", metin: bas + ie.no + " numaralı siparişinizle ilgili " + para(Math.max(o.kalan, 0)) + " tutarında ödemeniz bulunmaktadır. Uygun olduğunuzda bilgi verirseniz seviniriz." + imza},
+    {ad:"Sipariş onayı", metin: sb_("siparisOnay", "\nTahmini teslim: ")},
+    {ad:"Üretimde", metin: sb_("uretim", "\nTahmini teslim tarihi: ")},
+    {ad:"Hazır", metin: sb_("hazir", "")},
+    {ad:"Teslim edildi", metin: sb_("teslim", "")},
+    {ad:"Ödeme hatırlatma", metin: sb_("odeme", "")},
     {ad:"Fiyat teklifi", metin: bas + isAd + " için fiyat teklifimiz:" + ie.kalemler.map(k => "\n• " + k.ad + (k.olcu ? " (" + k.olcu + ")" : "") + (k.renk ? " — " + k.renk : "") +
         (k.adet > 1 ? " × " + k.adet : "") + (k.fiyat ? ": " + para(k.adet * k.fiyat) : "")).join("") +
       (() => { const h = isHesap(ie.kalemler, isTeklif(ie)); if(!(h.ara > 0)) return "";

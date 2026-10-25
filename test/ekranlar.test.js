@@ -4,7 +4,7 @@ const ROTALAR = ["ana", "kasa", "kayit/h1", "giris", "cikis", "cariler", "cari/m
   "faturalar", "fatura/f1", "fatura-form/satis", "fatura-form/alis", "katalog", "proje/k1", "proje-form/k1", "katalog-ice", "paylasimlar", "paylas-form", "malzemeler", "stok",
   "siparisler", "cekler", "cekler/c1", "personel", "personel/p1", "personel-form/p1", "puantaj", "maas/ay", "rapor", "karlilik", "kdv", "fiyat", "fiyatkarsilastir", "araclar",
   "etiket/i1", "qr/i1", "tahsilat", "ekstre", "kampanya", "oncesonra/i1", "hatirlatmalar",
-  "ayarlar", "ayarlar/firma", "ayarlar/ortaklar", "ayarlar/teklif", "ayarlar/is", "ayarlar/liste", "ayarlar/personel", "ayarlar/gorunum", "ayarlar/guvenlik", "ayarlar/yedek",
+  "ayarlar", "ayarlar/firma", "ayarlar/ortaklar", "ayarlar/teklif", "ayarlar/is", "ayarlar/liste", "ayarlar/personel", "ayarlar/gorunum", "ayarlar/bildirim", "ayarlar/guvenlik", "ayarlar/mesajlar", "ayarlar/belge", "ayarlar/takvim", "ayarlar/yedek",
   "ayarlar/cop", "ayarlar/gecmis", "ayarlar/hedef", "ayarlar/hesap"];
 
 module.exports = ({test}) => {

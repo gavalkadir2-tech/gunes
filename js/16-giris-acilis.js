@@ -41,8 +41,9 @@ async function acilis(){
   if(cevrimici) kuyruk = (await IDB.al("kuyruk")) || [];
   // Hızlı açılış: cihazdaki son kopya (100 günden yeni) hemen gösterilir, değişenler arkada çekilir
   const hizli = cevrimici && navigator.onLine && await anlikYukle() && surumVar && imlec > 0 && Date.now() - sonEsitleme < 100 * 86400000;
+  await bildirimYukle();
   if(hizli){
-    hazir = true; ciz();
+    hazir = true; ciz(); kilitGoster();
     try{ await Depo.esitle(); }
     catch(e){ if(/JWT/i.test(e.message || "")){ hazir = false; return girisEkrani("Oturum süresi doldu, tekrar giriş yapın."); } }
     sessizCiz();
@@ -60,7 +61,7 @@ async function acilis(){
     return;
   }
   if(!location.hash && cihaz().acilis !== "ana") history.replaceState(null, "", "#" + cihaz().acilis);
-  hazir = true; ciz();
+  hazir = true; ciz(); kilitGoster();
   if(cevrimici && !cevrimdisi) canliBaglan();
   if(!cevrimdisi) copTemizle().then(() => logTemizle()).then(() => gunlukYedekKontrol()).catch(() => {});
   bildirimGonder();

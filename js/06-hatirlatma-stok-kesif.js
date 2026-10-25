@@ -4,7 +4,7 @@
 /* ================= HATIRLATMALAR ================= */
 // Ana sayfadaki "Yapılacaklar". seviye: 0 acil (kırmızı), 1 yaklaşan (sarı), 2 bilgi.
 function hatirlatmalar(){
-  const bg = bugun(), yarin = gunEkle(bg, 1), l = [], ss = sistem();
+  const bg = bugun(), l = [], ss = sistem();
   const gunFark = t => Math.round((tarihOku(t) - tarihOku(bg)) / 86400000);
   const ne = t => { const g = gunFark(t); return g < 0 ? -g + " gün gecikti" : g === 0 ? "bugün" : g === 1 ? "yarın" : g + " gün sonra"; };
   veri.is_emirleri.forEach(ie => {
@@ -33,7 +33,7 @@ function hatirlatmalar(){
     const c = cakisanlar(x.r);
     if(c.length && x.r.id < c[0].r.id) l.push({seviye:0, tarih:x.r.tarih, ikon:"takvim", yer:"takvim/" + haftaBasi(x.r.tarih), yazi:"Randevu çakışması " + ne(x.r.tarih) + ": " + x.ie.no + " ile " + c[0].ie.no,
       alt:"Aynı ekip aynı saatte iki yerde"});
-    if(yetki.yonetici && !x.r.hatirlatildi && x.r.tarih <= yarin && x.r.tur !== "Ölçü / keşif") l.push({seviye:1, tarih:x.r.tarih, ikon:"mesaj", yer:"takvim/" + haftaBasi(x.r.tarih),
+    if(yetki.yonetici && !x.r.hatirlatildi && x.r.tarih <= gunEkle(bg, takvimAyar().hatirlatGun) && x.r.tur !== "Ölçü / keşif") l.push({seviye:1, tarih:x.r.tarih, ikon:"mesaj", yer:"takvim/" + haftaBasi(x.r.tarih),
       yazi:x.r.tur + " " + ne(x.r.tarih) + " " + (x.r.saat || "") + ": müşteriye hatırlatma gönderin", alt:x.ie.no + " " + x.ie.baslik + " · " + cariAdi(x.ie.musteriId)});
   });
   if(yetki.yonetici) veri.cekler.filter(c => cekAcik(c) && c.vade && c.vade <= gunEkle(bg, ss.vadeGun)).forEach(c => l.push({seviye: c.vade <= bg ? 0 : 1, tarih:c.vade, ikon:c.tur === "alinan" ? "asagi" : "yukari", yer:"cekler/" + c.id,
@@ -50,7 +50,8 @@ function hatirlatmalar(){
       if(odenmedi.length) l.push({seviye:2, tarih:sonGun, ikon:"kasa", yer:"maas/ay", yazi:"Maaş zamanı: " + odenmedi.length + " kişinin bu ay hakedişi kaydedilmedi", alt:odenmedi.map(p => p.ad).join(", ")});
     }
   }
-  return l.sort((a, b) => a.seviye - b.seviye || (a.tarih < b.tarih ? -1 : a.tarih > b.tarih ? 1 : 0));
+  const ha = bildirimAyar().hatirlatma;   // Ayarlar → Bildirimler'de kapatılan türler
+  return l.filter(h => ha[hatirlatmaTuru(h)] !== false).sort((a, b) => a.seviye - b.seviye || (a.tarih < b.tarih ? -1 : a.tarih > b.tarih ? 1 : 0));
 }
 const HATIRLATMA_RENK = ["r-cikis", "r-ana", "r-borc"];
 const hatirlatmaSatir = h => '<button class="satir" data-git="' + h.yer + '"><span class="rozet ' + HATIRLATMA_RENK[h.seviye] + '">' + ik(h.ikon) + '</span>' +
@@ -69,7 +70,7 @@ EYLEM.bildirimIzni = () => {
 // Gün içinde ilk açılışta acil işler için tek bir özet bildirim.
 function bildirimGonder(){
   try{
-    if(!window.Notification || Notification.permission !== "granted" || ayarOku("sonBildirim") === bugun()) return;
+    if(!window.Notification || Notification.permission !== "granted" || ayarOku("sonBildirim") === bugun() || !bildirimAyar().gunlukOzet || sessizMi()) return;
     const acil = hatirlatmalar().filter(h => h.seviye === 0); if(!acil.length) return;
     ayarYaz("sonBildirim", bugun());
     const n = new Notification(FIRMA + ": " + acil.length + " acil iş", {body:acil.slice(0, 3).map(h => h.yazi).join("\n"), icon:"ikon-192.png", tag:"gunes-hatirlatma"});

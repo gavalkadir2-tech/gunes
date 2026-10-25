@@ -172,15 +172,15 @@ EYLEM.vitrinSunum = (el, i) => {
 EYLEM.teklifYazdir = async (el, id) => {
   const ie = bul("is_emirleri", id); if(!ie) return;
   const m = bul("musteriler", ie.musteriId) || {}, o = isOzet(id), fr = firma(), d = new Date();
-  const h = isHesap(ie.kalemler, isTeklif(ie)), fiyatli = h.kalemli;
-  const fotolar = isDosyalari(id).filter(x => dosyaTuru(x) === "g").slice(0, 6);
+  const ba = belgeAyar(), h = isHesap(ie.kalemler, isTeklif(ie)), fiyatli = h.kalemli && ba.kalemFiyat;   // Ayarlar → Yazdırma ve belgeler
+  const fotolar = isDosyalari(id).filter(x => dosyaTuru(x) === "g").slice(0, Number(ba.fotolar) || 0);
   if(fotolar.length) await urlleriGetir(fotolar).catch(() => {});
   document.querySelectorAll(".baski").forEach(x => x.remove());
   const b = document.createElement("div"); b.className = "baski";
   const toplamSatir = (k, v, kalin) => '<tr' + (kalin ? ' style="font-size:16px;font-weight:700"' : '') + '><td style="text-align:right;border:0">' + k + '</td><td style="text-align:right;border:0;white-space:nowrap;width:140px">' + v + '</td></tr>';
-  b.innerHTML = '<div class="b-ust"><div><img src="logo.png" alt="' + esc(FIRMA) + '" style="height:46px;display:block;margin-bottom:6px"><div>' + esc([fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></div>' +
-      '<div style="text-align:right"><b style="font-size:16px">FİYAT TEKLİFİ</b><br>Teklif no: <b>' + esc(ie.no) + '</b><br>Tarih: ' + d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear() + '</div></div>' +
-    '<div>Sayın <b>' + esc(m.ad || "") + '</b>' + (m.telefon ? ' · ' + esc(m.telefon) : '') + (ie.adres ? '<br>' + esc(ie.adres) : '') + '</div>' +
+  b.innerHTML = '<div class="b-ust"><div>' + (ba.logo ? '<img src="logo.png" alt="' + esc(FIRMA) + '" style="height:46px;display:block;margin-bottom:6px">' : '<b style="font-size:18px">' + esc(FIRMA) + '</b>') + '<div>' + esc([fr.adres, fr.telefon].filter(Boolean).join(" · ")) + '</div></div>' +
+      '<div style="text-align:right"><b style="font-size:16px">' + esc(ba.teklifBaslik) + '</b><br>Teklif no: <b>' + esc(ie.no) + '</b><br>Tarih: ' + d.getDate() + " " + AYLAR[d.getMonth()] + " " + d.getFullYear() + '</div></div>' +
+    '<div>Sayın <b>' + esc(m.ad || "") + '</b>' + (m.telefon && ba.musteriTel ? ' · ' + esc(m.telefon) : '') + (ie.adres ? '<br>' + esc(ie.adres) : '') + '</div>' +
     '<h2>' + esc(ie.baslik) + '</h2>' +
     (ie.kalemler.length ? '<table><tr><th>Ürün</th><th>Ölçü</th><th>Malzeme / renk</th><th>Adet</th>' + (fiyatli ? '<th style="text-align:right">Birim fiyat</th><th style="text-align:right">Tutar</th>' : '') + '</tr>' +
       ie.kalemler.map(k => '<tr><td>' + esc(k.ad) + '</td><td>' + esc(k.olcu) + '</td><td>' + esc(k.renk) + '</td><td>' + k.adet + '</td>' +
@@ -192,9 +192,10 @@ EYLEM.teklifYazdir = async (el, id) => {
     (ie.aciklama ? '<p style="white-space:pre-wrap">' + esc(ie.aciklama) + '</p>' : '') +
     '<p>' + [ie.teslimTarihi ? 'Tahmini teslim: <b>' + esc(tamTarih(ie.teslimTarihi)) + '</b>' : '', ie.teklif.gecerlilik ? 'Teklif geçerlilik tarihi: <b>' + esc(tamTarih(ie.teklif.gecerlilik)) + '</b>' : ''].filter(Boolean).join("<br>") + '</p>' +
     (fr.teklifNotu ? '<p style="white-space:pre-wrap">' + esc(fr.teklifNotu) + '</p>' : '') +
-    (fr.iban ? '<p>IBAN: <b>' + esc(fr.iban) + '</b> (' + esc(FIRMA) + ')</p>' : '') +
+    (fr.iban && ba.iban ? '<p>IBAN: <b>' + esc(fr.iban) + '</b> (' + esc(FIRMA) + ')</p>' : '') +
     (fotolar.length ? '<h2>Görseller</h2><div class="b-foto">' + fotolar.map(x => urlOnbellek[x.yol] ? '<img src="' + esc(urlOnbellek[x.yol].url) + '" alt="">' : '').join("") + '</div>' : '') +
-    '<div style="display:flex;justify-content:space-between;margin-top:40px"><div>Müşteri onayı<br><br>……………………</div><div style="text-align:right">' + esc(FIRMA) + '<br><br>……………………</div></div>';
+    (ba.imza ? '<div style="display:flex;justify-content:space-between;margin-top:40px"><div>Müşteri onayı<br><br>……………………</div><div style="text-align:right">' + esc(FIRMA) + '<br><br>……………………</div></div>' : '') +
+    (ba.altBilgi ? '<div style="margin-top:28px;padding-top:8px;border-top:1px solid #ccc;font-size:11px;text-align:center;white-space:pre-wrap">' + esc(ba.altBilgi) + '</div>' : '');
   document.body.appendChild(b);
   await Promise.all(Array.from(b.querySelectorAll("img")).map(x => x.complete ? 0 : new Promise(r => { x.onload = x.onerror = r; setTimeout(r, 5000); })));
   const temizle = () => { b.remove(); document.body.classList.remove("teklif-baski"); window.removeEventListener("afterprint", temizle); };

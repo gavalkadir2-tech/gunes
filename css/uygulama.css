@@ -523,3 +523,45 @@ body.gizle-stok #menu [data-git="stok"], body.gizle-rapor #menu [data-git="rapor
 .os-secici{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:6px}
 .os-secici .foto img{width:100%;height:100%;object-fit:cover}.os-secici .os-secili{outline:3px solid var(--ana);outline-offset:-3px}
 .os-tuval{width:100%;height:auto;max-height:70vh;object-fit:contain;background:#1c1917;border-radius:10px;display:block}
+
+/* ===== Bildirim merkezi ===== */
+.zil{position:relative}
+.zil-sayi{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#dc2626;color:#fff;font-size:11px;font-style:normal;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--kart)}
+.bildirim-perde{align-items:stretch;justify-content:flex-end;padding:0}
+.bildirim-panel{background:var(--bg);width:min(420px,100vw);height:100%;display:flex;flex-direction:column;box-shadow:-8px 0 30px rgba(0,0,0,.15);animation:panelGel .18s ease}
+@keyframes panelGel{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.bp-ust{display:flex;align-items:center;gap:8px;padding:12px 12px calc(12px) 16px;padding-top:calc(12px + env(safe-area-inset-top));border-bottom:1px solid var(--cizgi);background:var(--kart)}
+.bp-ust b{flex:1;font-size:17px}
+.bp-govde{flex:1;overflow-y:auto;padding:10px 10px calc(16px + env(safe-area-inset-bottom))}
+.bp-filtre{margin:4px 2px 8px;flex-wrap:wrap}
+.bp-yapilacak{background:var(--kart);border:1px solid var(--cizgi);border-radius:12px;padding:4px 10px;margin-bottom:10px}
+.bp-yapilacak summary{cursor:pointer;padding:8px 0;font-weight:600;display:flex;align-items:center;gap:8px}
+.bp-yapilacak summary .ik{width:18px;height:18px}
+.bp-gun{font-size:12px;font-weight:600;color:var(--soluk);text-transform:uppercase;letter-spacing:.04em;margin:12px 6px 4px}
+.bp-satir{display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;background:var(--kart);border:1px solid var(--cizgi);border-radius:12px;padding:10px;margin-bottom:6px;color:var(--yazi)}
+.bp-satir.yeni{border-color:var(--ana);box-shadow:inset 3px 0 0 var(--ana)}
+.bp-satir .orta{flex:1;min-width:0}.bp-satir .s1{font-weight:500;font-size:14px}.bp-satir .s2{color:var(--soluk);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bp-satir.yeni .s1{font-weight:700}
+.bp-satir .rozet{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bp-saat{font-size:12px;color:var(--soluk);white-space:nowrap}
+.bildirim-tost{position:fixed;right:16px;bottom:calc(90px + env(safe-area-inset-bottom));z-index:60;display:flex;gap:10px;align-items:flex-start;max-width:min(360px,calc(100vw - 32px));text-align:left;background:var(--kart);color:var(--yazi);border:1px solid var(--cizgi);border-left:4px solid var(--ana);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.18);font-size:13.5px;animation:panelGel .2s ease}
+.bildirim-tost .rozet{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bildirim-tost span span{color:var(--soluk)}
+@media(min-width:900px){.bildirim-tost{bottom:24px}}
+/* Anahtar (aç / kapa) */
+.anahtar{position:relative;width:44px;height:26px;flex-shrink:0}
+.anahtar input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer;z-index:1}
+.anahtar i{position:absolute;inset:0;border-radius:13px;background:var(--cizgi);transition:background .15s}
+.anahtar i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .15s}
+.anahtar input:checked + i{background:var(--ana)}
+.anahtar input:checked + i::after{transform:translateX(18px)}
+.anahtar input:focus-visible + i{outline:2px solid var(--ana);outline-offset:2px}
+/* Ekran kilidi */
+.kilit-ekrani{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+.kilit-kutu{width:min(320px,100%);text-align:center;background:var(--kart);border:1px solid var(--cizgi);border-radius:16px;padding:24px;box-shadow:var(--golge)}
+.kilit-kutu > .ik{width:28px;height:28px;color:var(--ana)}
+/* Ayarlar arama, takvim kapalı gün */
+.ayar-menu .ayar-ara{margin:0 0 4px}
+.hafta-gun.kapali{background:var(--hafif);opacity:.75}
+.hafta-gun.kapali .hafta-baslik b::after{content:" · kapalı";font-weight:400;color:var(--soluk)}
+@media print{.zil,.bildirim-tost,.bildirim-perde{display:none!important}}
