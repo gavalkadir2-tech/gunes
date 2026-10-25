@@ -235,10 +235,55 @@ EYLEM.siparisSil = (el, id) => { const s = bul("siparisler", id); if(s) onayla("
 /* ================= KESİM LİSTESİ VE PLAKA OPTİMİZASYONU ================= */
 // İş emrinin "kesim" alanı: {parcalar:[{id, ad, en, boy, adet, malzemeId, damar, bantU, bantK}], testere, pay}
 // Ölçüler mm. "damar": desen yönü korunur (parça döndürülmez). bantU / bantK: bantlanan uzun / kısa kenar sayısı (0–2).
-const VARSAYILAN_PLAKA = {id:"", ad:"Plaka 2100×2800 (malzeme seçilmedi)", en:2100, boy:2800, fiyat:0, birim:"plaka"};
+// Plaka ölçüsü malzemeye aittir (malzeme listesi, örn. 2100×2800 veya 1830×3660); malzeme seçilmeyen parçalarda varsayılan plaka (sistem ayarı "plakaOlcu").
+const PLAKA_OLCULERI = [[2100, 2800], [1830, 3660], [2070, 2800], [1220, 2440]];
+const varsayilanPlaka = () => { const o = sistem().plakaOlcu || {}, en = Number(o.en) || 2100, boy = Number(o.boy) || 2800;
+  return {id:"", ad:"Plaka " + en + "×" + boy + " (malzeme seçilmedi)", en, boy, fiyat:0, birim:"plaka"}; };
 const plakaKaynak = () => { if(malzemeListesi().length) return malzemeListesi(); const a = veri.ayarlar.find(x => x.anahtar === "plakalar"); return a && Array.isArray(a.deger) ? a.deger : []; };
-const plakaMalzemeleri = () => plakaKaynak().filter(m => m.birim === "plaka").map(m => Object.assign({}, m, {en:m.en || 2100, boy:m.boy || 2800}));
-const plakaBul = id => plakaMalzemeleri().find(m => m.id === id) || VARSAYILAN_PLAKA;
+const plakaMalzemeleri = () => { const v = varsayilanPlaka(); return plakaKaynak().filter(m => m.birim === "plaka").map(m => Object.assign({}, m, {en:m.en || v.en, boy:m.boy || v.boy})); };
+const plakaBul = id => plakaMalzemeleri().find(m => m.id === id) || varsayilanPlaka();
+const plakaEtiket = m => m.ad + " · " + m.en + "×" + m.boy;
+// Malzeme seçimi + yanında plaka ölçüsü düğmesi
+function plakaSecici(id, v, bos_, sinif){
+  const pm = plakaMalzemeleri(), vp = varsayilanPlaka();
+  return '<div class="plaka-sec"><select ' + (id ? 'id="' + id + '" ' : '') + 'class="kutu' + (sinif ? ' ' + sinif : '') + '">' + (bos_ ? '<option value="">' + esc(bos_) + '</option>' : '') +
+    (pm.length ? pm.map(m => '<option value="' + m.id + '"' + (m.id === v ? ' selected' : '') + '>' + esc(plakaEtiket(m)) + '</option>').join("") : '<option value="">Plaka ' + vp.en + '×' + vp.boy + '</option>') + '</select>' +
+    (yetki.yonetici && !yetki.salt ? '<button type="button" class="ikon-buton" data-plaka-olcu="1" title="Plaka ölçüsünü değiştir" aria-label="Plaka ölçüsü">' + ik("cetvel") + '</button>' : '') + '</div>';
+}
+function plakaOlcuPenceresi(mid, sonra){
+  const m = mid ? plakaBul(mid) : varsayilanPlaka(), p = document.createElement("div"); p.className = "perde";
+  p.innerHTML = '<div class="pencere" style="max-width:420px"><p>Plaka ölçüsü</p><div class="alt-bilgi">' + esc(mid ? m.ad : "Malzeme seçilmeyen parçalar için varsayılan plaka") + '</div>' +
+    '<div class="secenekler" id="poHazir">' + PLAKA_OLCULERI.map(([e, b]) => '<button type="button" class="secenek' + (e === m.en && b === m.boy ? ' secili' : '') + '" data-o="' + e + 'x' + b + '">' + e + '×' + b + '</button>').join("") + '</div>' +
+    '<div class="iki-alan"><div><label class="etiket" for="poEn">En (mm)</label><input id="poEn" class="kutu" inputmode="numeric" value="' + m.en + '"></div>' +
+      '<div><label class="etiket" for="poBoy">Boy (mm)</label><input id="poBoy" class="kutu" inputmode="numeric" value="' + m.boy + '"></div></div>' +
+    (mid ? '<div class="alt-bilgi">Aynı malzemenin iki farklı ebadını kullanıyorsanız malzeme listesine ayrı malzeme olarak ekleyin (örn. “18 mm beyaz sunta 1830×3660”).</div>' : '') +
+    '<div class="hata" id="poHata"></div><div class="buton-sira"><button class="buton ikincil" data-c="hayir">Vazgeç</button><button class="buton" data-c="kaydet">' + ik("tamam") + 'Kaydet</button></div></div>';
+  p.addEventListener("click", e => {
+    const o = e.target.closest("[data-o]"); if(o){ const [en, boy] = o.getAttribute("data-o").split("x"); p.querySelector("#poEn").value = en; p.querySelector("#poBoy").value = boy;
+      p.querySelectorAll("#poHazir .secenek").forEach(x => x.classList.toggle("secili", x === o)); return; }
+    const b = e.target.closest("[data-c]"); if(!b){ if(e.target === p) p.remove(); return; }
+    if(b.getAttribute("data-c") === "hayir") return p.remove();
+    const en = Math.round(sayiOku(p.querySelector("#poEn").value)), boy = Math.round(sayiOku(p.querySelector("#poBoy").value));
+    if(!(en >= 300 && en <= 6000 && boy >= 300 && boy <= 6000)) return p.querySelector("#poHata").textContent = "Ölçüler 300–6000 mm arası olmalı.";
+    islem(b, async () => {
+      if(mid) await Depo.kaydet("ayarlar", {anahtar:"malzemeler", deger:malzemeListesi().map(x => x.id === mid ? Object.assign({}, x, {en, boy}) : x)});
+      else await sistemKaydet({plakaOlcu:{en, boy}});
+      // Açık pencerelerdeki seçimler de güncellenir
+      if(mid) document.querySelectorAll('option[value="' + mid + '"]').forEach(x => { x.textContent = plakaEtiket(plakaBul(mid)); });
+      p.remove(); bildir("Plaka ölçüsü " + en + "×" + boy + " oldu"); if(sonra) sonra();
+    });
+  });
+  document.body.appendChild(p);
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-plaka-olcu]"); if(!b) return;
+  const s = b.parentNode.querySelector("select"), mid = s ? s.value : "";
+  if(!mid && plakaMalzemeleri().length) return uyar("Önce malzemeyi seçin", "Plaka ölçüsü seçilen malzemeye aittir.");
+  plakaOlcuPenceresi(mid, mid ? null : () => { if(s) s.options[s.selectedIndex].textContent = "Plaka " + varsayilanPlaka().en + "×" + varsayilanPlaka().boy; });
+});
+EYLEM.plakaOlcu = (el, mid) => plakaOlcuPenceresi(mid, () => {
+  const y = document.getElementById("vpYazi"); if(y){ y.textContent = varsayilanPlaka().en + "×" + varsayilanPlaka().boy; return; }   // malzeme listesindeki düzenlemeler kaybolmasın
+  if(yol()[0] === "kesim" && kesimForm) kesimOku(); ciz(); });
 
 // MaxRects (en kısa kenar uyumu): parçalar büyükten küçüğe yerleştirilir; testere payı her parçaya eklenir.
 function kesimHesapla(parcalar, o){
@@ -352,7 +397,8 @@ function ekranKesim(isId){
     kesimForm = {isId, parcalar:(k.parcalar || []).map(x => Object.assign({}, x)), testere:k.testere != null ? k.testere : 4, pay:k.pay != null ? k.pay : 10, degisti:false};
   }
   const f = kesimForm, pm = plakaMalzemeleri(), sonuc = kesimHesapla(f.parcalar, f), Y = yetki.yonetici;
-  const mSec = (v, sinif) => '<select class="kutu ' + sinif + '">' + (pm.length ? '' : '<option value="">Plaka 2100×2800</option>') + pm.map(m => '<option value="' + m.id + '"' + (m.id === v ? ' selected' : '') + '>' + esc(m.ad) + '</option>').join("") +
+  const vp = varsayilanPlaka();
+  const mSec = (v, sinif) => '<select class="kutu ' + sinif + '">' + (pm.length ? '' : '<option value="">Plaka ' + vp.en + '×' + vp.boy + '</option>') + pm.map(m => '<option value="' + m.id + '"' + (m.id === v ? ' selected' : '') + '>' + esc(plakaEtiket(m)) + '</option>').join("") +
     (pm.length && !pm.some(m => m.id === v) ? '<option value=""' + (!v ? ' selected' : '') + '>— Malzeme seçin —</option>' : '') + '</select>';
   const toplamPlaka = Object.values(sonuc).reduce((t, s) => t + s.plakalar.length, 0), toplamBant = Object.values(sonuc).reduce((t, s) => t + s.bant, 0);
   const toplamMaliyet = Object.values(sonuc).reduce((t, s) => t + s.maliyet, 0), sigmayan = Object.values(sonuc).flatMap(s => s.sigmayan);
@@ -368,7 +414,7 @@ function ekranKesim(isId){
         ie.kalemler.map((k, i) => '<button class="secenek" data-is="dolapUret" data-arg="' + i + '">' + ik("arti") + ' ' + esc(k.ad + (k.olcu ? " (" + k.olcu + ")" : "")) + '</button>').join("") +
         '<button class="secenek" data-is="dolapUret" data-arg="">' + ik("arti") + ' Elle dolap ölçüsü</button>' +
         (ie.kalemler.some(k => k.modul) ? '<button class="secenek secili" data-is="modulParcaUret">' + ik("kup") + ' Tüm modüllerden parça üret</button>' : '') + '</div>' : '<button class="buton ikincil kucuk" data-is="dolapUret" data-arg="">' + ik("arti") + 'Dolap ölçüsünden parça üret</button>') +
-      (pm.length ? '' : '<div class="uyari" style="margin:12px 0 0">Malzeme listesinde birimi “plaka” olan malzeme yok; 2100×2800 mm varsayıldı. Gerçek plaka ölçüsü ve fiyatı için <b data-git="malzemeler" style="cursor:pointer">malzeme listesine</b> plaka ekleyin (örn. 18 mm beyaz sunta, 2100×2800).</div>') +
+      (pm.length ? '' : '<div class="uyari" style="margin:12px 0 0">Malzeme listesinde birimi “plaka” olan malzeme yok; ' + vp.en + '×' + vp.boy + ' mm varsayıldı' + (Y ? ' (<b data-is="plakaOlcu" data-arg="" style="cursor:pointer">değiştir</b>)' : '') + '. Gerçek plaka ölçüsü ve fiyatı için <b data-git="malzemeler" style="cursor:pointer">malzeme listesine</b> plaka ekleyin (örn. 18 mm beyaz sunta, 1830×3660).</div>') +
     '</div>' +
     '<div class="kart yazdirma" style="overflow:auto"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600"><span>Parça listesi (' + f.parcalar.length + ' satır, ' + f.parcalar.reduce((t, p) => t + (Number(p.adet) || 0), 0) + ' parça)</span></div>' +
       '<table class="kesim-tablo"><thead><tr><th>#</th><th>Parça adı</th><th>En (mm)</th><th>Boy (mm)</th><th>Adet</th><th>Malzeme</th><th title="Bantlı uzun kenar">Bant U</th><th title="Bantlı kısa kenar">Bant K</th><th title="Desen yönü: döndürülmez">Damar</th><th></th></tr></thead>' +
@@ -385,7 +431,8 @@ function ekranKesim(isId){
       '<div class="kart ozet"><div class="kart-baslik">Fire</div><div class="deger">%' + Math.round(100 - Object.values(sonuc).reduce((t, s) => t + s.kullanilanM2, 0) / Math.max(1e-9, Object.values(sonuc).reduce((t, s) => t + s.kullanilanM2 + s.fireM2, 0)) * 100) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Plaka maliyeti</div><div class="deger">' + (Y ? para(toplamMaliyet) : '—') + '</div><div class="alt-bilgi">KDV hariç</div></div></div>' +
       '<div class="kart"><table class="kesim-ozet"><thead><tr><th>Malzeme</th><th>Plaka</th><th>Parça</th><th>Doluluk</th><th>Fire</th><th>Bant</th>' + (Y ? '<th>Maliyet</th>' : '') + '</tr></thead><tbody>' +
-        Object.values(sonuc).filter(s => s.plakalar.length).map(s => '<tr><td>' + esc(s.m.ad) + '</td><td>' + s.plakalar.length + '</td><td>' + s.parcaSayisi + '</td><td>%' + Math.round(s.kullanim) + '</td><td>' + miktarYaz(Math.round(s.fireM2 * 100) / 100) + ' m²</td><td>' +
+        Object.values(sonuc).filter(s => s.plakalar.length).map(s => '<tr><td>' + esc(s.m.ad) + '<div class="s2">' + s.m.en + '×' + s.m.boy + ' mm' +
+          (Y ? ' <button class="baglanti yazdirma" style="margin:0" data-is="plakaOlcu" data-arg="' + (s.m.id || "") + '">değiştir</button>' : '') + '</div></td><td>' + s.plakalar.length + '</td><td>' + s.parcaSayisi + '</td><td>%' + Math.round(s.kullanim) + '</td><td>' + miktarYaz(Math.round(s.fireM2 * 100) / 100) + ' m²</td><td>' +
           miktarYaz(Math.round(s.bant * 10) / 10) + ' m</td>' + (Y ? '<td>' + para(s.maliyet) + '</td>' : '') + '</tr>').join("") + '</tbody></table>' +
         (Y && Object.values(sonuc).some(s => s.m.id && s.plakalar.length) ? '<button class="buton ikincil kucuk yazdirma" style="margin-top:10px" data-is="kesimStok">' + ik("koli") + 'Plakaları stoktan düş</button>' : '') +
         '<button class="buton kucuk yazdirma" style="margin:10px 0 0 8px" onclick="window.print()">' + ik("yazdir") + 'Atölyeye yazdır</button>' +
@@ -442,12 +489,12 @@ EYLEM.dolapUret = (el, i) => {
   kesimOku();
   const ie = bul("is_emirleri", kesimForm.isId), k = i === "" ? null : ie.kalemler[Number(i)], o = k ? olcuOku(k.olcu) : null, pm = plakaMalzemeleri();
   const d = {ad:k ? k.ad : "", tip:tipTahmin(k ? k.ad : ""), en:o ? o[0] : 600, boy:o ? o[1] : 720, derinlik:o && o[2] ? o[2] : 560, adet:k ? Math.max(1, Number(k.adet) || 1) : 1, kalinlik:18, raf:1, kapak:o && o[0] > 600 ? 2 : 1,
-    govde:(pm[0] || {}).id || "", kapakMalzeme:(pm[0] || {}).id || "", arkalik:(pm.find(m => /duralit|arkal|8 ?mm|hdf/i.test(m.ad)) || {}).id || ""};
+    govde:(pm[0] || {}).id || "", kapakMalzeme:(pm[0] || {}).id || "", arkalik:(pm.find(m => /duralit|arkal|\b[3-8] ?mm|hdf/i.test(m.ad)) || {}).id || ""};
   if(d.tip === "alt" && !(o && o[2])) d.derinlik = 560; if(d.tip === "ust" && !(o && o[2])) d.derinlik = 320;
   const md = k && k.modul && modulBul(k.modul.id);   // modülden eklenen kalem: modülün ayarları
   if(md && DOLAP_TIP[md.tip]) Object.assign(d, {tip:md.tip, en:k.modul.en, boy:k.modul.boy, derinlik:k.modul.derinlik, raf:md.raf || 0, kapak:md.kapak || 0, kalinlik:md.kalinlik || 18,
     govde:md.govde || d.govde, kapakMalzeme:md.kapakMalzeme || md.govde || d.kapakMalzeme, arkalik:md.arkalik || ""});
-  const mSec = (id, v, bos_) => '<select id="' + id + '" class="kutu">' + (bos_ ? '<option value="">' + bos_ + '</option>' : '') + (pm.length ? pm.map(m => '<option value="' + m.id + '"' + (m.id === v ? ' selected' : '') + '>' + esc(m.ad) + '</option>').join("") : '<option value="">Plaka 2100×2800</option>') + '</select>';
+  const mSec = (id, v, bos_) => plakaSecici(id, v, bos_);
   const p = document.createElement("div"); p.className = "perde";
   p.innerHTML = '<div class="pencere" style="max-width:560px;max-height:92vh;overflow:auto"><p>Dolap gövdesinden parça üret</p><div class="alt-bilgi">' + (k ? esc(k.ad + (k.olcu ? " · " + k.olcu : "")) : "Ölçüleri yazın") + ' · ölçüler mm</div>' +
     '<label class="etiket">Tür</label><div class="secenekler" id="dTip">' + Object.entries(DOLAP_TIP).map(([v, y]) => '<button type="button" class="secenek' + (v === d.tip ? ' secili' : '') + '" data-t="' + v + '">' + y + '</button>').join("") + '</div>' +

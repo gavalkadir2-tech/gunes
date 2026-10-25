@@ -199,6 +199,18 @@ module.exports = ({test}) => {
     await pg.kapat();
   });
 
+  test("Plaka ölçüsü malzemeden; 1830×3660 seçilebilir", async (o, a) => {
+    const pg = await o.sayfa(); await pg.evaluate(ornekVeri);
+    await pg.git("kesim/i1"); await pg.click('[data-is="dolapUret"] >> nth=0');
+    a.dogru(/18 mm beyaz sunta · 2100×2800/.test(await pg.textContent("#dGovde")), "Seçimde ölçü görünmeli");
+    await pg.click('#dGovde + [data-plaka-olcu]'); await pg.click('#poHazir [data-o="1830x3660"]'); await pg.click('.perde:last-child [data-c="kaydet"]'); await pg.waitForTimeout(250);
+    const r = await pg.evaluate(() => ({secim:document.querySelector('#dGovde option[value="mz1"]').textContent, m:plakaBul("mz1"), plaka:kesimHesapla(bul("is_emirleri", "i1").kesim.parcalar, {testere:4, pay:10}).mz1.m.en}));
+    a.esit([r.secim, r.m.en, r.m.boy, r.plaka], ["18 mm beyaz sunta · 1830×3660", 1830, 3660, 1830]);
+    await pg.evaluate(() => sistemKaydet({plakaOlcu:{en:2070, boy:2800}}));
+    a.esit(await pg.evaluate(() => [plakaBul("").en, plakaBul("yok").boy]), [2070, 2800]);
+    await pg.kapat();
+  });
+
   test("Uygulama dosyalarında aynı adlı genel tanım yok", async (o, a) => {
     const fs = require("fs"), path = require("path"), d = path.join(__dirname, "..", "js"), gor = {};
     const cift = [];

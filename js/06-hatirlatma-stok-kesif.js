@@ -119,14 +119,17 @@ function malzemeSatir(m, i){
     '<button type="button" class="ikon-buton" data-is="malzemeSil" data-arg="' + i + '" aria-label="Sil">' + ik("x") + '</button></div>' +
     '<div class="ikalem-alan alan-2" style="margin-top:8px"><label>Tedarikçi<select class="kutu m-ted"><option value="">—</option>' +
       veri.musteriler.filter(c => c.tip === "tedarikci").sort((a, b) => a.ad.localeCompare(b.ad, "tr")).map(c => '<option value="' + c.id + '"' + (c.id === m.tedarikciId ? ' selected' : '') + '>' + esc(c.ad) + '</option>').join("") + '</select></label>' +
-    (m.birim === "plaka" ? '<label>Plaka ölçüsü (mm, en × boy)<input class="kutu m-olcu" placeholder="2100x2800" value="' + (m.en && m.boy ? m.en + "x" + m.boy : "") + '"></label>' : '<span></span>') + '</div></div>';
+    (m.birim === "plaka" ? '<label>Plaka ölçüsü (mm, en × boy)<input class="kutu m-olcu" list="plakaOlculeri" placeholder="2100x2800 veya 1830x3660" value="' + (m.en && m.boy ? m.en + "x" + m.boy : "") + '"></label>' : '<span></span>') + '</div></div>';
 }
 const malzemeleriCiz = () => { document.getElementById("mListe").innerHTML = form.malzemeler.map(malzemeSatir).join(""); };
 function ekranMalzemeler(){
   form = {malzemeler: malzemeListesi().map(x => Object.assign({}, x))};
   if(!form.malzemeler.length) form.malzemeler.push(bosMalzeme());
   const html = '<div class="kart form-kart"><div class="alt-bilgi" style="margin:0">Stok bu listedeki malzemelerle tutulur; <b>asgari stok</b> yazarsanız altına düşünce uyarılırsınız (<b data-git="stok" style="cursor:pointer;color:var(--borc)">Stok sayfası</b>). Malzemelerin alış / maliyet fiyatlarını (KDV hariç) yazın. Teklif hazırlarken kalemdeki <b>Malzemeden hesapla</b> bu listeyi kullanır; kâr oranı Ayarlar\'daki varsayılandan gelir.</div>' +
+    '<datalist id="plakaOlculeri">' + PLAKA_OLCULERI.map(([e, b]) => '<option value="' + e + 'x' + b + '">').join("") + '</datalist>' +
     '<div id="mListe">' + form.malzemeler.map(malzemeSatir).join("") + '</div>' +
+    '<div class="alt-bilgi">Birimi “plaka” olan malzemelerin ölçüsü kesim planında kullanılır. Malzeme seçilmeyen parçalar için varsayılan plaka: <b id="vpYazi">' + varsayilanPlaka().en + '×' + varsayilanPlaka().boy + '</b> ' +
+      '<b data-is="plakaOlcu" data-arg="" style="cursor:pointer;color:var(--borc)">değiştir</b></div>' +
     '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="malzemeEkle">' + ik("arti") + 'Malzeme ekle</button>' +
     '<div class="hata" id="hata"></div><button class="buton" data-is="malzemeKaydet">' + ik("tamam") + 'Kaydet</button></div>';
   return {baslik:"Malzeme fiyat listesi", geri:true, html, sonra(){
@@ -140,7 +143,7 @@ function ekranMalzemeler(){
     document.getElementById("mListe").addEventListener("change", e => {
       const d = e.target.closest(".kalem"); if(!d) return;
       const m = form.malzemeler[Number(d.getAttribute("data-i"))]; m.tedarikciId = d.querySelector(".m-ted").value || "";
-      if(e.target.classList.contains("m-birim")){ m.birim = e.target.value; if(m.birim === "plaka" && !m.en){ m.en = 2100; m.boy = 2800; } malzemeleriCiz(); }
+      if(e.target.classList.contains("m-birim")){ m.birim = e.target.value; if(m.birim === "plaka" && !m.en){ m.en = varsayilanPlaka().en; m.boy = varsayilanPlaka().boy; } malzemeleriCiz(); }
     });
   }};
 }

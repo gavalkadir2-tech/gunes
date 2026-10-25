@@ -74,7 +74,7 @@ EYLEM.ornekModuller = btn => islem(btn, async () => { await modulleriKaydet(ORNE
 EYLEM.modulDuzenle = (el, id) => {
   const m0 = modulBul(id), m = Object.assign({id:yeniId(), ad:"", tip:"alt", fiyatTuru:"mtul", fiyat:0, maliyet:0, en:600, boy:720, derinlik:560, raf:1, kapak:1, kalinlik:18, govde:"", kapakMalzeme:"", arkalik:"", kesim:true}, m0 || {});
   const pm = plakaMalzemeleri();
-  const mSec = (id_, v, bos_) => '<select id="' + id_ + '" class="kutu">' + (bos_ ? '<option value="">' + bos_ + '</option>' : '') + pm.map(x => '<option value="' + x.id + '"' + (x.id === v ? ' selected' : '') + '>' + esc(x.ad) + '</option>').join("") + (pm.length ? '' : '<option value="">Plaka 2100×2800</option>') + '</select>';
+  const mSec = (id_, v, bos_) => plakaSecici(id_, v, bos_);
   const p = document.createElement("div"); p.className = "perde";
   p.innerHTML = '<div class="pencere" style="max-width:600px;max-height:92vh;overflow:auto"><p>' + (m0 ? "Modülü düzenle" : "Yeni modül") + '</p>' +
     '<label class="etiket" for="mdAd">Ad</label><input id="mdAd" class="kutu" maxlength="80" value="' + esc(m.ad) + '" placeholder="Örn: Alt dolap (mat lake)">' +

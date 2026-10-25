@@ -592,3 +592,4 @@ body.salt [data-git="giris"], body.salt [data-git="cikis"], body.salt [data-git=
 .acilis-satir .ac-tutar{width:140px;text-align:right}
 .acilis-satir .ac-yon{width:auto;min-width:150px}
 @media(max-width:599px){ .acilis-satir .orta{flex-basis:100%} .acilis-satir .ac-tutar,.acilis-satir .ac-yon{flex:1;min-width:0;width:auto} }
+.plaka-sec{display:flex;gap:6px;align-items:center}.plaka-sec .kutu{flex:1;min-width:0}.plaka-sec .ikon-buton{flex:none;height:44px}
