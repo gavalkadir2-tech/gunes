@@ -574,3 +574,7 @@ body.salt [data-git="giris"], body.salt [data-git="cikis"], body.salt [data-git=
 .paylas-onizleme{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
 .paylas-onizleme img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--hafif)}
 .paylas-dosya{aspect-ratio:1;border-radius:8px;background:var(--hafif);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;padding:6px;text-align:center;word-break:break-all;color:var(--soluk)}
+/* Masaüstünde arama sol menüde (Ana Sayfa'nın üstünde); üst çubuktaki arama yalnız telefonda */
+.menu .menu-ara{border:1px solid var(--cizgi)!important;background:var(--hafif)!important;color:var(--soluk)!important;margin-bottom:10px}
+.menu .menu-ara kbd{margin-left:auto;font:inherit;font-size:11px;border:1px solid var(--cizgi);border-radius:5px;padding:0 5px;background:var(--kart)}
+@media(min-width:900px){ .ust .arama-dugme{display:none} }
