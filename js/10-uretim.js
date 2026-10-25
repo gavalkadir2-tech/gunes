@@ -365,7 +365,8 @@ function ekranKesim(isId){
   const html = '<div class="kart yazdirma"><div class="kart-baslik"><span>' + esc(ie.no + " · " + ie.baslik + " · " + cariAdi(ie.musteriId)) + '</span>' + (f.degisti ? '<span class="t-cikis">Kaydedilmedi</span>' : '') + '</div>' +
       (ie.kalemler.length ? '<div class="alt-bilgi" style="margin:4px 0 8px">Sipariş kalemlerinden gövde parçası üretin (ölçü “en × boy × derinlik” cm):</div><div class="secenekler">' +
         ie.kalemler.map((k, i) => '<button class="secenek" data-is="dolapUret" data-arg="' + i + '">' + ik("arti") + ' ' + esc(k.ad + (k.olcu ? " (" + k.olcu + ")" : "")) + '</button>').join("") +
-        '<button class="secenek" data-is="dolapUret" data-arg="">' + ik("arti") + ' Elle dolap ölçüsü</button></div>' : '<button class="buton ikincil kucuk" data-is="dolapUret" data-arg="">' + ik("arti") + 'Dolap ölçüsünden parça üret</button>') +
+        '<button class="secenek" data-is="dolapUret" data-arg="">' + ik("arti") + ' Elle dolap ölçüsü</button>' +
+        (ie.kalemler.some(k => k.modul) ? '<button class="secenek secili" data-is="modulParcaUret">' + ik("kup") + ' Tüm modüllerden parça üret</button>' : '') + '</div>' : '<button class="buton ikincil kucuk" data-is="dolapUret" data-arg="">' + ik("arti") + 'Dolap ölçüsünden parça üret</button>') +
       (pm.length ? '' : '<div class="uyari" style="margin:12px 0 0">Malzeme listesinde birimi “plaka” olan malzeme yok; 2100×2800 mm varsayıldı. Gerçek plaka ölçüsü ve fiyatı için <b data-git="malzemeler" style="cursor:pointer">malzeme listesine</b> plaka ekleyin (örn. 18 mm beyaz sunta, 2100×2800).</div>') +
     '</div>' +
     '<div class="kart yazdirma" style="overflow:auto"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600"><span>Parça listesi (' + f.parcalar.length + ' satır, ' + f.parcalar.reduce((t, p) => t + (Number(p.adet) || 0), 0) + ' parça)</span></div>' +
@@ -442,6 +443,9 @@ EYLEM.dolapUret = (el, i) => {
   const d = {ad:k ? k.ad : "", tip:tipTahmin(k ? k.ad : ""), en:o ? o[0] : 600, boy:o ? o[1] : 720, derinlik:o && o[2] ? o[2] : 560, adet:k ? Math.max(1, Number(k.adet) || 1) : 1, kalinlik:18, raf:1, kapak:o && o[0] > 600 ? 2 : 1,
     govde:(pm[0] || {}).id || "", kapakMalzeme:(pm[0] || {}).id || "", arkalik:(pm.find(m => /duralit|arkal|8 ?mm|hdf/i.test(m.ad)) || {}).id || ""};
   if(d.tip === "alt" && !(o && o[2])) d.derinlik = 560; if(d.tip === "ust" && !(o && o[2])) d.derinlik = 320;
+  const md = k && k.modul && modulBul(k.modul.id);   // modülden eklenen kalem: modülün ayarları
+  if(md && DOLAP_TIP[md.tip]) Object.assign(d, {tip:md.tip, en:k.modul.en, boy:k.modul.boy, derinlik:k.modul.derinlik, raf:md.raf || 0, kapak:md.kapak || 0, kalinlik:md.kalinlik || 18,
+    govde:md.govde || d.govde, kapakMalzeme:md.kapakMalzeme || md.govde || d.kapakMalzeme, arkalik:md.arkalik || ""});
   const mSec = (id, v, bos_) => '<select id="' + id + '" class="kutu">' + (bos_ ? '<option value="">' + bos_ + '</option>' : '') + (pm.length ? pm.map(m => '<option value="' + m.id + '"' + (m.id === v ? ' selected' : '') + '>' + esc(m.ad) + '</option>').join("") : '<option value="">Plaka 2100×2800</option>') + '</select>';
   const p = document.createElement("div"); p.className = "perde";
   p.innerHTML = '<div class="pencere" style="max-width:560px;max-height:92vh;overflow:auto"><p>Dolap gövdesinden parça üret</p><div class="alt-bilgi">' + (k ? esc(k.ad + (k.olcu ? " · " + k.olcu : "")) : "Ölçüleri yazın") + ' · ölçüler mm</div>' +

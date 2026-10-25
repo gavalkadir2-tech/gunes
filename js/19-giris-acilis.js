@@ -43,7 +43,7 @@ async function acilis(){
   const hizli = cevrimici && navigator.onLine && await anlikYukle() && surumVar && imlec > 0 && Date.now() - sonEsitleme < 100 * 86400000;
   await bildirimYukle();
   if(hizli){
-    hazir = true; ciz(); kilitGoster();
+    hazir = true; ciz(); kilitGoster(); paylasimKontrol();
     try{ await Depo.esitle(); }
     catch(e){ if(/JWT/i.test(e.message || "")){ hazir = false; return girisEkrani("Oturum süresi doldu, tekrar giriş yapın."); } }
     sessizCiz();
@@ -61,7 +61,7 @@ async function acilis(){
     return;
   }
   if(!location.hash && cihaz().acilis !== "ana") history.replaceState(null, "", "#" + cihaz().acilis);
-  hazir = true; ciz(); kilitGoster();
+  hazir = true; ciz(); kilitGoster(); paylasimKontrol();
   if(cevrimici && !cevrimdisi) canliBaglan();
   if(!cevrimdisi) copTemizle().then(() => logTemizle()).then(() => gunlukYedekKontrol()).catch(() => {});
   bildirimGonder();

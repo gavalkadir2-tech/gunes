@@ -39,6 +39,7 @@ function hatirlatmalar(){
   if(yetki.yonetici) veri.cekler.filter(c => cekAcik(c) && c.vade && c.vade <= gunEkle(bg, ss.vadeGun)).forEach(c => l.push({seviye: c.vade <= bg ? 0 : 1, tarih:c.vade, ikon:c.tur === "alinan" ? "asagi" : "yukari", yer:"cekler/" + c.id,
     yazi:(c.tur === "alinan" ? (c.durum === "tahsilde" ? "Tahsildeki " : "Tahsile verin: ") : "Ödenecek ") + belgeAdi(c).toLocaleLowerCase("tr") + " " + ne(c.vade) + ": " + para(c.tutar), alt:(cariAdi(c.musteriId) || c.kesideci) + (c.banka ? " · " + c.banka : "")}));
   if(yetki.yonetici) aracUyarilari().forEach(x => l.push(x));
+  sabitHatirlatmalari().forEach(x => l.push(x));
   stokAzalanlar().forEach(m => l.push({seviye:1, tarih:bg, ikon:"koli", yer:"siparisler", yazi:"Stok azaldı: " + m.ad, alt:"Kalan " + miktarYaz(stokMiktar(m.id)) + " " + m.birim + " · asgari " + miktarYaz(m.min)}));
   if(!personelEksik()){
     const aktif = veri.personel.filter(p => calisiyor(p, bg));
@@ -236,7 +237,7 @@ function ekranStok(){
       '<div class="kart ozet"><div class="kart-baslik">Azalan</div><div class="deger' + (az.length ? ' t-cikis' : '') + '">' + az.length + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Stok değeri (maliyet)</div><div class="deger">' + para(deger_) + '</div></div></div>' +
     '<div class="ust-arac">' + filtreButonlari("stok", [["hepsi", "Hepsi"], ["azalan", "Azalanlar"]]) + '<div class="buton-sira" style="margin:0"><button class="buton kucuk' + (az.length ? '' : ' ikincil') + '" data-git="siparisler">' + ik("mesaj") + 'Sipariş' + (az.length ? ' ver (' + az.length + ')' : 'ler') + '</button>' +
-      '<button class="buton kucuk ikincil" data-git="malzemeler">' + ik("kalem") + 'Malzeme listesi</button><button class="buton kucuk ikincil" data-git="fiyat">' + ik("grafik") + 'Toplu fiyat</button><button class="buton kucuk ikincil" data-git="fiyatkarsilastir">' + ik("kasa") + 'Tedarikçi fiyatları</button></div></div>' +
+      '<button class="buton kucuk ikincil" data-git="malzemeler">' + ik("kalem") + 'Malzeme listesi</button><button class="buton kucuk ikincil" data-git="moduller">' + ik("kup") + 'Modüller</button><button class="buton kucuk ikincil" data-git="fiyat">' + ik("grafik") + 'Toplu fiyat</button><button class="buton kucuk ikincil" data-git="fiyatkarsilastir">' + ik("kasa") + 'Tedarikçi fiyatları</button></div></div>' +
     (ml.length ? '<div class="kart liste-kart">' + (l.length ? l.map(m => {
       const q = stokMiktar(m.id), azMi = m.min > 0 && q <= m.min;
       return '<div class="satir" style="flex-wrap:wrap"><span class="rozet ' + (azMi ? 'r-cikis' : 'r-gri') + '">' + ik("koli") + '</span><span class="orta"><div class="s1">' + esc(m.ad) + '</div>' +
@@ -344,7 +345,8 @@ function ekranKesif(id){
     (cevrimici ? '<div class="form-bolum">Fotoğraflar</div><div class="buton-sira" style="margin-top:10px"><button type="button" class="buton ikincil kucuk" onclick="document.getElementById(\'kesifFoto\').click()">' + ik("kamera") + 'Fotoğraf çek / ekle</button></div>' +
       '<input type="file" id="kesifFoto" accept="image/*,video/*" multiple style="display:none" onchange="dosyaSecildi(this,\'' + id + '\')">' +
       '<div class="alt-bilgi">Fotoğraflar iş emrinin dosyalarına eklenir (şu an ' + isDosyalari(id).length + ' dosya).</div>' : '') +
-    '<div class="hata" id="hata"></div><button class="buton" data-is="kesifKaydet" data-arg="' + id + '">' + ik("tamam") + 'Kaydet</button></div>';
+    '<div class="hata" id="hata"></div><button class="buton" data-is="kesifKaydet" data-arg="' + id + '">' + ik("tamam") + 'Kaydet</button>' +
+    (yetki.yonetici ? '<button class="buton ikincil" data-is="kesiftenTeklif" data-arg="' + id + '">' + ik("fatura") + 'Ölçülerden teklif kalemleri oluştur</button>' : '') + '</div>';
   return {baslik:"Ölçü / keşif", geri:true, html, sonra(){
     secenekBagla();
     document.getElementById("duvarlar").addEventListener("input", e => {

@@ -16,7 +16,9 @@ function ekranRapor(){
     else { fAlis += f.toplam; kdvA += f.kdvToplam; }
   });
   let alacak = 0, borc = 0; veri.musteriler.forEach(m => { const b = cariBakiye(m.id); if(b > 0) alacak += b; else borc -= b; });
-  const html = '<div class="ust-arac">' + aySecici() + '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="karlilik">' + ik("grafik") + 'Proje kârlılığı</button><button class="buton kucuk ikincil" data-git="kdv">' + ik("fatura") + 'KDV özeti</button></div></div>' +
+  const html = '<div class="ust-arac">' + aySecici() + '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="karlilik">' + ik("grafik") + 'Proje kârlılığı</button><button class="buton kucuk ikincil" data-git="kdv">' + ik("fatura") + 'KDV özeti</button>' +
+    (ortaklar().length ? '<button class="buton kucuk ikincil" data-git="ortakhesap">' + ik("kisiler") + 'Ortak hesabı</button>' : '') +
+    '<button class="buton kucuk" data-is="muhasebePaketi">' + ik("indir") + 'Muhasebeci paketi</button></div></div>' +
     '<div class="izgara uc"><div class="kart"><div class="kart-baslik">' + (gir - cik >= 0 ? "Kasada bu ay kalan" : "Bu ay çıkan, girenden fazla") + '</div>' +
       '<div class="buyuk-sayi ' + (gir - cik >= 0 ? "t-giris" : "t-cikis") + '" style="font-size:24px">' + para(gir - cik) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Kasaya giren</div><div class="deger t-giris">' + para(gir) + '</div></div>' +
@@ -438,21 +440,22 @@ EYLEM.firmaKaydet = btn => {
   islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"firma", deger:Object.assign(firma(), d)}); bildir("Firma bilgileri kaydedildi"); ciz(); });
 };
 const benimEposta = () => ((oturum && oturum.user && oturum.user.email) || "").toLowerCase();
+const ROL_ADI = {yonetici:"Yönetici", usta:"Usta", muhasebeci:"Muhasebeci"};
 function kullaniciKarti(){
   if(!cevrimici) return '';
   const baslik = '<div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Kullanıcılar ve yetkiler</div>';
   if(!yetki.kurulu) return '<div class="kart">' + baslik + '<div class="alt-bilgi" style="margin:0">Ustalara fiyat ve kasa görmeyen ayrı giriş vermek için Supabase\'de <b>supabase-guncelleme-6.sql</b> dosyasını çalıştırın.</div></div>';
   const ad = e => e.replace("@gunesmobilya.app", "");
   return '<div class="kart">' + baslik +
-    '<div class="alt-bilgi" style="margin:0 0 8px"><b>Usta</b>: iş emirlerini, aşamaları, notları, fotoğrafları, ölçüleri ve kataloğu görür; fiyat, kasa, fatura ve personel bilgilerini görmez. ' +
+    '<div class="alt-bilgi" style="margin:0 0 8px"><b>Usta</b>: iş emirlerini, aşamaları, notları, fotoğrafları, ölçüleri ve kataloğu görür; fiyat, kasa, fatura ve personel bilgilerini görmez. <b>Muhasebeci</b>: her şeyi görür, hiçbir şeyi değiştiremez (supabase-guncelleme-14.sql gerekir). ' +
     (yetki.liste.length ? 'Listede olmayan hesaplar usta sayılır.' : 'Liste boşken herkes yöneticidir; ilk kişiyi eklediğinizde siz de yönetici olarak eklenirsiniz.') + '</div>' +
     (yetki.liste.length ? yetki.liste.map(k => '<div class="satir"><span class="rozet ' + (k.rol === "yonetici" ? "r-ana" : "r-gri") + '">' + ik("kisi") + '</span><span class="orta"><div class="s1">' + esc(ad(k.eposta)) +
-      (k.eposta.toLowerCase() === benimEposta() ? ' <span class="etiket-rozet d-gri">siz</span>' : '') + '</div><div class="s2">' + esc([k.ad, k.rol === "yonetici" ? "Yönetici" : "Usta"].filter(Boolean).join(" · ")) + '</div></span>' +
+      (k.eposta.toLowerCase() === benimEposta() ? ' <span class="etiket-rozet d-gri">siz</span>' : '') + '</div><div class="s2">' + esc([k.ad, ROL_ADI[k.rol] || "Usta"].filter(Boolean).join(" · ")) + '</div></span>' +
       (k.eposta.toLowerCase() === benimEposta() ? '' : '<button class="ikon-buton" data-is="kullaniciSil" data-arg="' + esc(k.eposta) + '" aria-label="Kaldır">' + ik("sil") + '</button>') + '</div>').join("") : '') +
     '<div class="iki-alan" style="margin-top:6px"><div><label class="etiket" for="kuAd">Kullanıcı adı</label><input id="kuAd" class="kutu" autocapitalize="none" maxlength="60" placeholder="ali"></div>' +
     '<div><label class="etiket" for="kuIsim">Adı <span class="ist">(iş emrindeki sorumlu usta ile aynı)</span></label><input id="kuIsim" class="kutu" maxlength="60" list="kuPersonel">' +
     '<datalist id="kuPersonel">' + veri.personel.map(p => '<option value="' + esc(p.ad) + '">').join("") + '</datalist></div></div>' +
-    '<label class="etiket">Yetki</label><select id="kuRol" class="kutu"><option value="usta">Usta</option><option value="yonetici">Yönetici</option></select>' +
+    '<label class="etiket">Yetki</label><select id="kuRol" class="kutu"><option value="usta">Usta</option><option value="yonetici">Yönetici</option><option value="muhasebeci">Muhasebeci (yalnız görüntüler)</option></select>' +
     '<button class="buton ikincil" data-is="kullaniciEkle">' + ik("arti") + 'Ekle / güncelle</button>' +
     '<div class="bilgi-kutu">Listeye eklemek giriş hesabı açmaz. Supabase → <b>Authentication → Users → Add user</b> ile aynı kullanıcı adıyla (örn. <b>ali@gunesmobilya.app</b>) şifre belirleyip <b>Auto Confirm</b> işaretli hesap oluşturun.</div></div>';
 }
@@ -460,7 +463,7 @@ async function yetkiYenile(){
   const yr = await sb.rpc("yonetici_mi"), kr = await sb.from("kullanicilar").select("*").order("eposta");
   if(yr.error) throw yr.error; if(kr.error) throw kr.error;
   const k = kr.data.find(x => x.eposta.toLowerCase() === benimEposta());
-  yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true};
+  yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true}; rolUygula(k);
 }
 EYLEM.kullaniciEkle = btn => {
   const kadi = deger("kuAd"), isim = deger("kuIsim"), rol = deger("kuRol");
@@ -473,7 +476,7 @@ EYLEM.kullaniciEkle = btn => {
     satirlar.push({eposta, ad:isim, rol, olusma:Date.now()});
     const eski = yetki.liste.find(k => k.eposta.toLowerCase() === eposta);
     const r = await sb.from("kullanicilar").upsert(satirlar); if(r.error) throw r.error;
-    logla(eski ? "guncelle" : "ekle", "kullanicilar", eposta, eposta.replace("@gunesmobilya.app", "") + " · " + (rol === "yonetici" ? "Yönetici" : "Usta"),
+    logla(eski ? "guncelle" : "ekle", "kullanicilar", eposta, eposta.replace("@gunesmobilya.app", "") + " · " + (ROL_ADI[rol] || "Usta"),
       eski ? alanFarki({ad:eski.ad, Yetki:eski.rol}, {ad:isim, Yetki:rol}) : {});
     await yetkiYenile(); bildir("Kaydedildi"); ciz();
   });

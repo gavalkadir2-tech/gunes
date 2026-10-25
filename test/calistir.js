@@ -16,7 +16,7 @@ function kutuphaneYolu(paket, dosya){
   if(d){ const y = fs.readdirSync(d).map(x => path.join(d, x, "package", dosya)).find(x => fs.existsSync(x) && x.indexOf(paket) >= 0); if(y) return y; }
   return null;
 }
-const KUTUPHANE = {xlsx:kutuphaneYolu("xlsx", "dist/xlsx.full.min.js"), qr:kutuphaneYolu("qrcode-generator", "qrcode.js")};
+const KUTUPHANE = {xlsx:kutuphaneYolu("xlsx", "dist/xlsx.full.min.js"), qr:kutuphaneYolu("qrcode-generator", "qrcode.js"), zip:kutuphaneYolu("jszip", "dist/jszip.min.js")};
 
 function sunucu(){
   return new Promise(res => {
@@ -48,6 +48,7 @@ function ortam(tarayici, adres, hatalar){
       await pg.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort());
       await pg.route(/xlsx\.full\.min\.js/, r => KUTUPHANE.xlsx ? r.fulfill({path:KUTUPHANE.xlsx, contentType:"application/javascript"}) : r.abort());
       await pg.route(/qrcode\.min\.js/, r => KUTUPHANE.qr ? r.fulfill({path:KUTUPHANE.qr, contentType:"application/javascript"}) : r.abort());
+      await pg.route(/jszip\.min\.js/, r => KUTUPHANE.zip ? r.fulfill({path:KUTUPHANE.zip, contentType:"application/javascript"}) : r.abort());
       await pg.goto(adres + (o.bulut ? "/index.html" : "/yerel.html") + "#ana");
       await pg.evaluate(() => { localStorage.clear(); indexedDB.deleteDatabase("gunes-mobilya"); });
       if(o.hazirla) await pg.evaluate(o.hazirla);

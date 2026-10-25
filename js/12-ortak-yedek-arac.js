@@ -17,11 +17,12 @@ function benimOrtak(){
 }
 const ortakKategorisi = k => k === ORTAK_SERMAYE || k === ORTAK_CEKIS;
 // Kişi kasaları: {"" : {nakit, banka, senet, toplam}, samet:{…}, …}
-function kisiKasalari(){
+function kisiKasalari(sonTarih){
   const k = {"":{nakit:0, banka:0, senet:0, toplam:0}};
   ortaklar().forEach(o => { k[o.id] = {nakit:0, banka:0, senet:0, toplam:0}; });
   const ekle = (kim, odeme, t) => { const x = k[kim] || (k[kim] = {nakit:0, banka:0, senet:0, toplam:0}); const g = odeme === "Nakit" ? "nakit" : odeme === SENET ? "senet" : "banka"; x[g] += t; x.toplam += t; };
   veri.hareketler.forEach(h => {
+    if(sonTarih && h.tarih > sonTarih) return;
     if(h.tur === "giris") ekle(h.ortak || "", h.odeme, h.tutar);
     else if(h.tur === "cikis") ekle(h.ortak || "", h.odeme, -h.tutar);
     else if(h.tur === "aktarim"){ ekle(h.ortak || "", h.odeme, -h.tutar); ekle(h.hedef || "", h.odeme, h.tutar); }
@@ -132,12 +133,12 @@ function dosyaIndir(icerik, ad, tur){
   a.download = ad; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
 }
 // Excel: sayfalar = [{ad, satirlar:[[...]], genislik:[...]}]
-async function excelIndir(sayfalar, dosya){
+async function excelIndir(sayfalar, dosya, indirme = true){
   const X = await kutuphane("xlsx"), wb = X.utils.book_new();
   sayfalar.forEach(s => { const ws = X.utils.aoa_to_sheet(s.satirlar); if(s.genislik) ws["!cols"] = s.genislik.map(w => ({wch:w})); X.utils.book_append_sheet(wb, ws, s.ad.slice(0, 31)); });
   const veri_ = X.write(wb, {bookType:"xlsx", type:"array"});
   const blob = new Blob([veri_], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-  dosyaIndir(blob, dosya);
+  if(indirme) dosyaIndir(blob, dosya);
   return blob;
 }
 const csvYap = satirlar => "﻿" + satirlar.map(r => r.map(v => { const t = v == null ? "" : String(v); return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; }).join(";")).join("\r\n");
@@ -235,7 +236,7 @@ function ekranKdv(){
     bolum("Faturalar") + '<div class="kart liste-kart">' + (o.s.l.concat(o.a.l).length ? o.s.l.concat(o.a.l).map(f => faturaSatir(f)).join("") : bos("fatura", "Bu ay fatura yok.")) + '</div>';
   return {baslik:"KDV özeti", geri:true, html};
 }
-async function kdvExcelYap(){
+async function kdvExcelYap(indirme = true){
   const o = kdvOzeti(ayGoster), p = ayGoster.split("-"), ayAd = AYLAR[Number(p[1]) - 1] + " " + p[0], fr = firma();
   const fat = l => [["Tarih", "Fatura no", "Cari", "Vergi / TC no", "Matrah (KDV hariç)", "KDV", "Toplam", "Açıklama"]].concat(l.map(f => {
     const m = bul("musteriler", f.musteriId) || {}; return [f.tarih, f.no, m.ad || "", m.vergiNo || "", yuvarla(f.araToplam), yuvarla(f.kdvToplam), yuvarla(f.toplam), f.aciklama || ""]; }));
@@ -245,7 +246,7 @@ async function kdvExcelYap(){
       [["Alışlar (indirilecek)", o.a.matrah, o.a.kdv]], oran(o.a), [[], [o.fark >= 0 ? "Ödenecek KDV" : "Devreden KDV", "", Math.abs(o.fark)], [], ["Not: önceki dönemden devreden KDV ve tevkifat dahil değildir."]])},
     {ad:"Satış faturaları", genislik:[12, 16, 30, 14, 16, 12, 14, 30], satirlar:fat(o.s.l)},
     {ad:"Alış faturaları", genislik:[12, 16, 30, 14, 16, 12, 14, 30], satirlar:fat(o.a.l)}
-  ], "kdv-ozeti-" + ayGoster + ".xlsx");
+  ], "kdv-ozeti-" + ayGoster + ".xlsx", indirme);
 }
 EYLEM.kdvExcel = btn => islem(btn, async () => { await kdvExcelYap(); logla("dosya", "faturalar", "", "KDV özeti Excel (" + ayGoster + ")"); });
 EYLEM.kdvPaylas = btn => islem(btn, async () => {

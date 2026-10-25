@@ -21,7 +21,8 @@ function ekranIsler(){
   const html = '<div class="izgara dort">' + ["Sipariş alındı", "Üretimde", "Hazır", "Teklif"].map(d =>
       '<div class="kart ozet"><div class="kart-baslik">' + d + '</div><div class="deger">' + (sayac[d] || 0) + '</div></div>').join("") + '</div>' +
     '<div class="ust-arac">' + filtreButonlari("is", [["acik","Açık işler"], ["acil","Acil"], ["teslim","Teslim edilenler"], ["hepsi","Hepsi"]]) +
-    (yetki.yonetici ? '<button class="buton kucuk" data-git="is-form">' + ik("arti") + 'Yeni iş emri</button>' : '') + '</div>' +
+    '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="kapasite">' + ik("grafik") + 'Atölye yükü</button>' +
+    (yetki.yonetici ? '<button class="buton kucuk" data-git="is-form">' + ik("arti") + 'Yeni iş emri</button>' : '') + '</div></div>' +
     (veri.is_emirleri.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="İş, müşteri veya numara ara…" value="' + esc(aramaYazi) + '"></div>' : '') +
     '<div class="kart liste-kart" id="isListe">' + isListesi(liste) + '</div>';
   return {baslik:"İş Emirleri", html, sonra(){
@@ -117,7 +118,8 @@ function ekranIsForm(id, cariId, projeId, sonra){
     '<div><label class="etiket" for="isTuru">İş türü <span class="ist">(kârlılık raporu için)</span></label><select id="isTuru" class="kutu"><option value="">— Seçin —</option>' +
       isTurleri(ie ? ie.kategori : pr ? pr.kategori : "").map(t => '<option' + (t === (ie ? ie.kategori : pr ? pr.kategori : "") ? ' selected' : '') + '>' + esc(t) + '</option>').join("") + '</select></div></div>' +
     '<div class="form-bolum">Sipariş kalemleri</div><div id="ikalemler">' + form.ikalemler.map(ikalemHtml).join("") + '</div>' +
-    '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="ikalemEkle">' + ik("arti") + 'Ürün ekle</button>' +
+    '<div class="buton-sira" style="margin-top:10px"><button type="button" class="buton ikincil kucuk" style="margin:0" data-is="ikalemEkle">' + ik("arti") + 'Ürün ekle</button>' +
+      '<button type="button" class="buton ikincil kucuk" style="margin:0" data-is="modulKalemEkle">' + ik("kup") + 'Modülden ekle</button></div>' +
     '<label class="etiket" for="aciklama">Notlar / özel istekler <span class="ist">(kumaş, kulp, montaj detayı…)</span></label><textarea id="aciklama" class="kutu" maxlength="2000">' + esc(ie ? ie.aciklama : pr ? pr.aciklama : "") + '</textarea>' +
     (prFoto ? '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px"><input type="checkbox" id="fotoKopyala" checked> Projenin ' + prFoto + ' fotoğrafını iş emrine ekle</label>' : '') +
     '<div class="form-bolum">Fiyat <span style="text-transform:none;font-weight:500">(KDV hariç yazın; KDV seçtiğiniz orana göre eklenir)</span></div>' +
@@ -131,7 +133,7 @@ function ekranIsForm(id, cariId, projeId, sonra){
     '<div class="form-bolum">Teslimat ve sorumlu</div>' +
     '<div class="iki-alan"><div>' + tarihAlani("teslim", "Teslim tarihi", ie ? ie.teslimTarihi : "", true) + '</div>' +
     '<div><label class="etiket" for="sorumlu">Sorumlu usta <span class="ist">(isteğe bağlı)</span></label><input id="sorumlu" class="kutu" list="ustalar" maxlength="60" value="' + esc(ie ? ie.sorumlu : "") + '">' +
-    '<datalist id="ustalar">' + ustalar.map(u => '<option value="' + esc(u) + '">').join("") + '</datalist></div></div>' +
+    '<datalist id="ustalar">' + ustalar.map(u => '<option value="' + esc(u) + '">').join("") + '</datalist></div></div>' + isSureAlani(ie) +
     '<label class="etiket">Öncelik</label>' + secenekler("oncelik", ONCELIK, form.oncelik) +
     '<label class="etiket" for="adres">Teslimat / montaj adresi <span class="ist">(isteğe bağlı)</span></label><textarea id="adres" class="kutu" maxlength="300" style="min-height:64px">' + esc(ie ? ie.adres : (m0 ? m0.adres : "")) + '</textarea>' +
     '<div class="form-bolum">Üretim aşamaları</div><div class="alt-bilgi" style="margin:0 0 8px">Bu işte olacak aşamaları seçin; işlerken tek dokunuşla işaretlersiniz.</div>' +
@@ -157,6 +159,8 @@ function ekranIsForm(id, cariId, projeId, sonra){
     document.getElementById("fiyat").addEventListener("input", isToplamGuncelle);
     document.getElementById("kdvOran").addEventListener("change", isToplamGuncelle);
     isToplamGuncelle();
+    ["uretimGun", "isTuru", "teslim"].forEach(x => { const e = document.getElementById(x); if(e) e.addEventListener(x === "uretimGun" ? "input" : "change", () => teslimOneriGuncelle(id)); });
+    teslimOneriGuncelle(id);
     const c = document.getElementById("cari");
     c.addEventListener("change", () => { const m = bul("musteriler", c.value), a = document.getElementById("adres"); if(m && m.adres && !a.value.trim()) a.value = m.adres; });
     document.getElementById(ie || cariId ? "baslik" : "cari").focus();
@@ -178,6 +182,7 @@ EYLEM.isKaydet = (btn, id) => {
     if(k.fiyat > 0) y.fiyat = yuvarla(k.fiyat);
     if(k.fiyat > 0 && k.maliyet > 0 && k.hesap) { y.maliyet = yuvarla(k.maliyet); y.hesap = k.hesap; }
     if(k.katalogId) y.katalogId = k.katalogId;
+    if(k.modul) y.modul = k.modul;
     return y;
   });
   const kalemli = fiyatliMi(kalemler);
@@ -188,7 +193,7 @@ EYLEM.isKaydet = (btn, id) => {
   const eskiAs = eski ? eski.asamalar : [];
   const asamalar = form.asamaTum.filter(a => form.asamaSecili.indexOf(a) >= 0).map(a => ({ad:a, tamam: !!(eskiAs.find(x => x.ad === a) || {}).tamam}));
   const k = Object.assign(isAlanlari({}), eski || {}, {id: id || yeniId(), no: eski ? eski.no : siradakiNo(sistem().isOnEk, veri.is_emirleri), musteriId:cari, baslik, durum:form.durum, oncelik:form.oncelik, kategori:deger("isTuru"),
-    sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar:h.toplam,
+    sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar:h.toplam, uretimGun:Math.max(0, sayiOku(deger("uretimGun")) || 0) || null,
     aciklama:deger("aciklama"), teklif, kesif: eski ? eski.kesif : {}, olusma: eski ? eski.olusma : Date.now()});
   islem(btn, async () => {
     await Depo.kaydet("is_emirleri", Object.assign(k, form._surum != null ? {_surum:form._surum} : {}));
@@ -345,13 +350,14 @@ function yuklemeKapat(){ if(yuklemeEl){ yuklemeEl.remove(); yuklemeEl = null; } 
 // Fotoğrafları küçültür (telefon fotoğrafı 5 MB yerine ~300 KB olur); video ve belgeler olduğu gibi yüklenir.
 async function gorselKucult(file, enFazla){
   if(!/^image\/(jpeg|png|webp)$/.test(file.type)) return file;
+  const fa = fotoAyar(); if(!enFazla && !fa.boyut) return file;   // Ayarlar → Yedek ve veri → Fotoğraf boyutu
   try{
     const bmp = await createImageBitmap(file, {imageOrientation:"from-image"});
-    const oran = Math.min(1, (enFazla || 1600) / Math.max(bmp.width, bmp.height));
+    const oran = Math.min(1, (enFazla || fa.boyut) / Math.max(bmp.width, bmp.height));
     const c = document.createElement("canvas"); c.width = Math.round(bmp.width * oran); c.height = Math.round(bmp.height * oran);
     const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0, c.width, c.height);
     if(bmp.close) bmp.close();
-    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.82));
+    const blob = await new Promise(r => c.toBlob(r, "image/jpeg", fa.kalite));
     if(blob && (blob.size < file.size || oran < 1)) return new File([blob], file.name.replace(/\.\w+$/, "") + ".jpg", {type:"image/jpeg"});
   }catch(e){}
   return file;

@@ -69,7 +69,7 @@ function ekranKasa(){
     '<div class="kart ozet"><div class="kart-baslik">Bu ay çıkan</div><div class="deger t-cikis">' + para(cik) + '</div></div></div>' +
     '<div class="hizli">' + hizliButon("giris", "r-giris", "asagi", "Para Girdi") + hizliButon("cikis", "r-cikis", "yukari", "Para Çıktı") + hizliButon("cekler", "r-borc", "fatura", "Çek / Senet") +
       (ortaklar().length ? '<button data-is="kasaAktarim"><span class="rozet r-ana">' + ik("dondur") + '</span>Kasalar arası aktarım</button>' : '') +
-      hizliButon("ekstre", "r-gri", "yukle", "Banka ekstresi") + '</div>' +
+      hizliButon("ekstre", "r-gri", "yukle", "Banka ekstresi") + hizliButon("sabitgiderler", "r-ana", "takvim", "Sabit giderler") + '</div>' +
     '<div class="ust-arac">' + aySecici() + filtreButonlari("kasa", [["hepsi","Hepsi"], ["giris","Giren"], ["cikis","Çıkan"]].concat(ortaklar().length ? [["ortak", "Ortak hareketleri"]] : [])) + '</div>';
   if(!liste.length) return {baslik:"Kasa", html: html + '<div class="kart">' + bos("kasa", "Bu ayda kayıt yok.") + '</div>'};
   const gunler = {}, sira = [];

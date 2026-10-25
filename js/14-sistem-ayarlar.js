@@ -308,6 +308,8 @@ const AYAR_BOLUM = [
   ["mesajlar", "Mesaj şablonları", "mesaj", "WhatsApp mesajları"],
   ["belge", "Yazdırma ve belgeler", "fatura", "Teklif çıktısı: başlık, logo, imza"],
   ["takvim", "Takvim ve randevular", "takvim", "Varsayılan saat, süre, çalışma günleri"],
+  ["kapasite", "Atölye kapasitesi", "grafik", "Ekip sayısı, iş süreleri"],
+  ["anasayfa", "Ana sayfa", "ev", "Kartların sırası ve görünürlüğü"],
   ["yedek", "Yedek ve veri", "bulut", "Yedek, geri yükleme, ayar aktarımı"],
   ["cop", "Çöp kutusu", "sil", "Silinenler, geri yükleme"],
   ["gecmis", "İşlem geçmişi", "gecmis", "Kim, ne zaman, ne yaptı"],
@@ -475,7 +477,7 @@ function ayarYedek(){
     html += '<div class="kart">' + kartBaslik("Bu cihazdaki eski kayıtlar") + '<div>Bu cihazda bulut öncesinden kalan <b>' + eski.hareketler.length + ' kayıt</b> ve <b>' + eski.musteriler.length + ' cari</b> var.</div>' +
       '<div class="hata" id="hata"></div><button class="buton" data-is="buluttaAktar">' + ik("bulut") + 'Buluta aktar</button></div>';
   if(!cevrimici) html += '<div class="uyari">Bilgiler şu an <b>sadece bu cihazda</b> saklanıyor.</div>';
-  html += depolamaKarti();
+  html += depolamaKarti() + fotoKarti() + videoArsivKarti();
   html += sunucuYedekKarti();
   html += '<div class="kart">' + kartBaslik("Yedek") + '<div>Tüm kayıtları küçük bir dosya olarak indirir (fotoğraf ve videolar dahil değildir).</div>' +
     '<div class="alt-bilgi">Son yedek (bu cihazda): <b>' + (son ? tarihYaz(tarihStr(new Date(son))) : "Hiç alınmadı") + '</b></div>' +
@@ -587,7 +589,7 @@ function ayarHesap(){
 }
 function ekranAyarlar(){
   const masaustu = matchMedia("(min-width:900px)").matches;
-  const izinli = b => (yetki.yonetici || USTA_AYAR[b[0]]) && (b[0] !== "kullanicilar" || cevrimici) && (b[0] !== "hesap" || cevrimici || !yetki.yonetici);
+  const izinli = b => ((yetki.yonetici && !yetki.salt) || USTA_AYAR[b[0]]) && (b[0] !== "kullanicilar" || cevrimici) && (b[0] !== "hesap" || cevrimici || !yetki.yonetici);
   const bolumler = AYAR_BOLUM.filter(izinli);
   let b = yol()[1];
   if(!bolumler.some(x => x[0] === b)) b = masaustu ? bolumler[0][0] : null;
@@ -598,10 +600,11 @@ function ekranAyarlar(){
     (yetki.yonetici ? '<button class="baglanti" style="margin:14px 4px" data-git="ayarlar/gecmis">' + ik("gecmis") + ' Ayar değişiklik geçmişi</button>' : '') + '</div>';
   if(!b) return {baslik:"Ayarlar", html:menu};
   const icerik = {hedef:ayarHedef, ortaklar:ayarOrtaklar, firma:ayarFirma, teklif:ayarTeklif, is:ayarIs, liste:ayarListe, personel:() => personelAyarKarti().replace('style="margin-top:12px"', ''), kullanicilar:kullaniciKarti,
-    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
+    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, kapasite:ayarKapasite, anasayfa:ayarAnaSayfa, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
   const baslik = bolumler.find(x => x[0] === b)[1];
   const sonra = () => {
     if(b === "gecmis") gecmisYukle(false);
+    if(b === "bildirim" && pushDurumu == null && cevrimici) pushDurumGetir().then(() => { if(yol()[1] === "bildirim") ciz(); }).catch(() => { pushDurumu = {}; });
     if(b === "yedek" && cevrimici && sunucuYedekleri == null && !eksikTablo.yedekler) sunucuYedekleriGetir().then(() => { if(yol()[1] === "yedek") ciz(); }).catch(() => { sunucuYedekleri = []; });
     if(b === "cop"){ const a = document.getElementById("copAra"); if(a) a.addEventListener("input", () => { filtre.cop = a.value; const p = a.selectionStart; ciz(); const y = document.getElementById("copAra"); y.focus(); y.setSelectionRange(p, p); }); }
     document.querySelectorAll("[data-modul]").forEach(k => k.addEventListener("change", () => {

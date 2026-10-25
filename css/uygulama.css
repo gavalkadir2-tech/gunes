@@ -565,3 +565,12 @@ body.gizle-stok #menu [data-git="stok"], body.gizle-rapor #menu [data-git="rapor
 .hafta-gun.kapali{background:var(--hafif);opacity:.75}
 .hafta-gun.kapali .hafta-baslik b::after{content:" · kapalı";font-weight:400;color:var(--soluk)}
 @media print{.zil,.bildirim-tost,.bildirim-perde{display:none!important}}
+/* Muhasebeci (salt okunur): ekleme / düzenleme düğmeleri gizlenir */
+body.salt .hizli, body.salt [data-git^="is-form"], body.salt [data-git^="cari-form"], body.salt [data-git^="fatura-form"], body.salt [data-git^="proje-form"], body.salt [data-git^="personel-form"],
+body.salt [data-git="giris"], body.salt [data-git="cikis"], body.salt [data-git="paylas-form"], body.salt [data-is$="Kaydet"], body.salt [data-is$="Sil"], body.salt [data-is="kasaAktarim"] {display:none!important}
+@media print{.imza-alani{page-break-inside:avoid}}
+/* Push kurulum adımları, paylaşılan dosyalar */
+.adimlar{margin:8px 0 4px;padding-left:20px;font-size:14px;line-height:1.55}.adimlar li{margin-bottom:6px}.adimlar a{color:var(--borc)}
+.paylas-onizleme{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:6px}
+.paylas-onizleme img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;background:var(--hafif)}
+.paylas-dosya{aspect-ratio:1;border-radius:8px;background:var(--hafif);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;padding:6px;text-align:center;word-break:break-all;color:var(--soluk)}

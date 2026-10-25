@@ -74,13 +74,13 @@ const TABLOLAR = ["musteriler", "is_emirleri", "is_notlari", "dosyalar", "fatura
 const SONRADAN = {is_notlari:1, dosyalar:1, katalog:1, katalog_gorseller:1, paylasimlar:1, personel:1, puantaj:1, personel_hareket:1, stok_hareket:1, taksitler:1, siparisler:1, cekler:1, arac_kayit:1};
 const eksikTablo = {};
 // İş emrine sonradan eklenen sütunlar (supabase-guncelleme-4.sql). Kurulmadıysa kayıtta gönderilmez, iş emirleri yine kaydedilir.
-const SONRADAN_SUTUN = {teklif:4, kesif:4, kategori:10, montaj:10, kesim:10, maliyetler:10};   // sütun → SQL güncelleme no
+const SONRADAN_SUTUN = {teklif:4, kesif:4, kategori:10, montaj:10, kesim:10, maliyetler:10, uretimGun:14};   // sütun → SQL güncelleme no
 let eksikSutun = {};
 const ALANLAR = {
   musteriler:  {id:"id", ad:"ad", tip:"tip", telefon:"telefon", adres:"adres", vergiNo:"vergi_no", olusma:"olusma"},
   is_emirleri: {id:"id", no:"no", musteriId:"musteri_id", baslik:"baslik", durum:"durum", teslimTarihi:"teslim_tarihi", tutar:"tutar", aciklama:"aciklama", olusma:"olusma",
                 oncelik:"oncelik", sorumlu:"sorumlu", adres:"adres", kalemler:"kalemler", asamalar:"asamalar", teklif:"teklif", kesif:"kesif",
-                kategori:"kategori", montaj:"montaj", kesim:"kesim", maliyetler:"maliyetler"},
+                kategori:"kategori", montaj:"montaj", kesim:"kesim", maliyetler:"maliyetler", uretimGun:"uretim_gun"},
   is_notlari:  {id:"id", isEmriId:"is_emri_id", metin:"metin", tur:"tur", yazan:"yazan", olusma:"olusma"},
   dosyalar:    {id:"id", isEmriId:"is_emri_id", ad:"ad", tur:"tur", boyut:"boyut", yol:"yol", yukleyen:"yukleyen", olusma:"olusma"},
   faturalar:   {id:"id", no:"no", tur:"tur", musteriId:"musteri_id", isEmriId:"is_emri_id", kategori:"kategori", tarih:"tarih", vade:"vade",
@@ -219,15 +219,16 @@ const Depo = {
     if(yr.error && agHatasi(yr.error)) throw yr.error;
     const ben = benimEposta();
     if(yr.error || kr.error) yetki = {yonetici:true, ad:"", liste:[], kurulu:false};
-    else { const k = kr.data.find(x => x.eposta.toLowerCase() === ben); yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true}; }
+    else { const k = kr.data.find(x => x.eposta.toLowerCase() === ben); yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true}; rolUygula(k); }
     eksikSutun = {};
-    const [s4, s10, s11, s13, f13] = await Promise.all([
+    const [s4, s10, s11, s13, f13, s14] = await Promise.all([
       sb.from("is_emirleri").select(Object.keys(SONRADAN_SUTUN).filter(a => SONRADAN_SUTUN[a] === 4).join(",")).limit(1),
       sb.from("is_emirleri").select(Object.keys(SONRADAN_SUTUN).filter(a => SONRADAN_SUTUN[a] === 10).join(",")).limit(1),
       sb.from("hareketler").select("ortak,hedef").limit(1),
       sb.from("musteriler").select("surum").limit(1),
-      sb.from("is_emri_fiyat").select("id").limit(1)]);
-    Object.keys(SONRADAN_SUTUN).forEach(a => { if((SONRADAN_SUTUN[a] === 4 ? s4 : s10).error) eksikSutun[a] = SONRADAN_SUTUN[a]; });
+      sb.from("is_emri_fiyat").select("id").limit(1),
+      sb.from("is_emirleri").select("uretim_gun").limit(1)]);
+    Object.keys(SONRADAN_SUTUN).forEach(a => { if(({4:s4, 10:s10, 14:s14}[SONRADAN_SUTUN[a]]).error) eksikSutun[a] = SONRADAN_SUTUN[a]; });
     if(s11.error){ eksikSutun["hareketler.ortak"] = 11; eksikSutun["hareketler.hedef"] = 11; }
     surumVar = !s13.error; fiyatAyri = !f13.error;
     if(f13.error) eksikTablo.is_emri_fiyat = 1; else delete eksikTablo.is_emri_fiyat;
@@ -274,6 +275,7 @@ const Depo = {
     }catch(e){ if(agHatasi(e)){ cevrimdisiOl(); return; } throw e; }
   },
   async kaydet(t, kayitlar, o = {}){
+    if(yetki.salt) throw new Error(SALT_HATA);
     if(!Array.isArray(kayitlar)) kayitlar = [kayitlar];
     if(!kayitlar.length) return;
     const ka = anahtarAdi(t), eskiler = kayitlar.map(k => { const e = veri[t].find(x => x[ka] === k[ka]); return e ? {ayni:e === k, k:JSON.parse(JSON.stringify(e))} : null; });
@@ -305,6 +307,7 @@ const Depo = {
   },
   // Silinen kayıt (veritabanının birlikte sildiği bağlı kayıtlarla) çöp kutusuna gider; o:{cop:false} ile doğrudan silinir.
   async sil(t, id, o = {}){
+    if(yetki.salt) throw new Error(SALT_HATA);
     const k = veri[t].find(x => x[anahtarAdi(t)] === id);
     const kayitlar = k ? [{t, k}] : [], kopan = [];
     if(k) bagliTopla(t, k, kayitlar, kopan);

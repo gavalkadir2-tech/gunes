@@ -19,7 +19,7 @@ let ayGoster = bugun().slice(0, 7);
 const filtre = {tahsilat:"geciken", ekstre:"gelen", kasa:"hepsi", fatura:"hepsi", is:"acik", cari:"hepsi", katalog:"hepsi", personel:"aktif", personelAy:null, stok:"hepsi"};
 let aramaYazi = "";
 let hazir = false;
-const USTA_EKRAN = {ana:1, isler:1, is:1, kesif:1, katalog:1, proje:1, ayarlar:1, hatirlatmalar:1, takvim:1, kesim:1, etiket:1, qr:1};   // ustanın açabildiği sayfalar
+const USTA_EKRAN = {ana:1, isler:1, is:1, kesif:1, katalog:1, proje:1, ayarlar:1, hatirlatmalar:1, takvim:1, kesim:1, etiket:1, qr:1, kapasite:1, paylasilan:1};   // ustanın açabildiği sayfalar
 const yol = () => (location.hash || "#ana").slice(1).split("/").map(x => x && x !== "-" ? decodeURIComponent(x) : null);
 
 function ciz(){
@@ -36,9 +36,10 @@ function ciz(){
     personel: () => a ? ekranPersonelKart(a) : ekranPersonel(), "personel-form": () => ekranPersonelForm(a), puantaj: () => ekranPuantaj(a), maas: () => ekranMaas(a, b),
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
     katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b), takvim: () => ekranTakvim(a), karlilik: ekranKarlilik, siparisler: ekranSiparisler, kesim: () => ekranKesim(a), cekler: () => ekranCekler(a), kdv: ekranKdv, fiyat: ekranFiyatGuncelle, araclar: ekranAraclar, etiket: () => ekranEtiket(a), qr: () => ekranQr(a),
-    tahsilat: ekranTahsilat, ekstre: ekranEkstre, fiyatkarsilastir: ekranFiyatKarsilastir, kampanya: ekranKampanya, oncesonra: () => ekranOnceSonra(a)
+    tahsilat: ekranTahsilat, ekstre: ekranEkstre, fiyatkarsilastir: ekranFiyatKarsilastir, kampanya: ekranKampanya, oncesonra: () => ekranOnceSonra(a), moduller: ekranModuller, kapasite: ekranKapasite, sabitgiderler: ekranSabitGiderler, ortakhesap: ekranOrtakHesap, paylasilan: ekranPaylasilan
   };
   document.body.classList.toggle("usta", !yetki.yonetici);
+  document.body.classList.toggle("salt", !!yetki.salt);
   if(ekran !== "fatura-form") faturaOnDoldur = null;
   const s = (sayfalar[ekran] && (yetki.yonetici || USTA_EKRAN[ekran]) ? sayfalar[ekran] : ekranAna)();
   document.getElementById("uygulama").innerHTML =
@@ -51,7 +52,7 @@ function ciz(){
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="takvim" aria-label="Takvim">' + ik("takvim") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + (s.baskiLogo === false ? '' : '<div class="baski-logo"><img src="logo.png" alt="Güneş Mobilya"></div>') + cevrimdisiUyari() + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
-    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler"}[ekran] || ekran;
+    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler", moduller:"stok", kapasite:"isler", sabitgiderler:"kasa", ortakhesap:"rapor", paylasilan:"isler"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
   if(s.sonra) s.sonra();
   window.scrollTo(0, 0);
@@ -164,31 +165,39 @@ function ekranAna(){
   const son = veri.hareketler.filter(h => h.tur !== "borc").sort(tarihSira).slice(0, 6);
 
   const hl = hatirlatmalar();
-  const html = yedekUyarisi() +
-    (hl.length ? bolum(ik("zil") + ' Yapılacaklar (' + hl.length + ')', '<button data-git="hatirlatmalar">' + (hl.length > 5 ? 'Tümü' : 'Bildirim ayarı') + '</button>') +
-      '<div class="kart liste-kart" style="margin-bottom:12px">' + hl.slice(0, 5).map(hatirlatmaSatir).join("") + '</div>' : '') +
-    hedefKarti() +
-    (() => { const r = randevular().filter(x => x.r.tarih === bg && x.ie.durum !== "İptal").sort((a, b) => (a.r.saat || "") < (b.r.saat || "") ? -1 : 1);
-      return r.length ? bolum(ik("takvim") + ' Bugünkü randevular (' + r.length + ')', '<button data-git="takvim">Takvim</button>') + '<div class="bugun-randevu">' + r.map(x => randevuKarti(x)).join("") + '</div>' : ''; })() +
-    '<div class="izgara dort">' +
+  // Kartlar Ayarlar → Ana sayfa'daki sıraya göre
+  const kart = {
+    yapilacak:() => hl.length ? bolum(ik("zil") + ' Yapılacaklar (' + hl.length + ')', '<button data-git="hatirlatmalar">' + (hl.length > 5 ? 'Tümü' : 'Bildirim ayarı') + '</button>') +
+      '<div class="kart liste-kart" style="margin-bottom:12px">' + hl.slice(0, 5).map(hatirlatmaSatir).join("") + '</div>' : '',
+    hedef:hedefKarti,
+    randevu:() => { const r = randevular().filter(x => x.r.tarih === bg && x.ie.durum !== "İptal").sort((a, b) => (a.r.saat || "") < (b.r.saat || "") ? -1 : 1);
+      return r.length ? bolum(ik("takvim") + ' Bugünkü randevular (' + r.length + ')', '<button data-git="takvim">Takvim</button>') + '<div class="bugun-randevu">' + r.map(x => randevuKarti(x)).join("") + '</div>' : ''; },
+    kapasite:kapasiteKarti,
+    ozet:() => '<div class="izgara dort">' +
       '<button class="kart genis-mobil" data-git="kasa"><div class="kart-baslik">Kasadaki para ' + ik("sag") + '</div><div class="buyuk-sayi">' + para(k.toplam) + '</div>' +
         '<div class="alt-bilgi">Nakit <b>' + para(k.nakit) + '</b> · Banka <b>' + para(k.banka) + '</b>' + (k.senet ? ' · Çek/Senet <b>' + para(k.senet) + '</b>' : '') + '</div>' + kisiKasaSatiri() + '</button>' +
       '<div class="kart ozet"><div class="kart-baslik">Bugün</div><div class="deger t-giris" style="font-size:16px">+' + para(gir) + '</div><div class="deger t-cikis" style="font-size:16px">−' + para(cik) + '</div></div>' +
       '<button class="kart ozet" data-git="cariler"><div class="kart-baslik"><span><span class="nokta" style="background:var(--borc)"></span>Alacağımız</span></div><div class="deger">' + para(alacak) + '</div></button>' +
       '<button class="kart ozet" data-git="cariler"><div class="kart-baslik"><span><span class="nokta" style="background:var(--cikis)"></span>Borcumuz</span></div><div class="deger">' + para(borc) + '</div></button>' +
-    '</div>' +
-    '<div class="hizli">' +
+      '</div>',
+    hizli:() => yetki.salt ? '' : '<div class="hizli">' +
       hizliButon("giris", "r-giris", "asagi", "Para Girdi") + hizliButon("cikis", "r-cikis", "yukari", "Para Çıktı") +
       hizliButon("fatura-form/satis", "r-borc", "fatura", "Satış Faturası") + hizliButon("fatura-form/alis", "r-gri", "fatura", "Alış Faturası") +
       hizliButon("is-form", "r-ana", "is", "Yeni İş Emri") + hizliButon("is-form/-/-/-/kesif", "r-borc", "cetvel", "Ölçü / Keşif") + hizliButon("stok", "r-gri", "koli", "Stok") +
-    '</div>' +
-    '<div class="iki-sutun"><div>' +
-      bolum("Açık iş emirleri (" + acikIsler.length + ")", '<button data-git="isler">Tümü</button>') +
-      '<div class="kart liste-kart">' + (acikIsler.length ? acikIsler.slice(0, 6).map(ie => isSatir(ie)).join("") : bos("is", "Açık iş emri yok.")) + '</div>' +
-    '</div><div>' +
-      bolum("Son kasa hareketleri", '<button data-git="kasa">Tümü</button>') +
-      '<div class="kart liste-kart">' + (son.length ? son.map(h => hareketSatir(h)).join("") : bos("kasa", "Henüz kayıt yok.")) + '</div>' +
-    '</div></div>';
+      '</div>',
+    isler:() => bolum("Açık iş emirleri (" + acikIsler.length + ")", '<button data-git="isler">Tümü</button>') +
+      '<div class="kart liste-kart">' + (acikIsler.length ? acikIsler.slice(0, 6).map(ie => isSatir(ie)).join("") : bos("is", "Açık iş emri yok.")) + '</div>',
+    sonKasa:() => bolum("Son kasa hareketleri", '<button data-git="kasa">Tümü</button>') +
+      '<div class="kart liste-kart">' + (son.length ? son.map(h => hareketSatir(h)).join("") : bos("kasa", "Henüz kayıt yok.")) + '</div>'
+  };
+  const sira = anaSayfaDuzeni().filter(x => !x.gizli).map(x => x.id);
+  let html = yedekUyarisi() + (yetki.salt ? '<div class="bilgi-kutu" style="margin-top:0">Muhasebeci hesabı: kayıtları görebilir, değiştiremezsiniz. Aylık dosyalar: <b data-git="rapor" style="cursor:pointer">Rapor → Muhasebeci paketi</b></div>' : '');
+  for(let i = 0; i < sira.length; i++){
+    // Açık işler ile son kasa yan yana gelirse masaüstünde iki sütun
+    const ikili = {isler:"sonKasa", sonKasa:"isler"}[sira[i]];
+    if(ikili && sira[i + 1] === ikili){ html += '<div class="iki-sutun"><div>' + kart[sira[i]]() + '</div><div>' + kart[sira[i + 1]]() + '</div></div>'; i++; }
+    else html += kart[sira[i]]();
+  }
   return {baslik:"Güneş Mobilya", html};
 }
 function yedekUyarisi(){
