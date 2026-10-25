@@ -55,6 +55,7 @@ function ciz(){
     kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler", moduller:"stok", kapasite:"isler", sabitgiderler:"kasa", ortakhesap:"rapor", paylasilan:"isler", acilis:"cariler"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
   if(s.sonra) s.sonra();
+  sesBalonGuncelle();
   window.scrollTo(0, 0);
 }
 

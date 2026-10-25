@@ -598,3 +598,23 @@ body.salt [data-git="giris"], body.salt [data-git="cikis"], body.salt [data-git=
 .kesim-talimat .serit{display:inline-block;border:1px solid var(--cizgi);border-radius:6px;padding:0 6px;font-weight:600;background:var(--hafif)}
 .kesim-talimat .serit-parca{white-space:nowrap;margin-right:8px}.kesim-talimat i{color:var(--soluk);font-style:normal}
 .kesim-talimat .ayrac{color:var(--cizgi);margin:0 2px}.kesim-talimat li{margin-bottom:4px}
+/* Sesli komut balonu (sağ altta) */
+.ses-balon{position:fixed;right:14px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:55;display:flex;flex-direction:column;align-items:flex-end;gap:10px;pointer-events:none}
+.ses-balon > *{pointer-events:auto}
+.ses-dugme{width:56px;height:56px;border-radius:50%;border:0;background:var(--ana);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(0,0,0,.25);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ses-dugme .ik{width:26px;height:26px}
+.ses-balon.dinliyor .ses-dugme{background:#dc2626;animation:sesNabiz 1.2s infinite}
+@keyframes sesNabiz{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55)}70%{box-shadow:0 0 0 16px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+.ses-panel{position:relative;width:min(340px,calc(100vw - 28px));background:var(--kart);color:var(--yazi);border:1px solid var(--cizgi);border-radius:16px 16px 4px 16px;padding:12px;box-shadow:0 12px 32px rgba(0,0,0,.18);font-size:14px;line-height:1.5}
+.ses-panel[hidden]{display:none}
+.ses-duyulan{font-weight:600;margin-bottom:6px}.ses-duyulan.dinleniyor{color:var(--soluk);font-weight:500}
+.ses-form{display:flex;gap:6px;margin-top:10px}.ses-form .kutu{flex:1;min-width:0;height:40px}.ses-form .ikon-buton{height:40px}
+.ses-alt{display:flex;justify-content:space-between;margin-top:6px}.ses-alt .baglanti{margin:0;font-size:13px}
+@media(min-width:900px){.ses-balon{right:24px;bottom:24px}}
+body.girissiz .ses-balon{display:none}
+@media print{.ses-balon{display:none!important}}
+/* Bildirim uyarısı balonun üstünde dursun */
+.bildirim-tost{bottom:calc(150px + env(safe-area-inset-bottom))}
+@media(min-width:900px){.bildirim-tost{bottom:96px}}
+.sayfa{padding-bottom:96px}
+.ses-balon[hidden]{display:none}

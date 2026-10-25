@@ -27,7 +27,7 @@ async function sistemKaydet(degisen){
   const a = veri.ayarlar.find(x => x.anahtar === "sistem"), eski = a && a.deger && typeof a.deger === "object" ? a.deger : {};
   await Depo.kaydet("ayarlar", {anahtar:"sistem", deger:Object.assign({}, eski, degisen)});
 }
-const CIHAZ_VARSAYILAN = {tema:"acik", yazi:1, acilis:"ana", otoCikis:0, pin:"", kilitDk:5, satir:20, listeler:{}};
+const CIHAZ_VARSAYILAN = {tema:"acik", yazi:1, acilis:"ana", otoCikis:0, pin:"", kilitDk:5, satir:20, listeler:{}, sesKomut:1};
 function cihaz(){ try{ return Object.assign({}, CIHAZ_VARSAYILAN, JSON.parse(ayarOku("cihaz") || "{}")); }catch(e){ return Object.assign({}, CIHAZ_VARSAYILAN); } }
 function cihazKaydet(d){ ayarYaz("cihaz", JSON.stringify(Object.assign(cihaz(), d))); ayarlariUygula(); }
 // İki rengi karıştırır (oran 0 → a, 1 → b)
@@ -429,6 +429,7 @@ function ayarGorunum(){
       '<label class="etiket">Tema</label>' + sec("tema", [["acik", "Açık"], ["koyu", "Koyu"], ["sistem", "Cihaza göre"]], c.tema) +
       '<label class="etiket">Yazı ve düğme boyutu</label>' + sec("yazi", [["0.9", "Küçük"], ["1", "Normal"], ["1.1", "Büyük"], ["1.2", "Çok büyük"]], c.yazi) +
       '<label class="etiket">Açılış sayfası</label>' + sec("acilis", [["ana", "Ana sayfa"], ["isler", "İş emirleri"], ["katalog", "Katalog"]].concat(yetki.yonetici ? [["kasa", "Kasa"], ["hatirlatmalar", "Yapılacaklar"]] : []), c.acilis) +
+      '<label class="etiket">Sesli komut balonu <span class="ist">(sağ altta; Ctrl+Shift+Boşluk)</span></label>' + sec("sesKomut", [[1, "Göster"], [0, "Gizle"]], Number(c.sesKomut)) +
       '<label class="etiket">Listelerde gösterilecek satır</label>' + sec("satir", SATIR_SECENEK.map(n => [n, n ? n + " satır" : "Tümü"]), c.satir) +
       '<div class="alt-bilgi">Her listenin üstündeki “Sırala” ve “Göster” kutularıyla o liste ayrıca ayarlanır.' +
         (Object.keys(c.listeler || {}).length ? ' <b data-is="listeGorunumSifirla" style="cursor:pointer;color:var(--borc)">Liste ayarlarını sıfırla</b>' : '') + '</div>' +

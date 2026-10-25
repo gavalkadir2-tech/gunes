@@ -311,7 +311,7 @@ function depolamaKarti(){
 const AYAR_ANAHTAR = {firma:"firma adı telefon e-posta adres il ilçe vergi dairesi iban banka web instagram", ortaklar:"ortak samet ibrahim pay kâr payı kasa",
   teklif:"teklif fatura kdv oran önek numara geçerlilik kâr oranı not e-fatura e-arşiv entegratör", is:"aşama üretim keşif tesisat hatırlatma teslim vade müşteri bağlantısı süre",
   liste:"ödeme şekli nakit kart havale çek senet kategori gelir gider katalog birim malzeme fiyat listesi", personel:"personel çalışma günü saat mesai katsayı maaş",
-  kullanicilar:"kullanıcı yetki usta yönetici hesap şifre giriş", gorunum:"tema koyu açık renk yazı boyutu açılış sayfası modül menü gizle",
+  kullanicilar:"kullanıcı yetki usta yönetici hesap şifre giriş", gorunum:"tema koyu açık renk yazı boyutu açılış sayfası modül menü gizle sesli komut balon mikrofon liste satır",
   bildirim:"bildirim zil ses sessiz saat telefon uyarı yapılacaklar hatırlatma özet", guvenlik:"güvenlik pin kilit otomatik çıkış şifre", mesajlar:"mesaj şablon whatsapp sipariş onay randevu tahsilat kampanya tedarikçi",
   belge:"belge yazdır pdf teklif çıktısı logo imza iban fotoğraf alt bilgi başlık", takvim:"takvim randevu saat süre çalışma günü cumartesi pazar hatırlatma",
   yedek:"yedek geri yükle zip otomatik günlük indir ayar aktar depolama kullanım veritabanı durumu", cop:"çöp kutusu silinen geri yükle", gecmis:"işlem geçmişi log kim ne zaman",
