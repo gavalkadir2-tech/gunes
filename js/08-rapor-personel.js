@@ -87,7 +87,9 @@ function cubuklar(baslik, obj, toplam, renk, sinir){
 const UCRET_TIPI = {aylik:"Aylık maaş", haftalik:"Haftalık ücret", gunluk:"Günlük yevmiye"};
 const PUANTAJ = [["geldi", "Geldi"], ["yarim", "Yarım gün"], ["gelmedi", "Gelmedi"], ["izinli", "Ücretli izin"], ["ucretsiz", "Ücretsiz izin"], ["raporlu", "Raporlu"], ["tatil", "Tatil"]];
 const PUANTAJ_RENK = {geldi:"#16a34a", yarim:"#f59e0b", gelmedi:"#dc2626", izinli:"#2563eb", ucretsiz:"#9ca3af", raporlu:"#7c3aed", tatil:"#0d9488"};
-const PH_TUR = {hakedis:["Hakediş", 1], prim:["Prim", 1], kesinti:["Kesinti", -1], avans:["Avans", -1], odeme:["Ödeme", -1]};
+// Açılış bakiyesi işaretli tutardır: artı = personelin alacağı, eksi = personel bize borçlu (avans fazlası)
+const PH_TUR = {hakedis:["Hakediş", 1], prim:["Prim", 1], kesinti:["Kesinti", -1], avans:["Avans", -1], odeme:["Ödeme", -1], acilis:["Açılış bakiyesi", 1]};
+const phYon = h => h.tur === "acilis" ? (h.tutar < 0 ? -1 : 1) : (PH_TUR[h.tur] || [0, 0])[1];
 const PERSONEL_AYAR = {haftaGun:6, gunSaat:9, mesaiKat:1.5};
 function personelAyar(){
   const a = veri.ayarlar.find(x => x.anahtar === "personelAyar");
@@ -165,6 +167,7 @@ function ekranPersonel(){
       '<div class="kart ozet"><div class="kart-baslik">Personele borcumuz</div><div class="deger">' + para(borc) + '</div></div></div>' +
     '<div class="hizli" style="grid-template-columns:repeat(3,1fr)">' + hizliButon("puantaj", "r-giris", "tamam", "Puantaj") +
       hizliButon("maas/ay", "r-cikis", "kasa", "Maaş / Ödeme") + hizliButon("personel-form", "r-ana", "arti", "Yeni Personel") + '</div>' +
+    '<div class="alt-bilgi" style="margin:-4px 2px 10px">Önceki dönemden kalan alacak / avanslar: <b data-is="acilisAc" data-arg="personel" style="cursor:pointer;color:var(--borc)">Açılış bakiyeleri</b></div>' +
     '<div class="ust-arac">' + filtreButonlari("personel", [["aktif", "Çalışanlar"], ["ayrilan", "Ayrılanlar"], ["hepsi", "Hepsi"]]) + '</div>' + listeArac("personel", PERSONEL_SIRA) +
     '<div class="kart liste-kart">' + (liste.length ? liste.map(p => {
       const b = personelBakiye(p.id);
@@ -207,6 +210,7 @@ function ekranPersonelForm(id){
     (p ? '<div>' + tarihAlani("pCikis", "İşten ayrılış tarihi", p.cikis, true) + '</div>' : '<div></div>') + '</div>' +
     '<label class="etiket" for="pIban">IBAN <span class="ist">(isteğe bağlı)</span></label><input id="pIban" class="kutu" maxlength="40" value="' + esc(p ? p.iban : "") + '">' +
     '<label class="etiket" for="pNot">Notlar <span class="ist">(isteğe bağlı)</span></label><textarea id="pNot" class="kutu" maxlength="1000" style="min-height:64px">' + esc(p ? p.notlar : "") + '</textarea>' +
+    acilisAlani("personel", p ? bul("personel_hareket", "ac-" + p.id) : null) +
     '<div class="hata" id="hata"></div><button class="buton" data-is="personelKaydet" data-arg="' + (p ? p.id : "") + '">' + ik("tamam") + 'Kaydet</button></div>';
   return {baslik: p ? "Personeli düzenle" : "Yeni personel", geri:true, html, sonra(){ secenekBagla(); document.getElementById("pAd").focus(); }};
 }
@@ -220,8 +224,10 @@ EYLEM.personelKaydet = (btn, id) => {
   const eski = bul("personel", id);
   const k = {id: id || yeniId(), ad, gorev:deger("pGorev"), telefon:deger("pTel"), iban:deger("pIban"), giris, cikis, ucretTipi:form.ucretTipi, ucret:yuvarla(ucret),
     izinHakki:izin, notlar:deger("pNot"), olusma: eski ? eski.olusma : Date.now()};
+  const ac = acilisOku(); if(!ac) return;
   islem(btn, async () => {
     await Depo.kaydet("personel", Object.assign(k, form._surum != null ? {_surum:form._surum} : {}));
+    await acilisKaydet("personel", k.id, ac.tutar, ac.tarih);
     bildir(id ? "Kaydedildi" : "Personel eklendi");
     if(id) geri(); else { history.replaceState(null, "", "#personel/" + k.id); ciz(); }
   });
@@ -267,10 +273,10 @@ function ekranPersonelKart(id){
       takvim + '<div class="alt-bilgi">' + (puantajOzet(hes) || "Bu ay kayıt yok.") + (hes.isaretsiz ? ' · ' + hes.isaretsiz + ' gün işaretsiz' + (p.ucretTipi === "gunluk" ? ' (ödenmez)' : ' (geldi sayılır)') : '') + '</div>' +
       '<div class="alt-bilgi">Bu ayın hesaplanan hakedişi: <b>' + para(hes.toplam) + '</b></div></div>' +
     bolum("Hesap hareketleri (" + hl.length + ")") + '<div class="kart liste-kart">' + (hl.length ? hl.map(h => {
-      const [ad, yon] = PH_TUR[h.tur] || [h.tur, 0];
+      const ad = (PH_TUR[h.tur] || [h.tur])[0], yon = phYon(h);
       return '<div class="satir"><span class="rozet ' + (yon > 0 ? 'r-giris' : 'r-cikis') + '">' + ik(yon > 0 ? "arti" : "yukari") + '</span><span class="orta"><div class="s1">' + ad + (h.donem ? ' · ' + esc(donemAdi(h.donem)) : '') + '</div>' +
         '<div class="s2">' + esc([tarihYaz(h.tarih, true), h.aciklama, h.hareketId ? "kasaya işlendi" : ""].filter(Boolean).join(" · ")) + '</div></span>' +
-        '<span class="tutar ' + (yon > 0 ? 't-giris' : 't-cikis') + '">' + (yon > 0 ? '+' : '−') + para(h.tutar) + '</span>' +
+        '<span class="tutar ' + (yon > 0 ? 't-giris' : 't-cikis') + '">' + (yon > 0 ? '+' : '−') + para(Math.abs(h.tutar)) + '</span>' +
         '<button class="ikon-buton" style="margin-left:6px" data-is="phSil" data-arg="' + h.id + '" aria-label="Sil">' + ik("sil") + '</button></div>';
     }).join("") : bos("kasa", "Henüz hareket yok.")) + '</div>' +
     '</div></div>';
@@ -329,7 +335,7 @@ EYLEM.waPersonel = (el, id) => {
   const p = bul("personel", id); if(!p) return;
   const b = personelBakiye(id), son = personelHareketleri(id).slice(0, 8);
   waPencere({tel:p.telefon, ad:p.ad, sablonlar:[{ad:"Hesap özeti", metin:"Merhaba " + p.ad + ", hesap özetiniz:\n" +
-    son.map(h => "• " + tarihYaz(h.tarih, true) + " " + PH_TUR[h.tur][0] + (h.donem ? " (" + donemAdi(h.donem) + ")" : "") + ": " + (PH_TUR[h.tur][1] > 0 ? "+" : "−") + para(h.tutar)).join("\n") +
+    son.map(h => "• " + tarihYaz(h.tarih, true) + " " + PH_TUR[h.tur][0] + (h.donem ? " (" + donemAdi(h.donem) + ")" : "") + ": " + (phYon(h) > 0 ? "+" : "−") + para(Math.abs(h.tutar))).join("\n") +
     "\n\n" + (b >= 0 ? "Kalan alacağınız: " : "Avans fazlası: ") + para(Math.abs(b)) + "\n\n" + FIRMA}]});
 };
 

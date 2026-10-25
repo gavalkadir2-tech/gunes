@@ -278,7 +278,7 @@ function aramaSonuclari(q){
     .map(f => ({yer:"fatura/" + f.id, ikon:"fatura", s1:f.no + " · " + cariAdi(f.musteriId), s2:(f.tur === "satis" ? "Satış" : "Alış") + " · " + tarihYaz(f.tarih, true) + " · " + para(f.toplam)})));
   ekle("Katalog", veri.katalog.filter(p => uyar_(p.baslik, p.kategori, p.malzeme, p.aciklama)).map(p => ({yer:"proje/" + p.id, ikon:"katalog", s1:p.baslik, s2:p.kategori})));
   if(Y) ekle("Personel", veri.personel.filter(p => uyar_(p.ad, p.gorev) || telUyar(p.telefon)).map(p => ({yer:"personel/" + p.id, ikon:"kisi", s1:p.ad, s2:p.gorev || ""})));
-  if(Y) ekle("Kasa", veri.hareketler.filter(h => h.tur !== "borc" && (uyar_(h.aciklama, h.kategori, cariAdi(h.musteriId)) || (rakam.length >= 2 && String(Math.round(h.tutar)) === rakam))).sort(tarihSira)
+  if(Y) ekle("Kasa", veri.hareketler.filter(h => kasaHareketi(h) && (uyar_(h.aciklama, h.kategori, cariAdi(h.musteriId)) || (rakam.length >= 2 && String(Math.round(h.tutar)) === rakam))).sort(tarihSira)
     .map(h => ({yer:"kayit/" + h.id, ikon:h.tur === "giris" ? "asagi" : "yukari", s1:(h.tur === "giris" ? "+" : "−") + para(h.tutar) + " · " + (h.kategori || ""), s2:[tarihYaz(h.tarih, true), cariAdi(h.musteriId), h.aciklama].filter(Boolean).join(" · ")})));
   if(Y) ekle("Çek / senet", veri.cekler.filter(c => uyar_(c.no, c.banka, c.kesideci, cariAdi(c.musteriId)) || (rakam.length >= 2 && String(Math.round(c.tutar)) === rakam))
     .map(c => ({yer:"cekler/" + c.id, ikon:"kasa", s1:(c.belge === "senet" ? "Senet " : "Çek ") + (c.no || "") + " · " + para(c.tutar), s2:[cariAdi(c.musteriId), "vade " + tarihYaz(c.vade, true), CEK_DURUM[c.durum]].filter(Boolean).join(" · ")})));

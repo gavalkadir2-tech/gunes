@@ -36,7 +36,7 @@ function ciz(){
     personel: () => a ? ekranPersonelKart(a) : ekranPersonel(), "personel-form": () => ekranPersonelForm(a), puantaj: () => ekranPuantaj(a), maas: () => ekranMaas(a, b),
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
     katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b), takvim: () => ekranTakvim(a), karlilik: ekranKarlilik, siparisler: ekranSiparisler, kesim: () => ekranKesim(a), cekler: () => ekranCekler(a), kdv: ekranKdv, fiyat: ekranFiyatGuncelle, araclar: ekranAraclar, etiket: () => ekranEtiket(a), qr: () => ekranQr(a),
-    tahsilat: ekranTahsilat, ekstre: ekranEkstre, fiyatkarsilastir: ekranFiyatKarsilastir, kampanya: ekranKampanya, oncesonra: () => ekranOnceSonra(a), moduller: ekranModuller, kapasite: ekranKapasite, sabitgiderler: ekranSabitGiderler, ortakhesap: ekranOrtakHesap, paylasilan: ekranPaylasilan
+    tahsilat: ekranTahsilat, ekstre: ekranEkstre, fiyatkarsilastir: ekranFiyatKarsilastir, kampanya: ekranKampanya, oncesonra: () => ekranOnceSonra(a), moduller: ekranModuller, kapasite: ekranKapasite, sabitgiderler: ekranSabitGiderler, ortakhesap: ekranOrtakHesap, paylasilan: ekranPaylasilan, acilis: ekranAcilis
   };
   document.body.classList.toggle("usta", !yetki.yonetici);
   document.body.classList.toggle("salt", !!yetki.salt);
@@ -52,7 +52,7 @@ function ciz(){
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="takvim" aria-label="Takvim">' + ik("takvim") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + (s.baskiLogo === false ? '' : '<div class="baski-logo"><img src="logo.png" alt="Güneş Mobilya"></div>') + cevrimdisiUyari() + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
-    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler", moduller:"stok", kapasite:"isler", sabitgiderler:"kasa", ortakhesap:"rapor", paylasilan:"isler"}[ekran] || ekran;
+    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler", moduller:"stok", kapasite:"isler", sabitgiderler:"kasa", ortakhesap:"rapor", paylasilan:"isler", acilis:"cariler"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
   if(s.sonra) s.sonra();
   window.scrollTo(0, 0);
@@ -144,14 +144,14 @@ function hareketSatir(h, gizleCari){
     '<div class="s2">' + esc([h.aciklama, h.odeme, tarihYaz(h.tarih, true)].filter(Boolean).join(" · ")) + '</div></span><span class="tutar t-soluk">' + para(h.tutar) + '</span></button>';
   const cari = !gizleCari && h.musteriId ? cariAdi(h.musteriId) : "";
   const ie = h.isEmriId ? bul("is_emirleri", h.isEmriId) : null;
-  const ikon = h.tur === "giris" ? "asagi" : h.tur === "cikis" ? "yukari" : "kisi";
-  const isaret = h.tur === "giris" ? "+" : h.tur === "cikis" ? "−" : "";
-  const baslik = h.tur === "borc" ? "Veresiye satış (eski kayıt)" : h.kategori + (ortakKategorisi(h.kategori) && h.hedef ? " · " + ortakAdi(h.hedef) : "");
+  const ac = h.tur === "acilis", ikon = h.tur === "giris" ? "asagi" : h.tur === "cikis" ? "yukari" : ac ? "kasa" : "kisi";
+  const isaret = h.tur === "giris" || (ac && h.tutar > 0) ? "+" : h.tur === "cikis" || (ac && h.tutar < 0) ? "−" : "";
+  const baslik = h.tur === "borc" ? "Veresiye satış (eski kayıt)" : ac ? "Açılış bakiyesi" : h.kategori + (ortakKategorisi(h.kategori) && h.hedef ? " · " + ortakAdi(h.hedef) : "");
   const kimde = h.tur !== "borc" && ortaklar().length && (h.ortak || kisiKasaVar()) ? (h.ortak ? ortakAdi(h.ortak) + "'de" : "Kasada") : "";
   const alt = [cari, ie ? ie.no : "", h.aciklama, h.tur !== "borc" ? h.odeme : "", kimde, tarihYaz(h.tarih, true)].filter(Boolean).join(" · ");
-  return '<button class="satir" data-git="kayit/' + h.id + '"><span class="rozet r-' + (h.tur === "borc" ? "borc" : h.tur) + '">' + ik(ikon) + '</span>' +
+  return '<button class="satir" data-git="kayit/' + h.id + '"><span class="rozet r-' + (h.tur === "borc" ? "borc" : ac ? "ana" : h.tur) + '">' + ik(ikon) + '</span>' +
     '<span class="orta"><div class="s1">' + esc(baslik) + '</div><div class="s2">' + esc(alt) + '</div></span>' +
-    '<span class="tutar t-' + h.tur + '">' + isaret + para(h.tutar) + '</span></button>';
+    '<span class="tutar t-' + (ac ? (h.tutar < 0 ? "cikis" : "giris") : h.tur) + '">' + isaret + para(Math.abs(h.tutar)) + '</span></button>';
 }
 function faturaSatir(f, gizleCari){
   const od = odemeDurumu(f), ie = bul("is_emirleri", f.isEmriId);
@@ -194,7 +194,7 @@ function ekranAna(){
   veri.hareketler.forEach(h => { if(h.tarih !== bg) return; if(h.tur === "giris") gir += h.tutar; else if(h.tur === "cikis") cik += h.tutar; });
   veri.musteriler.forEach(m => { const b = cariBakiye(m.id); if(b > 0) alacak += b; else borc -= b; });
   const acikIsler = veri.is_emirleri.filter(ac).sort((a, b) => (a.teslimTarihi || "9999") < (b.teslimTarihi || "9999") ? -1 : 1);
-  const son = veri.hareketler.filter(h => h.tur !== "borc").sort(tarihSira).slice(0, 6);
+  const son = veri.hareketler.filter(kasaHareketi).sort(tarihSira).slice(0, 6);
 
   const hl = hatirlatmalar();
   // Kartlar Ayarlar → Ana sayfa'daki sıraya göre

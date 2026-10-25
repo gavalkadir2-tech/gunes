@@ -63,7 +63,7 @@ const KASA_SIRA = {yeni:["Tarih (yeni → eski)", tarihSira], eski:["Tarih (eski
   kategori:["Kategori", (a, b) => a.kategori.localeCompare(b.kategori, "tr") || tarihSira(a, b)]};
 function ekranKasa(){
   const k = kasa();
-  const liste = veri.hareketler.filter(h => h.tur !== "borc" && h.tarih.slice(0, 7) === ayGoster && (filtre.kasa === "hepsi" || h.tur === filtre.kasa || (filtre.kasa === "ortak" && (h.tur === "aktarim" || ortakKategorisi(h.kategori)))));
+  const liste = veri.hareketler.filter(h => kasaHareketi(h) && h.tarih.slice(0, 7) === ayGoster && (filtre.kasa === "hepsi" || h.tur === filtre.kasa || (filtre.kasa === "ortak" && (h.tur === "aktarim" || ortakKategorisi(h.kategori)))));
   let gir = 0, cik = 0; liste.forEach(h => { if(h.tur === "giris") gir += h.tutar; else if(h.tur === "cikis") cik += h.tutar; });
   let html = '<div class="izgara uc"><div class="kart"><div class="kart-baslik">Kasadaki para (toplam)</div><div class="buyuk-sayi" style="font-size:24px">' + para(k.toplam) + '</div>' +
       '<div class="alt-bilgi">Nakit <b>' + para(k.nakit) + '</b> · Banka <b>' + para(k.banka) + '</b>' + (k.senet ? ' · Çek/Senet <b>' + para(k.senet) + '</b>' : '') + '</div>' + kisiKasaSatiri() + '</div>' +
@@ -71,7 +71,7 @@ function ekranKasa(){
     '<div class="kart ozet"><div class="kart-baslik">Bu ay çıkan</div><div class="deger t-cikis">' + para(cik) + '</div></div></div>' +
     '<div class="hizli">' + hizliButon("giris", "r-giris", "asagi", "Para Girdi") + hizliButon("cikis", "r-cikis", "yukari", "Para Çıktı") + hizliButon("cekler", "r-borc", "fatura", "Çek / Senet") +
       (ortaklar().length ? '<button data-is="kasaAktarim"><span class="rozet r-ana">' + ik("dondur") + '</span>Kasalar arası aktarım</button>' : '') +
-      hizliButon("ekstre", "r-gri", "yukle", "Banka ekstresi") + hizliButon("sabitgiderler", "r-ana", "takvim", "Sabit giderler") + '</div>' +
+      hizliButon("ekstre", "r-gri", "yukle", "Banka ekstresi") + hizliButon("sabitgiderler", "r-ana", "takvim", "Sabit giderler") + '<button data-is="acilisAc" data-arg="kasa"><span class="rozet r-gri">' + ik("kasa") + '</span>Açılış bakiyesi</button>' + '</div>' +
     '<div class="ust-arac">' + aySecici() + filtreButonlari("kasa", [["hepsi","Hepsi"], ["giris","Giren"], ["cikis","Çıkan"]].concat(ortaklar().length ? [["ortak", "Ortak hareketleri"]] : [])) + '</div>' +
     listeArac("kasa", KASA_SIRA);
   if(!liste.length) return {baslik:"Kasa", html: html + '<div class="kart">' + bos("kasa", "Bu ayda kayıt yok.") + '</div>'};
@@ -81,7 +81,7 @@ function ekranKasa(){
   const gunler = {}, sira = [];
   hz.l.forEach(h => { if(!gunler[h.tarih]){ gunler[h.tarih] = []; sira.push(h.tarih); } gunler[h.tarih].push(h); });
   html += sira.map(t => {
-    const net = liste.filter(h => h.tarih === t).reduce((s, h) => s + (h.tur === "giris" ? h.tutar : h.tur === "cikis" ? -h.tutar : 0), 0);
+    const net = liste.filter(h => h.tarih === t).reduce((s, h) => s + (h.tur === "giris" || h.tur === "acilis" ? h.tutar : h.tur === "cikis" ? -h.tutar : 0), 0);
     return '<div class="gun-baslik"><span>' + tarihYaz(t) + '</span><span>' + (net >= 0 ? "+" : "") + para(net) + '</span></div>' +
       '<div class="kart liste-kart">' + gunler[t].map(h => hareketSatir(h)).join("") + '</div>';
   }).join("") + dahaFazla("kasa", hz);
@@ -90,10 +90,10 @@ function ekranKasa(){
 function ekranKayit(id){
   const h = bul("hareketler", id);
   if(!h) return {baslik:"Kayıt", geri:true, html:'<div class="kart">' + bos("kasa", "Kayıt bulunamadı.") + '</div>'};
-  const tip = h.tur === "giris" ? "Para Girdi" : h.tur === "cikis" ? "Para Çıktı" : h.tur === "aktarim" ? "Kasalar arası aktarım" : "Veresiye Satış";
+  const tip = h.tur === "giris" ? "Para Girdi" : h.tur === "cikis" ? "Para Çıktı" : h.tur === "aktarim" ? "Kasalar arası aktarım" : h.tur === "acilis" ? "Açılış bakiyesi" : "Veresiye Satış";
   const ie = bul("is_emirleri", h.isEmriId), f = bul("faturalar", h.faturaId);
   const bag = (yer, yazi) => '<button class="baglanti" data-git="' + yer + '">' + esc(yazi) + '</button>';
-  const html = '<div class="kart form-kart">' + bilgiSatir("Tutar", '<span class="t-' + h.tur + '" style="font-weight:600">' + para(h.tutar) + '</span>') +
+  const html = '<div class="kart form-kart">' + bilgiSatir("Tutar", '<span class="t-' + h.tur + '" style="font-weight:600">' + (h.tur === "acilis" && h.tutar < 0 ? "−" : "") + para(Math.abs(h.tutar)) + '</span>') +
     bilgiSatir("Ne için", esc(h.tur === "borc" ? "Veresiye" : h.kategori)) + (h.odeme ? bilgiSatir("Ödeme", esc(h.odeme)) : '') +
     (h.tur === "aktarim" ? bilgiSatir("Kimden → kime", esc(ortakAdi(h.ortak) + " → " + ortakAdi(h.hedef))) : ortaklar().length && h.tur !== "borc" ? bilgiSatir(h.tur === "giris" ? "Para kimde" : "Kim ödedi", esc(ortakAdi(h.ortak))) : '') +
     (ortakKategorisi(h.kategori) && h.hedef ? bilgiSatir("Ortak", esc(ortakAdi(h.hedef))) : '') +
@@ -115,7 +115,7 @@ function ekranCariler(){
   const html = '<div class="izgara"><div class="kart ozet"><div class="kart-baslik">Alacağımız</div><div class="deger t-borc">' + para(alacak) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Borcumuz</div><div class="deger t-cikis">' + para(borc) + '</div></div></div>' +
     '<div class="hizli">' + hizliButon("cari-form/-/musteri", "r-borc", "kisi", "Yeni Müşteri") + hizliButon("cari-form/-/tedarikci", "r-gri", "koli", "Yeni Tedarikçi") +
-      hizliButon("tahsilat", "r-cikis", "mesaj", "Tahsilat hatırlat") + hizliButon("kampanya", "r-ana", "yildiz", "Kampanya mesajı") + '</div>' +
+      hizliButon("tahsilat", "r-cikis", "mesaj", "Tahsilat hatırlat") + hizliButon("kampanya", "r-ana", "yildiz", "Kampanya mesajı") + hizliButon("acilis", "r-gri", "kasa", "Açılış bakiyeleri") + '</div>' +
     '<div class="ust-arac">' + filtreButonlari("cari", [["hepsi","Hepsi"], ["musteri","Müşteriler"], ["tedarikci","Tedarikçiler"]]) + '</div>' +
     listeArac("cariler", CARI_SIRA) +
     (veri.musteriler.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="Ad veya telefon ile ara…" value="' + esc(aramaYazi) + '"></div>' : '') +
@@ -149,6 +149,7 @@ function ekranCariForm(id, tip){
     '<div class="iki-alan"><div><label class="etiket" for="telefon">Telefon <span class="ist">(isteğe bağlı)</span></label><input id="telefon" class="kutu" inputmode="tel" maxlength="20" value="' + esc(m ? m.telefon : "") + '"></div>' +
     '<div><label class="etiket" for="vergiNo">Vergi / TC no <span class="ist">(isteğe bağlı)</span></label><input id="vergiNo" class="kutu" maxlength="40" value="' + esc(m ? m.vergiNo : "") + '"></div></div>' +
     '<label class="etiket" for="adres">Adres <span class="ist">(isteğe bağlı)</span></label><textarea id="adres" class="kutu" maxlength="300">' + esc(m ? m.adres : "") + '</textarea>' +
+    acilisAlani("cari", m ? bul("hareketler", "ac-" + m.id) : null) +
     '<div class="hata" id="hata"></div><button class="buton" data-is="cariKaydet" data-arg="' + (m ? m.id : "") + '">' + ik("tamam") + 'Kaydet</button></div>';
   return {baslik: m ? "Cariyi düzenle" : "Yeni cari", geri:true, html, sonra(){ secenekBagla(); document.getElementById("ad").focus(); }};
 }
@@ -160,8 +161,10 @@ EYLEM.cariKaydet = (btn, id) => {
   const eski = bul("musteriler", id);
   const tip = form.tipAd ? (form.tipAd === "Tedarikçi" ? "tedarikci" : "musteri") : form.tip;
   const k = {id: id || yeniId(), ad, tip, telefon:deger("telefon"), adres:deger("adres"), vergiNo:deger("vergiNo"), olusma: eski ? eski.olusma : Date.now()};
+  const ac = acilisOku(); if(!ac) return;
   islem(btn, async () => {
     await Depo.kaydet("musteriler", Object.assign(k, form._surum != null ? {_surum:form._surum} : {}));
+    await acilisKaydet("cari", k.id, ac.tutar, ac.tarih);
     if(id){ bildir("Kaydedildi"); geri(); }
     else { bildir("Cari eklendi"); history.replaceState(null, "", "#cari/" + k.id); ciz(); }
   });
@@ -171,7 +174,7 @@ function cariEkstre(id){
   veri.faturalar.forEach(f => { if(f.musteriId === id) l.push({tarih:f.tarih, olusma:f.olusma, yer:"fatura/" + f.id,
     yazi:(f.tur === "satis" ? "Satış faturası " : "Alış faturası ") + f.no, alt:f.isEmriId ? (bul("is_emirleri", f.isEmriId) || {}).no : "", tutar: f.tur === "satis" ? f.toplam : -f.toplam}); });
   veri.hareketler.forEach(h => { if(h.musteriId === id) l.push({tarih:h.tarih, olusma:h.olusma, yer:"kayit/" + h.id,
-    yazi: h.tur === "giris" ? "Tahsilat · " + h.odeme : h.tur === "cikis" ? "Ödeme · " + h.odeme : "Veresiye satış", alt:h.aciklama,
+    yazi: h.tur === "giris" ? "Tahsilat · " + h.odeme : h.tur === "cikis" ? "Ödeme · " + h.odeme : h.tur === "acilis" ? "Açılış bakiyesi" : "Veresiye satış", alt:h.tur === "acilis" ? "" : h.aciklama,
     tutar: h.tur === "giris" ? -h.tutar : h.tutar}); });
   l.sort((a, b) => a.tarih < b.tarih ? -1 : a.tarih > b.tarih ? 1 : (a.olusma || 0) - (b.olusma || 0));
   let b = 0; l.forEach(x => { b = yuvarla(b + x.tutar); x.bakiye = b; });

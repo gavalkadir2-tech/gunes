@@ -175,6 +175,30 @@ module.exports = ({test}) => {
     await pg.kapat();
   });
 
+  test("Açılış bakiyeleri: cari, personel, kasa; gelir / gider sayılmaz", async (o, a) => {
+    const pg = await o.sayfa(); await pg.evaluate(ornekVeri);
+    const once = await pg.evaluate(() => ({ayse:cariBakiye("m2"), kaya:cariBakiye("t1"), mehmet:personelBakiye("p1"), kasa:kasa().toplam, kar:ortakHesabi(bugun().slice(0, 7)).a.kar}));
+    // Cari formundan
+    await pg.git("cari-form/m2"); await pg.fill("#acTutar", "12.500"); await pg.click('[data-is="cariKaydet"]'); await pg.waitForTimeout(250);
+    // Toplu ekrandan: tedarikçi (biz borçluyuz), personel, kasa
+    await pg.evaluate(() => { filtre.acilis = "tedarikci"; }); await pg.git("acilis");
+    await pg.fill('[data-ac="cari|t1"] .ac-tutar', "4000"); await pg.selectOption('[data-ac="cari|t1"] .ac-yon', "borc");
+    await pg.click('[data-is="acilisToplu"]'); await pg.waitForTimeout(250);
+    await pg.click('[data-is="acilisSekme"][data-arg="personel"]');
+    await pg.fill('[data-ac="personel|p1"] .ac-tutar', "7000"); await pg.click('[data-is="acilisToplu"]'); await pg.waitForTimeout(250);
+    await pg.click('[data-is="acilisSekme"][data-arg="kasa"]');
+    await pg.fill('[data-ac="kasa||Nakit"] .ac-tutar', "25000"); await pg.click('[data-is="acilisToplu"]'); await pg.waitForTimeout(250);
+    const r = await pg.evaluate(() => ({ayse:cariBakiye("m2"), kaya:cariBakiye("t1"), mehmet:personelBakiye("p1"), kasa:kasa().toplam, kar:ortakHesabi(bugun().slice(0, 7)).a.kar,
+      ilk:cariEkstre("m2").slice(-1)[0].yazi, n:veri.hareketler.filter(h => h.tur === "acilis").length}));
+    a.esit({ayse:r.ayse - once.ayse, kaya:r.kaya - once.kaya, mehmet:r.mehmet - once.mehmet, kasa:r.kasa - once.kasa, kar:r.kar - once.kar}, {ayse:12500, kaya:-4000, mehmet:7000, kasa:25000, kar:0});
+    a.esit([r.ilk, r.n], ["Açılış bakiyesi", 3]);
+    // Düzeltme tek kaydı günceller; sıfırlamak siler
+    await pg.git("cari-form/m2"); a.esit(await pg.inputValue("#acTutar"), "12500");
+    await pg.fill("#acTutar", ""); await pg.click('[data-is="cariKaydet"]'); await pg.waitForTimeout(250);
+    a.esit(await pg.evaluate(() => [cariBakiye("m2"), !!bul("hareketler", "ac-m2")]), [once.ayse, false]);
+    await pg.kapat();
+  });
+
   test("Uygulama dosyalarında aynı adlı genel tanım yok", async (o, a) => {
     const fs = require("fs"), path = require("path"), d = path.join(__dirname, "..", "js"), gor = {};
     const cift = [];

@@ -586,3 +586,9 @@ body.salt [data-git="giris"], body.salt [data-git="cikis"], body.salt [data-git=
 .daha-fazla .buton{margin:0;width:auto}.daha-fazla .baglanti{margin:0}
 .proje-izgara + .daha-fazla{justify-content:center}
 @media(max-width:599px){ .liste-arac{flex-wrap:nowrap} .liste-arac label{flex:1;min-width:0} .liste-arac .kutu{width:100%;min-width:0} }
+/* Açılış bakiyeleri */
+.acilis-satir{flex-wrap:wrap;gap:8px}
+.acilis-satir .orta{flex:1 1 220px;min-width:0}
+.acilis-satir .ac-tutar{width:140px;text-align:right}
+.acilis-satir .ac-yon{width:auto;min-width:150px}
+@media(max-width:599px){ .acilis-satir .orta{flex-basis:100%} .acilis-satir .ac-tutar,.acilis-satir .ac-yon{flex:1;min-width:0;width:auto} }

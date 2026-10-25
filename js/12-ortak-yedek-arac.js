@@ -26,6 +26,7 @@ function kisiKasalari(sonTarih){
     if(h.tur === "giris") ekle(h.ortak || "", h.odeme, h.tutar);
     else if(h.tur === "cikis") ekle(h.ortak || "", h.odeme, -h.tutar);
     else if(h.tur === "aktarim"){ ekle(h.ortak || "", h.odeme, -h.tutar); ekle(h.hedef || "", h.odeme, h.tutar); }
+    else if(h.tur === "acilis" && !h.musteriId) ekle(h.ortak || "", h.odeme, h.tutar);
   });
   Object.values(k).forEach(x => Object.keys(x).forEach(a => { x[a] = yuvarla(x[a]); }));
   return k;

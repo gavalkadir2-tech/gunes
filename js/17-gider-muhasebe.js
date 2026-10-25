@@ -171,7 +171,7 @@ async function muhasebePaketi(ay){
   const eski = ayGoster; ayGoster = ay;
   try{
     const zip = new JSZip(), son = ay + "-" + ayGunSayisi(ay), fr = firma(), ad = "muhasebe-" + ay;
-    const hl = veri.hareketler.filter(h => h.tarih.slice(0, 7) === ay && h.tur !== "borc").sort((a, b) => a.tarih < b.tarih ? -1 : 1);
+    const hl = veri.hareketler.filter(h => h.tarih.slice(0, 7) === ay && kasaHareketi(h)).sort((a, b) => a.tarih < b.tarih ? -1 : 1);
     const TUR = {giris:"Giriş", cikis:"Çıkış", aktarim:"Aktarım"};
     zip.file("1-KDV-ozeti-ve-faturalar.xlsx", await kdvExcelYap(false));
     zip.file("2-Kasa-hareketleri.xlsx", await excelIndir([{ad:"Kasa " + ay, genislik:[12, 10, 28, 28, 12, 14, 40, 12], satirlar:[["Tarih", "Tür", "Kategori", "Cari", "Ödeme", "Tutar", "Açıklama", "Kasa"]].concat(
@@ -227,3 +227,95 @@ document.addEventListener("change", e => {
   const id = e.target.closest("[data-id]").getAttribute("data-id"), l = anaSayfaDuzeni().map(x => x.id === id ? Object.assign({}, x, {gizli:!e.target.checked}) : x);
   islem(null, async () => { await sistemKaydet({anaSayfa:l}); bildir("Kaydedildi"); ciz(); });
 });
+
+/* ================= AÇILIŞ BAKİYELERİ ================= */
+// Uygulamaya geçmeden önceki bakiyeler: müşteri / tedarikçi (hareketler, tur "acilis"), personel (personel_hareket, tur "acilis"),
+// kasa ve ortakların elindeki para (hareketler, tur "acilis", cari yok). Tutar işaretlidir; gelir / gider sayılmaz.
+// Her kişi için tek kayıt: kimlik "ac-" + kişi kimliği (kasa için "ac-kasa-<kasa>-<nakit|banka>").
+const ACILIS_YON = {
+  cari:[["alacak", "Bize borçlu (alacağımız)"], ["borc", "Biz borçluyuz"]],
+  personel:[["alacak", "Personelin alacağı var"], ["borc", "Personel bize borçlu (avans fazlası)"]]
+};
+const acilisTarihi = () => sistem().acilisTarihi || bugun();
+function acilisAlani(tur, k){
+  const t = k ? Number(k.tutar) : 0;
+  return '<div class="form-bolum">Açılış bakiyesi <span style="text-transform:none;font-weight:500">(uygulamadan önceki hesap; yoksa boş bırakın)</span></div>' +
+    '<div class="iki-alan"><div><label class="etiket" for="acTutar">Tutar</label><input id="acTutar" class="kutu" inputmode="decimal" placeholder="0 ₺" value="' + sayiYaz(Math.abs(t)) + '"></div>' +
+    '<div><label class="etiket" for="acYon">Kimin borcu</label><select id="acYon" class="kutu">' + ACILIS_YON[tur].map(([v, a]) => '<option value="' + v + '"' + ((t < 0 ? "borc" : "alacak") === v ? ' selected' : '') + '>' + a + '</option>').join("") + '</select></div></div>' +
+    '<div class="iki-alan"><div>' + tarihAlani("acTarih", "Açılış tarihi", k ? k.tarih : acilisTarihi()) + '</div><div></div></div>';
+}
+function acilisOku(){
+  const y = deger("acTutar"), t = y ? sayiOku(y) : 0;
+  if(!(t >= 0)) { hataYaz("Açılış bakiyesini kontrol edin."); return null; }
+  return {tutar:yuvarla(deger("acYon") === "borc" ? -t : t), tarih:deger("acTarih") || acilisTarihi()};
+}
+const ACILIS_SQL = "Açılış bakiyesi için Supabase'de supabase-guncelleme-15.sql dosyasını çalıştırın.";
+// tur: "cari" | "personel" | "kasa" (kimlik: "<kasa>|<Nakit|Havale>")
+async function acilisKaydet(tur, kimlik, tutar, tarih){
+  const t = tur === "personel" ? "personel_hareket" : "hareketler";
+  const id = tur === "kasa" ? "ac-kasa-" + (kimlik.split("|")[0] || "kasa") + "-" + (kimlik.split("|")[1] === "Nakit" ? "nakit" : "banka") : "ac-" + kimlik;
+  const eski = bul(t, id);
+  if(!tutar){ if(eski) await Depo.sil(t, id, {cop:false}); return; }
+  if(eski && eski.tutar === tutar && eski.tarih === tarih) return;
+  const k = tur === "personel" ? {id, personelId:kimlik, tur:"acilis", tutar, tarih, donem:"", aciklama:"Açılış bakiyesi", hareketId:null, olusma:0} :
+    {id, tur:"acilis", tutar, kategori:"Açılış bakiyesi", odeme:tur === "kasa" ? kimlik.split("|")[1] : "", musteriId:tur === "cari" ? kimlik : null, isEmriId:null, faturaId:null,
+      aciklama:"Açılış bakiyesi", tarih, olusma:0, ortak:tur === "kasa" ? kimlik.split("|")[0] : "", hedef:""};
+  try{ await Depo.kaydet(t, eski ? Object.assign({}, eski, k) : k); }
+  catch(e){ if(/check constraint|violates/i.test((e && e.message) || "")) throw new Error(ACILIS_SQL); throw e; }
+}
+// Toplu giriş: herkesin açılış bakiyesi tek ekranda
+function ekranAcilis(){
+  const sek = filtre.acilis || "musteri", q = trKucuk(filtre.acilisAra || "");
+  const satir = (anahtar, ad, alt, k, yonler) => { const t = k ? Number(k.tutar) : 0;
+    return '<div class="satir acilis-satir" data-ac="' + esc(anahtar) + '"><span class="orta"><div class="s1">' + esc(ad) + '</div>' + (alt ? '<div class="s2">' + esc(alt) + '</div>' : '') + '</span>' +
+      '<input class="kutu ac-tutar" inputmode="decimal" placeholder="0" value="' + sayiYaz(Math.abs(t)) + '">' +
+      '<select class="kutu ac-yon">' + yonler.map(([v, a]) => '<option value="' + v + '"' + ((t < 0 ? "borc" : "alacak") === v ? ' selected' : '') + '>' + a + '</option>').join("") + '</select></div>'; };
+  const KISA = {cari:[["alacak", "Bize borçlu"], ["borc", "Biz borçluyuz"]], personel:[["alacak", "Alacağı var"], ["borc", "Bize borçlu"]], kasa:[["alacak", "Var (+)"], ["borc", "Eksi (−)"]]};
+  let govde = "";
+  if(sek === "kasa"){
+    const kasalar = [["", "Kasa (dükkân)"]].concat(ortaklar().map(o => [o.id, o.ad + "'de"]));
+    govde = kasalar.flatMap(([id, ad]) => [["Nakit", "nakit"], ["Havale", "banka"]].map(([od, k]) =>
+      satir("kasa|" + id + "|" + od, ad + " · " + (od === "Nakit" ? "Nakit" : "Banka"), "", bul("hareketler", "ac-kasa-" + (id || "kasa") + "-" + k), KISA.kasa))).join("");
+  } else if(sek === "personel"){
+    govde = veri.personel.filter(p => !q || trKucuk(p.ad).indexOf(q) >= 0).sort((a, b) => a.ad.localeCompare(b.ad, "tr"))
+      .map(p => satir("personel|" + p.id, p.ad, p.gorev || "", bul("personel_hareket", "ac-" + p.id), KISA.personel)).join("");
+  } else {
+    govde = veri.musteriler.filter(m => (m.tip === "tedarikci") === (sek === "tedarikci") && (!q || trKucuk(m.ad).indexOf(q) >= 0)).sort((a, b) => a.ad.localeCompare(b.ad, "tr"))
+      .map(m => satir("cari|" + m.id, m.ad, m.telefon || "", bul("hareketler", "ac-" + m.id), KISA.cari)).join("");
+  }
+  const say = {musteri:veri.musteriler.filter(m => m.tip !== "tedarikci").length, tedarikci:veri.musteriler.filter(m => m.tip === "tedarikci").length, personel:veri.personel.length, kasa:0};
+  const toplam = veri.hareketler.filter(h => h.tur === "acilis").length + veri.personel_hareket.filter(h => h.tur === "acilis").length;
+  const html = '<div class="bilgi-kutu" style="margin-top:0">Uygulamaya geçmeden önceki bakiyeleri bir kez girin: müşterilerin size, sizin tedarikçilere borcu, personelin alacağı, kasadaki ve ortakların elindeki para. ' +
+      'Açılış bakiyesi cari ekstresinin en başında görünür; gelir / gider sayılmaz. Şu an <b>' + toplam + '</b> açılış kaydı var.</div>' +
+    '<div class="ust-arac"><div class="secenekler">' + [["musteri", "Müşteriler"], ["tedarikci", "Tedarikçiler"], ["personel", "Personel"], ["kasa", "Kasa"]].map(([k, a]) =>
+      '<button class="secenek' + (k === sek ? ' secili' : '') + '" data-is="acilisSekme" data-arg="' + k + '">' + a + (say[k] ? ' (' + say[k] + ')' : '') + '</button>').join("") + '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px"><label class="etiket" for="acGenelTarih" style="margin:0">Açılış tarihi</label><input id="acGenelTarih" type="date" class="kutu" style="width:auto" value="' + acilisTarihi() + '"></div></div>' +
+    (sek !== "kasa" ? '<div class="ara">' + ik("ara") + '<input id="acAra" class="kutu" placeholder="Ad ile ara…" value="' + esc(filtre.acilisAra || "") + '"></div>' : '') +
+    '<div class="kart liste-kart">' + (govde || bos("kisiler", sek === "personel" ? "Personel yok." : "Kayıt yok. Önce cari ekleyin.")) + '</div>' +
+    '<div class="hata" id="hata"></div><button class="buton" data-is="acilisToplu">' + ik("tamam") + 'Kaydet</button>';
+  return {baslik:"Açılış bakiyeleri", geri:true, html, sonra(){
+    const a = document.getElementById("acAra");
+    if(a) a.addEventListener("input", () => { const v = trKucuk(a.value); document.querySelectorAll(".acilis-satir").forEach(s => { s.style.display = !v || trKucuk(s.querySelector(".s1").textContent).indexOf(v) >= 0 ? "" : "none"; }); filtre.acilisAra = a.value; });
+  }};
+}
+EYLEM.acilisSekme = (el, k) => { filtre.acilis = k; filtre.acilisAra = ""; ciz(); };
+EYLEM.acilisAc = (el, k) => { filtre.acilis = k; filtre.acilisAra = ""; git("acilis"); };
+EYLEM.acilisToplu = btn => {
+  const tarih = deger("acGenelTarih") || bugun(), l = [];
+  for(const s of document.querySelectorAll(".acilis-satir")){
+    const y = s.querySelector(".ac-tutar").value.trim(), t = y ? sayiOku(y) : 0;
+    if(!(t >= 0)) return hataYaz("Tutarları kontrol edin: " + s.querySelector(".s1").textContent);
+    const p = s.getAttribute("data-ac").split("|"), tutar = yuvarla(s.querySelector(".ac-yon").value === "borc" ? -t : t);
+    l.push(p[0] === "kasa" ? ["kasa", p[1] + "|" + p[2], tutar] : [p[0], p[1], tutar]);
+  }
+  islem(btn, async () => {
+    if(tarih !== acilisTarihi()) await sistemKaydet({acilisTarihi:tarih});
+    let n = 0;
+    for(const [tur, kimlik, tutar] of l){
+      const t = tur === "personel" ? "personel_hareket" : "hareketler", id = tur === "kasa" ? "ac-kasa-" + (kimlik.split("|")[0] || "kasa") + "-" + (kimlik.split("|")[1] === "Nakit" ? "nakit" : "banka") : "ac-" + kimlik;
+      const e = bul(t, id); if((e ? e.tutar : 0) === tutar && (!tutar || e.tarih === tarih)) continue;
+      await acilisKaydet(tur, kimlik, tutar, tarih); n++;
+    }
+    bildir(n ? n + " açılış bakiyesi kaydedildi" : "Değişiklik yok"); ciz();
+  });
+};

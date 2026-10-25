@@ -428,11 +428,13 @@ function kategoriler(tur){
   const l = a && a.deger && a.deger[tur];
   return Array.isArray(l) && l.length ? l : VARSAYILAN_KATEGORI[tur];
 }
+// Kasa listelerinde görünen hareketler (veresiye ve cari / personel açılış bakiyesi kasadan geçmez)
+const kasaHareketi = h => h.tur !== "borc" && !(h.tur === "acilis" && h.musteriId);
 function kasa(){
   const s = {nakit:0, banka:0, senet:0};
   veri.hareketler.forEach(h => {
-    if(h.tur !== "giris" && h.tur !== "cikis") return;
-    const k = h.tur === "giris" ? h.tutar : -h.tutar;
+    if(h.tur !== "giris" && h.tur !== "cikis" && !(h.tur === "acilis" && !h.musteriId)) return;
+    const k = h.tur === "cikis" ? -h.tutar : h.tutar;   // açılış bakiyesi işaretli tutardır
     if(h.odeme === "Nakit") s.nakit += k; else if(h.odeme === "Çek / Senet") s.senet += k; else s.banka += k;
   });
   s.toplam = s.nakit + s.banka + s.senet;
@@ -444,7 +446,7 @@ function cariBakiye(id){
   veri.faturalar.forEach(f => { if(f.musteriId === id) b += f.tur === "satis" ? f.toplam : -f.toplam; });
   veri.hareketler.forEach(h => {
     if(h.musteriId !== id) return;
-    if(h.tur === "giris") b -= h.tutar; else if(h.tur === "cikis" || h.tur === "borc") b += h.tutar;
+    if(h.tur === "giris") b -= h.tutar; else if(h.tur === "cikis" || h.tur === "borc" || h.tur === "acilis") b += h.tutar;
   });
   return yuvarla(b);
 }
