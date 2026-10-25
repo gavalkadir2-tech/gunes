@@ -66,11 +66,16 @@ module.exports = ({test}) => {
         if(p.x < -0.01 || p.y < -0.01 || p.x + p.w > W + .01 || p.y + p.h > H + .01) hata.push("taşma");
         if(p.p.damar && p.dondu) hata.push("damar döndü");
         u.forEach((q, j) => { if(i < j && p.x < q.x + q.w && q.x < p.x + p.w && p.y < q.y + q.h && q.y < p.y + p.h) hata.push("çakışma"); }); }));
-      // Şerit kuralı: aynı şeritteki parçalar aynı x'ten başlar, şerit eninden geniş değildir; şerit toplamı plakayı aşmaz
-      k.plakalar.forEach((u, i) => { const sr = k.seritler[i], xler = Array.from(new Set(u.map(p => p.x)));
-        if(xler.length !== sr.length) hata.push("şerit sayısı");
-        if(sr.reduce((t, s) => t + s.w + 4, 0) > W + .01) hata.push("şerit toplamı");
-        sr.forEach(s => s.parcalar.forEach(x => { if(x.x > s.w) hata.push("şeritten geniş"); })); });
+      // Giyotin kuralı: her plakada parçaları bölmeden geçen, plakayı baştan sona kesen bir çizgi her zaman bulunur
+      const giyotin = l => { if(l.length < 2) return true;
+        for(const ek of ["x", "y"]){ const bo = ek === "x" ? "w" : "h";
+          for(const r of l){ const c = r[ek] + r[bo];
+            if(l.some(q => q[ek] < c - .01 && q[ek] + q[bo] > c + .01)) continue;
+            const sol = l.filter(q => q[ek] + q[bo] <= c + .01), sag = l.filter(q => q[ek] >= c - .01);
+            if(sol.length && sag.length && sol.length + sag.length === l.length) return giyotin(sol) && giyotin(sag); } }
+        return false; };
+      k.plakalar.forEach(u => { if(!giyotin(u)) hata.push("giyotin değil"); });
+      if(k.seritler.some(sr => sr.reduce((t, s) => t + s.w + 4, 0) > (sr[0].eksen === "boy" ? W : H) + .01)) hata.push("şerit toplamı");
       return {hata, kolay:k.plakalar.length, fire:f.plakalar.length, diger:[k.diger, f.diger], sig:k.sigmayan.length + f.sigmayan.length,
         adet:k.plakalar.reduce((t, u) => t + u.length, 0), seritVar:!!k.seritler && f.seritler === null};
     });
@@ -78,7 +83,7 @@ module.exports = ({test}) => {
     a.esit([r.sig, r.adet, r.seritVar, r.diger], [0, 28, true, [r.fire, r.kolay]]);
     a.dogru(r.fire <= r.kolay, "En az fire yöntemi daha fazla plaka kullanmamalı");
     await pg.git("kesim/i1");
-    a.dogru(/Boyuna kes/.test(await pg.textContent(".kesim-talimat")), "Kesim talimatı");
+    a.dogru(/Ana kesimler/.test(await pg.textContent(".kesim-talimat")), "Kesim talimatı");
     await pg.selectOption("#kYontem", "fire"); await pg.waitForTimeout(150);
     a.esit(await pg.evaluate(() => [kesimForm.yontem, document.querySelectorAll(".kesim-talimat").length]), ["fire", 0]);
     await pg.kapat();

@@ -309,36 +309,61 @@ function kesimHesapla(parcalar, o){
   }
   return sonuc;
 }
-// Şeritli (giyotin) yerleşim: şeritler plakanın boy yönünde, şerit eni = parçanın plaka enine gelen kenarı.
-// Damarlı parça döndürülmez. Parçanın dar kenarı şerit eni olacak şekilde ve tersi denenir; az plaka, sonra az şerit seçilir.
+// Şeritli (giyotin) yerleşim — her kesim plakayı / şeridi baştan sona böler (panel ebatlamaya uygun, 3 aşama):
+//   1) plaka şeritlere ayrılır, 2) şerit enine bölümlere kesilir, 3) gerekirse bölüm içinde yan yana parçalar ayrılır.
+// Aynı enli parçalar aynı şeride, aynı boylu küçük parçalar aynı bölüme yan yana konur; boşluğa sığmayan parça döndürülerek denenir.
+// Şeritler plakanın boyu (varsayılan) veya eni boyunca denenir; en az plaka, sonra en az kesim, sonra son plakada en çok artan seçilir.
+// Damarlı parça döndürülmez.
 function seritYerlestir(tek, W, H, t){
   let en = null;
-  for(const yon of ["dar", "genis"]){
-    const birim = tek.map(p => {
-      let x = p.en, y = p.boy;
-      if(!p.damar && p.en !== p.boy){
-        const k = Math.min(p.en, p.boy), u = Math.max(p.en, p.boy);
-        [x, y] = yon === "dar" ? [k, u] : [u, k];
-        if(x + t > W + 1e-6 || y + t > H + 1e-6) [x, y] = [y, x];
-      }
-      return {p, x, y, dondu:x !== p.en};
-    }).sort((a, b) => b.x - a.x || b.y - a.y);
+  for(const eksen of ["boy", "en"]) for(const yon of ["dar", "genis"]){
+    // a: şerit enine gelen ölçü, b: şerit boyunca gelen ölçü
+    const A = eksen === "boy" ? W : H, B = eksen === "boy" ? H : W;
+    const yonlar = p => { const d = eksen === "boy" ? [p.en, p.boy] : [p.boy, p.en];
+      if(p.damar || p.en === p.boy) return [d];
+      const k = Math.min(p.en, p.boy), u = Math.max(p.en, p.boy), l = yon === "dar" ? [[k, u], [u, k]] : [[u, k], [k, u]];
+      return l.filter(([a, b]) => a + t <= A + 1e-6 && b + t <= B + 1e-6); };
+    const birim = tek.map(p => ({p, yonlar:yonlar(p)})).map(x => Object.assign(x, {a:(x.yonlar[0] || [0])[0], b:(x.yonlar[0] || [0, 0])[1]}))
+      .sort((x, y) => y.a - x.a || y.b - x.b);
     const pls = [], sig = [];
-    const koy = (s, u) => { s.pl.used.push({x:s.x0, y:s.dolu, w:u.x + t, h:u.y + t, dondu:u.dondu, p:u.p}); s.dolu += u.y + t; s.parcalar.push(u); };
-    const yeniSerit = (pl, w) => { const s = {pl, x0:W - pl.kalan, w, dolu:0, parcalar:[]}; pl.kalan -= w + t; pl.seritler.push(s); return s; };
+    const yerlestir = (u, a, b, sadeceMevcut) => {
+      const seritler = pls.flatMap(pl => pl.seritler), sigar = s => s.dolu + b + t <= B + 1e-6;
+      // 1) aynı enli şeritte yeni bölüm
+      let s = seritler.find(x => x.w === a && sigar(x));
+      if(s) return bolumAc(s, u, a, b);
+      // 2) aynı boylu bölümde yan yana (bölüm içi kesim)
+      for(const x of seritler) for(const bl of x.bolumler) if(bl.h === b && bl.dolu + a + t <= x.w + 1e-6) return bolumeKoy(x, bl, u, a, b);
+      // 3) mevcut plakada yeni şerit (en dar uyan plaka)
+      const pl = pls.filter(x => x.kalan >= a + t - 1e-6).sort((x, y) => x.kalan - y.kalan)[0];
+      if(pl) return bolumAc(seritAc(pl, a), u, a, b);
+      // 4) daha geniş şeritte yeni bölüm (yanı başka parçaya kalır)
+      s = seritler.filter(x => x.w > a && sigar(x)).sort((x, y) => x.w - y.w)[0];
+      if(s) return bolumAc(s, u, a, b);
+      if(sadeceMevcut) return false;
+      const yeni = {kalan:A, seritler:[], used:[]}; pls.push(yeni);
+      return bolumAc(seritAc(yeni, a), u, a, b);
+    };
+    const seritAc = (pl, a) => { const s = {pl, x0:A - pl.kalan, w:a, dolu:0, bolumler:[]}; pl.kalan -= a + t; pl.seritler.push(s); return s; };
+    const bolumAc = (s, u, a, b) => { const bl = {y0:s.dolu, h:b, dolu:0, parcalar:[]}; s.dolu += b + t; s.bolumler.push(bl); return bolumeKoy(s, bl, u, a, b); };
+    const bolumeKoy = (s, bl, u, a, b) => {
+      const sa = s.x0 + bl.dolu, sb = bl.y0, dondu = (eksen === "boy" ? a : b) !== u.p.en;
+      s.pl.used.push(eksen === "boy" ? {x:sa, y:sb, w:a + t, h:b + t, dondu, p:u.p} : {x:sb, y:sa, w:b + t, h:a + t, dondu, p:u.p});
+      bl.dolu += a + t; bl.parcalar.push({no:u.p.no, a, b}); return true;
+    };
     for(const u of birim){
-      if(u.x + t > W + 1e-6 || u.y + t > H + 1e-6){ if(sig.indexOf(u.p) < 0) sig.push(u.p); continue; }
-      const seritler = pls.flatMap(pl => pl.seritler), sigar = s => s.dolu + u.y + t <= H + 1e-6;
-      let s = seritler.find(x => x.w === u.x && sigar(x));                                  // aynı enli şerit
-      if(!s){ const pl = pls.find(x => x.kalan >= u.x + t - 1e-6); if(pl) s = yeniSerit(pl, u.x); }   // aynı plakada yeni şerit
-      if(!s) s = seritler.filter(x => x.w > u.x && sigar(x)).sort((a, b) => a.w - b.w)[0];  // daha geniş şeritte (enine kırpılır)
-      if(!s){ const pl = {kalan:W, seritler:[], used:[]}; pls.push(pl); s = yeniSerit(pl, u.x); }
-      koy(s, u);
+      if(!u.yonlar.length){ if(sig.indexOf(u.p) < 0) sig.push(u.p); continue; }
+      // Önce tercih edilen yönle mevcut plakalara; olmazsa döndürülmüş hâli; o da olmazsa yeni plaka
+      if(u.yonlar.some(([a, b]) => yerlestir(u, a, b, true))) continue;
+      yerlestir(u, u.a, u.b, false);
     }
-    const seritSay = pls.reduce((a, pl) => a + pl.seritler.length, 0), kirpma = pls.reduce((a, pl) => a + pl.seritler.reduce((b, s) => b + s.parcalar.filter(u => u.x < s.w).length, 0), 0);
-    if(!en || pls.length < en.pls.length || (pls.length === en.pls.length && (seritSay < en.seritSay || (seritSay === en.seritSay && kirpma < en.kirpma)))) en = {pls, sig, seritSay, kirpma};
+    const kesim = pls.reduce((n, pl) => n + pl.seritler.reduce((m, s) => m + 1 + s.bolumler.reduce((k, bl) => k + 1 + Math.max(0, bl.parcalar.length - 1) + (bl.dolu < s.w + t - 1e-6 ? 1 : 0), 0), 0), 0);
+    const son = pls.length ? pls[pls.length - 1].used.reduce((x, u) => x + u.w * u.h, 0) : 0;
+    if(!en || pls.length < en.pls.length || (pls.length === en.pls.length && (kesim < en.kesim || (kesim === en.kesim && son < en.son)))) en = {pls, sig, kesim, son, eksen};
   }
-  en.pls.forEach(pl => { pl.seritler = pl.seritler.map(s => ({w:s.w, parcalar:s.parcalar.map(u => ({no:u.p.no, x:u.x, y:u.y}))})); });
+  const A = en.eksen === "boy" ? W : H, B = en.eksen === "boy" ? H : W;
+  en.pls.forEach(pl => { const artan = Math.max(0, Math.round(pl.kalan - t));
+    pl.seritler = pl.seritler.map(s => ({w:s.w, eksen:en.eksen, artan, seritArtan:Math.max(0, Math.round(B - s.dolu - t)),
+      bolumler:s.bolumler.map(bl => ({h:bl.h, artan:Math.max(0, Math.round(s.w - bl.dolu)), parcalar:bl.parcalar}))})); });
   return en;
 }
 // Serbest yerleşim (MaxRects): birkaç sıralama ve kural denenir; en az plaka, sonra son plakası en boş olan seçilir
@@ -392,11 +417,17 @@ function mrKoy(pl, r, p){
   });
   pl.free = yeni.filter((a, i) => a.w > 1 && a.h > 1 && !yeni.some((b, j) => j !== i && b.x <= a.x && b.y <= a.y && b.x + b.w >= a.x + a.w && b.y + b.h >= a.y + a.h && (j < i || b.w * b.h > a.w * a.h)));
 }
-// Kolay kesim talimatı: önce boyuna şeritler, sonra her şeridin enine kesimleri
+// Kolay kesim talimatı: 1) ana kesimler (şeritler), 2) her şeridin bölünmesi; artan parçalar da yazılır
 function seritTalimati(seritler){
   if(!seritler || !seritler.length) return '';
-  return '<div class="kesim-talimat"><div><b>1) Boyuna kes</b> (plaka boyunca ' + seritler.length + ' şerit): ' + seritler.map(s => '<span class="serit">' + s.w + '</span>').join(" ") + ' mm</div>' +
-    '<div><b>2) Şeritleri enine kes:</b></div><ol>' + seritler.map(s => '<li><b>' + s.w + ' mm şerit:</b> ' + s.parcalar.map(u => '<span class="serit-parca">#' + u.no + ' ' + u.y + (u.x < s.w ? ' <i>(ene ' + u.x + ')</i>' : '') + '</span>').join(" ") + '</li>').join("") + '</ol></div>';
+  const s0 = seritler[0], art = n => n >= 20 ? ' <i>· artan ' + n + ' mm</i>' : '';
+  return '<div class="kesim-talimat"><div><b>1) Ana kesimler</b> (plakanın ' + (s0.eksen === "boy" ? "boyu" : "eni") + ' boyunca): ' +
+      seritler.map(s => '<span class="serit">' + s.w + '</span>').join(" ") + ' mm' + art(s0.artan) + '</div>' +
+    '<div><b>2) Şeritleri bölün:</b></div><ol>' + seritler.map(s => '<li><b>' + s.w + ' mm şerit →</b> ' + s.bolumler.map(bl => {
+      const p = bl.parcalar;
+      if(p.length === 1) return '<span class="serit-parca">' + bl.h + ' <b>#' + p[0].no + '</b>' + (p[0].a < s.w ? ' <i>(' + p[0].a + ' mm\'ye kırp)</i>' : '') + '</span>';
+      return '<span class="serit-parca">' + bl.h + ' → ' + p.map(x => x.a + ' <b>#' + x.no + '</b>').join(" + ") + '</span>';
+    }).join(' <span class="ayrac">|</span> ') + art(s.seritArtan) + '</li>').join("") + '</ol></div>';
 }
 function plakaSvg(m, used, sira, toplam, o, seritler){
   const pay = o.pay || 0, t = o.testere || 0, fs = Math.max(28, Math.min(m.en, m.boy) / 40);

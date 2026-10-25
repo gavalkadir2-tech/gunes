@@ -597,3 +597,4 @@ body.salt [data-git="giris"], body.salt [data-git="cikis"], body.salt [data-git=
 .kesim-talimat{font-size:13px;margin-top:8px;line-height:1.6}.kesim-talimat ol{margin:4px 0 0;padding-left:20px}
 .kesim-talimat .serit{display:inline-block;border:1px solid var(--cizgi);border-radius:6px;padding:0 6px;font-weight:600;background:var(--hafif)}
 .kesim-talimat .serit-parca{white-space:nowrap;margin-right:8px}.kesim-talimat i{color:var(--soluk);font-style:normal}
+.kesim-talimat .ayrac{color:var(--cizgi);margin:0 2px}.kesim-talimat li{margin-bottom:4px}
