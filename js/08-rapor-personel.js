@@ -435,14 +435,19 @@ EYLEM.maasOde = (btn, arg) => {
 };
 
 /* ================= AYARLAR ================= */
-const FIRMA_VARSAYILAN = {ad:"Güneş Mobilya", telefon:"", eposta:"", adres:"", il:"", ilce:"", web:"", vergiDairesi:"", vergiNo:"", banka:"", iban:"", teklifNotu:"", faturaNotu:"", gecerlilik:15, kar:30};
+const FIRMA_VARSAYILAN = {ad:"Güneş Mobilya", telefon:"", eposta:"", adres:"", il:"", ilce:"", web:"", vergiDairesi:"", vergiNo:"", banka:"", iban:"", hesapSahibi:"Samet KURU", teklifNotu:"", faturaNotu:"", gecerlilik:15, kar:30};
 function firma(){
   const a = veri.ayarlar.find(x => x.anahtar === "firma");
   return Object.assign({}, FIRMA_VARSAYILAN, a && a.deger && typeof a.deger === "object" ? a.deger : {});
 }
+// Ödeme hatırlatmalarına eklenen hesap bilgisi (Ayarlar → Firma bilgileri): hesap sahibi, banka, IBAN — alt alta
+function odemeHesabi(){
+  const f = firma(), l = [f.hesapSahibi, f.banka, f.iban ? "IBAN: " + f.iban : ""].filter(x => x && String(x).trim());
+  return l.length ? "\n\n" + l.join("\n") : "";
+}
 EYLEM.firmaKaydet = btn => {
   const d = {ad:deger("fAd"), telefon:deger("fTelefon"), eposta:deger("fEposta"), adres:deger("fAdres"), il:deger("fIl"), ilce:deger("fIlce"), web:deger("fWeb"), vergiDairesi:deger("fVergiDairesi"),
-    vergiNo:deger("fVergiNo"), banka:deger("fBanka"), iban:deger("fIban")};
+    vergiNo:deger("fVergiNo"), banka:deger("fBanka"), iban:deger("fIban"), hesapSahibi:deger("fHesapSahibi")};
   if(!d.ad) return uyar("Firma adı boş olamaz", "");
   if(d.eposta && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.eposta)) return uyar("E-posta adresini kontrol edin", "");
   islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"firma", deger:Object.assign(firma(), d)}); bildir("Firma bilgileri kaydedildi"); ciz(); });

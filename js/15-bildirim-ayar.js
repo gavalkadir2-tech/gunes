@@ -197,7 +197,7 @@ const MESAJ_SABLON = {
   uretim:["Üretime alındı", "Merhaba {ad}, “{is}” siparişiniz üretime alındı.{teslim}\n\n{firma}", "{ad} {is} {teslim} {firma}"],
   hazir:["Sipariş hazır", "Merhaba {ad}, “{is}” siparişiniz hazır. Teslimat için uygun olduğunuz gün ve saati bildirir misiniz?{kalan}\n\n{firma}", "{ad} {is} {kalan} {firma}"],
   teslim:["Teslim edildi", "Merhaba {ad}, “{is}” siparişiniz teslim edilmiştir. Bizi tercih ettiğiniz için teşekkür ederiz.\n\n{firma}", "{ad} {is} {firma}"],
-  odeme:["Ödeme hatırlatma (iş)", "Merhaba {ad}, {no} numaralı siparişinizle ilgili {tutar} tutarında ödemeniz bulunmaktadır. Uygun olduğunuzda bilgi verirseniz seviniriz.\n\n{firma}", "{ad} {no} {tutar} {firma}"],
+  odeme:["Ödeme hatırlatma (iş)", "Merhaba {ad}, {no} numaralı siparişinizle ilgili {tutar} tutarında ödemeniz bulunmaktadır. Uygun olduğunuzda bilgi verirseniz seviniriz.{hesap}\n\n{firma}", "{ad} {no} {tutar} {hesap} {firma}"],
   randevu:["Montaj / teslimat randevusu", "Merhaba {ad},\n{is} siparişiniz için {gun}{saat} {ne} için geleceğiz.{adres}\nUygun değilseniz lütfen bize haber verin.\n\n{firma}", "{ad} {is} {gun} {saat} {ne} {adres} {firma}"],
   tedarikci:["Tedarikçiye sipariş", "Merhaba {ad},\nAşağıdaki malzemeleri sipariş etmek istiyoruz ({no}):\n\n{liste}{not}\n\nFiyat ve teslim tarihini bildirir misiniz?\n{firma}{telefon}", "{ad} {no} {liste} {not} {firma} {telefon}"],
   tahsilat:["Toplu tahsilat hatırlatması", TAHSILAT_SABLON, "{ad} {tutar} {gecikme} {iban} {firma}"],

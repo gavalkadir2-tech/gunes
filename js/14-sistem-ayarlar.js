@@ -376,7 +376,7 @@ function ayarFirma(){
     '<div class="iki-alan">' + yaziAlan("fIl", "İl", fr.il, {max:40, ph:"Manisa"}) + yaziAlan("fIlce", "İlçe", fr.ilce, {max:40, ph:"Akhisar"}) + '</div>' +
     '<div class="iki-alan">' + yaziAlan("fWeb", "Web / Instagram", fr.web, {max:120}) + yaziAlan("fVergiDairesi", "Vergi dairesi", fr.vergiDairesi, {max:60}) + '</div>' +
     '<div class="iki-alan">' + yaziAlan("fVergiNo", "Vergi / T.C. no", fr.vergiNo, {tip:"numeric", max:20}) + yaziAlan("fBanka", "Banka", fr.banka, {max:60}) + '</div>' +
-    yaziAlan("fIban", "IBAN", fr.iban, {max:40}) +
+    '<div class="iki-alan">' + yaziAlan("fIban", "IBAN", fr.iban, {max:40}) + yaziAlan("fHesapSahibi", "Hesap sahibi", fr.hesapSahibi, {max:60, ek:"(ödeme hatırlatmalarında)"}) + '</div>' +
     '<button class="buton" data-is="firmaKaydet">' + ik("tamam") + 'Kaydet</button></div>';
 }
 function ayarTeklif(){

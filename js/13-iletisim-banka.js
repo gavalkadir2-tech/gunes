@@ -84,7 +84,7 @@ EYLEM.tahsilatGonder = () => {
   const gonderilen = [];
   siraliWhatsapp("Tahsilat hatırlatması", l.map(x => ({tel:x.m.telefon, ad:x.m.ad, kimlik:x.m.id, metin:sablonDoldur(sablon, {ad:x.m.ad, tutar:para(x.bakiye), firma:FIRMA,
     gecikme: x.geciken.length ? "\nVadesi geçen: " + x.geciken.map(g => g.ad + " " + para(g.tutar) + " (vade " + tarihYaz(g.vade, true) + ")").join(", ") : "",
-    iban: fr.iban ? "\nIBAN: " + fr.iban + (fr.banka ? " (" + fr.banka + ")" : "") + " · " + FIRMA : ""})})),
+    iban: odemeHesabi()})})),
     {gonderildi:id => gonderilen.push(id), bitti:() => gonderimKaydet("tahsilat", gonderilen).then(() => ciz()).catch(() => {})});
 };
 

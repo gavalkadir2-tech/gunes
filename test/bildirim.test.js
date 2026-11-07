@@ -68,6 +68,18 @@ module.exports = ({test}) => {
     await pg.kapat();
   });
 
+  test("Ödeme hatırlatmasında hesap sahibi, banka ve IBAN alt alta", async (o, a) => {
+    const pg = await o.sayfa(); await pg.evaluate(ornekVeri);
+    const r = await pg.evaluate(async () => {
+      await Depo.kaydet("ayarlar", {anahtar:"firma", deger:Object.assign(firma(), {banka:"Ziraat Bankası", iban:"TR12 0001 0000 0000 0000 0000 01"})});
+      const ie = bul("is_emirleri", "i1"), m = bul("musteriler", ie.musteriId);
+      return {is:waIsSablonlari(ie, m).find(x => x.ad === "Ödeme hatırlatma").metin, hesap:odemeHesabi()};
+    });
+    a.esit(r.hesap, "\n\nSamet KURU\nZiraat Bankası\nIBAN: TR12 0001 0000 0000 0000 0000 01");
+    a.dogru(r.is.indexOf("seviniriz.\n\nSamet KURU\nZiraat Bankası\nIBAN: TR12") > 0 && /\n\nGüneş Mobilya$/.test(r.is), "İş emri ödeme hatırlatması: " + r.is);
+    await pg.kapat();
+  });
+
   test("Ekran kilidi: PIN olmadan açılmaz", async (o, a) => {
     const pg = await o.sayfa();
     await pg.evaluate(async () => cihazKaydet({pin:await pinOzet("1234"), kilitDk:5}));

@@ -263,7 +263,7 @@ function waIsSablonlari(ie, m){
   const bas = "Merhaba " + (m.ad || "") + ", ", imza = "\n\n" + FIRMA, isAd = "“" + ie.baslik + "”";
   const ozet = o.fiyat ? "\nToplam tutar: " + para(o.fiyat) + "\nAlınan: " + para(o.tahsilat) + "\nKalan: " + para(Math.max(o.kalan, 0)) : "";
   // Ayarlar → Mesaj şablonları
-  const al = {ad:m.ad || "", no:ie.no, is:ie.baslik, ozet, firma:FIRMA, tutar:para(Math.max(o.kalan, 0)), kalan:o.kalan > 0 ? "\nTeslimatta kalan ödeme: " + para(o.kalan) : ""};
+  const al = {ad:m.ad || "", no:ie.no, is:ie.baslik, ozet, firma:FIRMA, hesap:odemeHesabi(), tutar:para(Math.max(o.kalan, 0)), kalan:o.kalan > 0 ? "\nTeslimatta kalan ödeme: " + para(o.kalan) : ""};
   const sb_ = (k, tesYazi) => sablonDoldur(mesajSablonu(k), Object.assign({teslim:tes ? tesYazi + tes : ""}, al));
   return [
     {ad:"Sipariş onayı", metin: sb_("siparisOnay", "\nTahmini teslim: ")},
@@ -290,7 +290,7 @@ EYLEM.waCari = (el, id) => {
   const m = bul("musteriler", id); if(!m) return;
   const b = cariBakiye(id), bas = "Merhaba " + m.ad + ", ", imza = "\n\n" + FIRMA;
   waPencere({tel:m.telefon, ad:m.ad, varsayilan: b > 0 ? 0 : 1, sablonlar:[
-    {ad:"Ödeme hatırlatma", metin: bas + "hesabınızda " + para(Math.max(b, 0)) + " tutarında ödenmemiş bakiye görünmektedir. Uygun olduğunuzda ödeme yapabilirseniz seviniriz." + imza},
+    {ad:"Ödeme hatırlatma", metin: bas + "hesabınızda " + para(Math.max(b, 0)) + " tutarında ödenmemiş bakiye görünmektedir. Uygun olduğunuzda ödeme yapabilirseniz seviniriz." + odemeHesabi() + imza},
     {ad:"Boş mesaj", metin: bas + imza}]});
 };
 EYLEM.waFatura = (el, id) => {
@@ -298,6 +298,6 @@ EYLEM.waFatura = (el, id) => {
   const m = bul("musteriler", f.musteriId) || {}, od = odemeDurumu(f);
   waPencere({tel:m.telefon, ad:m.ad, isEmriId:f.isEmriId, sablonlar:[
     {ad:"Fatura bilgisi", metin:"Merhaba " + (m.ad || "") + ", " + f.no + " numaralı faturanız:\nToplam: " + para(f.toplam) + "\nÖdenen: " + para(f.toplam - od.kalan) +
-      "\nKalan: " + para(od.kalan) + (f.vade ? "\nVade: " + tarihYaz(f.vade) : "") + "\n\n" + FIRMA},
+      "\nKalan: " + para(od.kalan) + (f.vade ? "\nVade: " + tarihYaz(f.vade) : "") + (od.kalan > 0 ? odemeHesabi() : "") + "\n\n" + FIRMA},
     {ad:"Boş mesaj", metin:"Merhaba " + (m.ad || "") + ", \n\n" + FIRMA}]});
 };
