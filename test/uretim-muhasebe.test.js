@@ -102,7 +102,7 @@ module.exports = ({test}) => {
     await pg.git("rapor");
     a.dogru(await pg.isVisible('[data-is="muhasebePaketi"]'), "Rapor ekranında paket düğmesi");
     await pg.git("ayarlar");
-    a.esit(await pg.evaluate(() => Array.from(document.querySelectorAll(".ayar-menu [data-anahtar]")).map(b => b.getAttribute("data-git").split("/")[1])), ["gorunum", "bildirim", "guvenlik", "hesap"]);
+    a.esit(await pg.evaluate(() => Array.from(document.querySelectorAll(".ayar-menu [data-anahtar]")).map(b => b.getAttribute("data-git").split("/")[1])), ["gorunum", "bildirim", "guvenlik", "asistan", "hesap"]);
     await pg.kapat();
   });
 

@@ -310,13 +310,14 @@ const AYAR_BOLUM = [
   ["takvim", "Takvim ve randevular", "takvim", "Varsayılan saat, süre, çalışma günleri"],
   ["kapasite", "Atölye kapasitesi", "grafik", "Ekip sayısı, iş süreleri"],
   ["anasayfa", "Ana sayfa", "ev", "Kartların sırası ve görünürlüğü"],
+  ["asistan", "Yardım asistanı", "mesaj", "Rehber, yapay zekâ"],
   ["yedek", "Yedek ve veri", "bulut", "Yedek, geri yükleme, ayar aktarımı"],
   ["cop", "Çöp kutusu", "sil", "Silinenler, geri yükleme"],
   ["gecmis", "İşlem geçmişi", "gecmis", "Kim, ne zaman, ne yaptı"],
   ["hedef", "Aylık hedefler", "grafik", "Sipariş, kâr, teklif dönüşümü"],
   ["hesap", "Hesap", "cikis", "Oturum"]
 ];
-const USTA_AYAR = {gorunum:1, bildirim:1, guvenlik:1, hesap:1};
+const USTA_AYAR = {gorunum:1, bildirim:1, guvenlik:1, asistan:1, hesap:1};
 const kartBaslik = (b, ek) => '<div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">' + b + (ek ? ' <span class="ist" style="font-weight:400">' + ek + '</span>' : '') + '</div>';
 const sayiAlan = (id, etiket, v, ek) => '<div><label class="etiket" for="' + id + '">' + etiket + (ek ? ' <span class="ist">' + ek + '</span>' : '') + '</label><input id="' + id + '" class="kutu" inputmode="numeric" value="' + esc(v) + '"></div>';
 const yaziAlan = (id, etiket, v, o = {}) => '<div><label class="etiket" for="' + id + '">' + etiket + (o.ek ? ' <span class="ist">' + o.ek + '</span>' : '') + '</label><input id="' + id + '" class="kutu"' +
@@ -604,7 +605,7 @@ function ekranAyarlar(){
     (yetki.yonetici ? '<button class="baglanti" style="margin:14px 4px" data-git="ayarlar/gecmis">' + ik("gecmis") + ' Ayar değişiklik geçmişi</button>' : '') + '</div>';
   if(!b) return {baslik:"Ayarlar", html:menu};
   const icerik = {hedef:ayarHedef, ortaklar:ayarOrtaklar, firma:ayarFirma, teklif:ayarTeklif, is:ayarIs, liste:ayarListe, personel:() => personelAyarKarti().replace('style="margin-top:12px"', ''), kullanicilar:kullaniciKarti,
-    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, kapasite:ayarKapasite, anasayfa:ayarAnaSayfa, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
+    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, kapasite:ayarKapasite, anasayfa:ayarAnaSayfa, asistan:ayarAsistan, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
   const baslik = bolumler.find(x => x[0] === b)[1];
   const sonra = () => {
     if(b === "gecmis") gecmisYukle(false);

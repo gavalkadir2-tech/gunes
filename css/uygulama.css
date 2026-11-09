@@ -618,3 +618,9 @@ body.girissiz .ses-balon{display:none}
 @media(min-width:900px){.bildirim-tost{bottom:96px}}
 .sayfa{padding-bottom:96px}
 .ses-balon[hidden]{display:none}
+/* Yardım asistanı */
+.rehber-cevap ol{margin:6px 0 8px;padding-left:20px}.rehber-cevap li{margin-bottom:3px}.rehber-cevap + .rehber-cevap{margin-top:10px;padding-top:10px;border-top:1px solid var(--cizgi)}
+.rehber-cevap .buton,.yz-cevap .buton{margin:0;width:auto}
+.ses-panel .ses-yazi{max-height:min(60vh,460px);overflow-y:auto}
+.rehber-isaret{outline:3px solid var(--ana)!important;outline-offset:3px;border-radius:10px;animation:rehberNabiz 1s ease-in-out 5;position:relative;z-index:2}
+@keyframes rehberNabiz{50%{outline-color:transparent}}

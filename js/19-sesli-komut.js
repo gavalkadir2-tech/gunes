@@ -33,7 +33,7 @@ const SES_EKRAN = [
   [/\b(atolye|kapasite)/, "kapasite"], [/\bsabit gider/, "sabitgiderler"], [/\bmodul/, "moduller"], [/\bacilis bakiye/, "acilis"], [/\btahsilat/, "tahsilat"],
   [/\b(arac|araclar)/, "araclar"], [/\bekstre/, "ekstre"], [/\bayarlar\b/, "ayarlar"]
 ];
-const SES_ORNEK = ["kasaya 500 lira nakit girdi", "1500 lira kira çıktı", "Ali Osman'dan 2000 lira tahsilat", "yeni iş emri Ayşe Demir", "yeni müşteri Mehmet Kaya",
+const SES_ORNEK = ["kasaya 500 lira nakit girdi", "1500 lira kira çıktı", "İbrahim'den kasaya 3000 lira aktar", "Samet 2000 lira çekti", "İbrahim 500 lira mazot ödedi", "sabit gider nasıl eklenir?", "Ali Osman'dan 2000 lira tahsilat", "yeni iş emri Ayşe Demir", "yeni müşteri Mehmet Kaya",
   "İE 12'yi aç", "Ali Osman'ı aç", "takvimi aç", "mutfak ara", "not ekle kapak rengi krem", "kesim listesi", "teklifi yazdır", "geri dön"];
 
 // Cümledeki cari adı (en uzun eşleşme). "Ali Osman'dan", "Ali Osman'ı" gibi ekler sorun olmaz.
@@ -53,17 +53,42 @@ function komutCoz(metin){
   if(!t) return {tur:"bos"};
   if(/\b(yardim|komutlar|ne yapabilirsin|ne diyebilirim)\b/.test(t)) return {tur:"yardim"};
   if(/^(geri|geri don|geri git|onceki)\b/.test(t)) return {tur:"geri"};
+  // Soru: "kasalar arası aktarım nasıl yapılır?" → asistan (rehber / yapay zekâ)
+  if(/\?\s*$/.test(ham) || /\b(nasil|nerede|nereden|neden|niye|ne ise yarar|nedir|ne demek|ogret|anlat|acikla)\b/.test(t)) return {tur:"soru", soru:ham};
   if(/\bbildirim/.test(t)) return {tur:"bildirim"};
   const sayi = (/(\d+(?:\.\d+)?)/.exec(t) || [])[1], tutar = sayi ? Number(sayi) : 0;
   const cari = sesCari(t);
   // Para giriş / çıkış
+  // Ortaklar: cümlede geçen ortak ve eki ("Samet'ten" = kimden, "İbrahim'e" = kime)
+  const ortakGec = ortaklar().map(o => { const a = sade(o.ad), m = new RegExp("\\b" + a + "\\s?(ten|tan|den|dan|e|a|ye|ya|in|un|nin|nun)?\\b").exec(t); return m ? {o, ek:m[1] || "", yer:m.index} : null; }).filter(Boolean).sort((x, y) => x.yer - y.yer);
+  const kasaKimden = /\bkasadan\b/.test(t), kasaKime = /\bkasaya\b/.test(t);
+  // Kasalar arası aktarım: "Samet'ten kasaya 5000 aktar", "İbrahim kasaya 3000 bıraktı", "kasadan Samet'e 2000 ver"
+  if(/\b(aktar|aktarim|devret|birak|teslim et|kasaya koy|kasaya ver)/.test(t) || (ortakGec.length && (kasaKime || kasaKimden) && /\b(verdi|ver|koydu|koy)\b/.test(t))){
+    let kimden = null, kime = null;
+    ortakGec.forEach(x => { if(/^(ten|tan|den|dan)$/.test(x.ek)) kimden = x.o.id; else if(/^(e|a|ye|ya)$/.test(x.ek)) kime = x.o.id; });
+    if(kasaKimden) kimden = ""; if(kasaKime) kime = "";
+    if(kimden == null && kime == null && ortakGec.length) kimden = ortakGec[0].o.id;         // "İbrahim 3000 bıraktı" → İbrahim'den kasaya
+    if(kimden == null) kimden = kime === "" ? (ortakGec[0] || {o:{id:""}}).o.id : "";
+    if(kime == null) kime = kimden === "" ? (ortakGec.find(x => x.o.id !== kimden) || {o:{id:""}}).o.id : "";
+    const odeme = /\b(havale|eft|banka)/.test(t) ? "Havale" : /\bkart/.test(t) ? "Kart" : "Nakit";
+    return {tur:"aktarim", tutar, kimden, kime, odeme};
+  }
+  // Ortak çekişi (şahsi): "Samet 2000 lira çekti", "İbrahim'e şahsi 1500 çıktı"
+  if(tutar > 0 && ortakGec.length && /\b(cekti|cekis|cektim|sahsi|ozel harcama)/.test(t))
+    return {tur:"para", yon:"cikis", tutar, odeme:/\b(havale|eft|banka)/.test(t) ? "Havale" : /\bkart/.test(t) ? "Kart" : "", kategori:ORTAK_CEKIS, hedef:ortakGec[0].o.ad, cari:null, not:ham};
+  if(!tutar && /\bpara (cikti|cikisi|cikar)/.test(t)) return {tur:"git", yer:"cikis", yazi:"Para Çıktı"};
+  if(!tutar && /\bpara (girdi|girisi|geldi)/.test(t)) return {tur:"git", yer:"giris", yazi:"Para Girdi"};
+  if(!tutar && /\b(kasalar arasi|aktarim)/.test(t)) return {tur:"aktarim", tutar:0, kimden:"", kime:"", odeme:"Nakit"};
   const giris = /\b(girdi|geldi|tahsil|tahsilat|aldim|aldik|odedi|odeme aldik|para giris)/.test(t), cikis = /\b(cikti|odedim|odedik|harcadim|harcadik|verdim|verdik|para cikis|gider|odeme yap)/.test(t);
   if(tutar > 0 && (giris || cikis) && !/\bfatura/.test(t)){
-    const tur = cikis && !giris ? "cikis" : giris && !cikis ? "giris" : /\b(girdi|geldi|tahsil)/.test(t) ? "giris" : "cikis";
+    const ortakOdedi = !cari && ortakGec.some(x => !x.ek) && /\bodedi\b/.test(t);   // "İbrahim 500 lira mazot ödedi" → gider
+    const tur = ortakOdedi ? "cikis" : cikis && !giris ? "cikis" : giris && !cikis ? "giris" : /\b(girdi|geldi|tahsil)/.test(t) ? "giris" : "cikis";
     const odeme = /\bnakit\b|\bpesin\b/.test(t) ? "Nakit" : /\bkart|kredi karti|pos\b/.test(t) ? "Kart" : /\b(havale|eft|banka|iban)/.test(t) ? "Havale" : /\b(cek|senet)\b/.test(t) ? SENET : "";
     const tk = cari ? t.replace(new RegExp(sade(cari.ad).split(/\s+/).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|"), "g"), " ") : t;   // cari adı kategori sanılmasın
     const kat = kategoriler(tur).find(k => sade(k).split(/[\s/(),]+/).filter(w => w.length >= 4).some(w => tk.indexOf(w) >= 0)) || "";
-    return {tur:"para", yon:tur, tutar, odeme, kategori:kat, cari, not:ham};
+    // Kim ödedi / para kimde: ödeyen ortak adı geçiyorsa ("İbrahim 500 lira mazot ödedi")
+    const kim = ortakGec.find(x => !x.ek || /^(e|a|ye|ya|de|da)$/.test(x.ek));
+    return {tur:"para", yon:tur, tutar, odeme, kategori:kat, cari, not:ham, ortak:kim ? kim.o.id : null};
   }
   // Yeni kayıtlar
   if(/\byeni (is|is emri|siparis)\b/.test(t) || /\bis emri (ac|olustur)\b/.test(t)) return {tur:"git", yer:"is-form" + (cari ? "/-/" + cari.id : ""), yazi:"Yeni iş emri" + (cari ? " · " + cari.ad : "")};
@@ -101,7 +126,8 @@ function komutUygula(k){
   const Y = yetki.yonetici && !yetki.salt;
   switch(k.tur){
     case "bos": return "Bir şey duyamadım.";
-    case "yardim": return '<b>Örnekler:</b><br>' + SES_ORNEK.map(x => "• " + esc(x)).join("<br>");
+    case "yardim": return '<b>Örnekler:</b><br>' + SES_ORNEK.map(x => "• " + esc(x)).join("<br>") + '<br><br>Bir şeyi nasıl yapacağınızı da sorabilirsiniz: <b>“sabit gider nasıl eklenir?”</b>';
+    case "soru": setTimeout(() => { const kutu = sesBalon && sesBalon.querySelector(".asistan-kutu"); if(kutu) asistanCevapla(k.soru, kutu); }, 0); return '<div class="asistan-kutu"></div>';
     case "geri": geri(); return "Geri dönüldü";
     case "bildirim": EYLEM.bildirimPanel(); return "Bildirimler açıldı";
     case "para": {
@@ -111,9 +137,25 @@ function komutUygula(k){
         const tu = document.getElementById("tutar"); if(tu){ tu.value = sayiYaz(k.tutar); tu.dispatchEvent(new Event("input", {bubbles:true})); }
         if(k.kategori) secenekSec("kategori", k.kategori);
         if(k.odeme) secenekSec("odeme", k.odeme);
+        if(k.hedef) secenekSec("hedef", k.hedef);
+        if(k.ortak != null) secenekSec("ortak", k.ortak);
         const n = document.getElementById("aciklama"); if(n && !n.value) n.value = k.not.slice(0, 200);
       });
-      return (k.yon === "giris" ? "Para Girdi" : "Para Çıktı") + " formu dolduruldu: <b>" + para(k.tutar) + "</b>" + [k.odeme, k.kategori, k.cari && k.cari.ad].filter(Boolean).map(x => " · " + esc(x)).join("") + "<br>Kontrol edip <b>Kaydet</b>'e basın.";
+      return (k.yon === "giris" ? "Para Girdi" : "Para Çıktı") + " formu dolduruldu: <b>" + para(k.tutar) + "</b>" +
+        [k.odeme, k.kategori + (k.hedef ? " · " + k.hedef : ""), k.cari && k.cari.ad, k.ortak ? (k.yon === "giris" ? "para " : "ödeyen ") + ortakAdi(k.ortak) : ""].filter(Boolean).map(x => " · " + esc(x)).join("") + "<br>Kontrol edip <b>Kaydet</b>'e basın.";
+    }
+    case "aktarim": {
+      if(!Y) return "Kasa işlemleri için yetkiniz yok.";
+      if(!ortaklar().length) return "Kasalar arası aktarım için Ayarlar → Ortaklar'da ortakları tanımlayın.";
+      if(!yol()[0] || yol()[0] !== "kasa") git("kasa");
+      setTimeout(() => {
+        EYLEM.kasaAktarim();
+        const p = document.querySelector(".perde:last-child"); if(!p || !p.querySelector("#okTutar")) return;
+        if(k.tutar) p.querySelector("#okTutar").value = sayiYaz(k.tutar);
+        p.querySelector("#okKimden").value = k.kimden; p.querySelector("#okKime").value = k.kime;
+        const o = p.querySelector('#okOdeme [data-o="' + k.odeme + '"]'); if(o) o.click();
+      }, 200);
+      return "Kasalar arası aktarım: " + (k.tutar ? "<b>" + para(k.tutar) + "</b> · " : "") + esc(ortakAdi(k.kimden)) + " → " + esc(ortakAdi(k.kime)) + "<br>Kontrol edip <b>Kaydet</b>'e basın.";
     }
     case "yeniCari":
       if(!Y) return "Cari eklemek için yetkiniz yok.";
@@ -146,7 +188,7 @@ function sesBalonKur(){
   const panel = sesBalon.querySelector(".ses-panel"), yazi = sesBalon.querySelector(".ses-yazi"), girdi = sesBalon.querySelector("input");
   const goster = h => { panel.hidden = false; yazi.innerHTML = h; };
   const calistir = m => { const k = komutCoz(m); goster('<div class="ses-duyulan">“' + esc(m) + '”</div>' + komutUygula(k)); girdi.value = "";
-    clearTimeout(sesBalon.kapat); if(k.tur !== "yardim" && k.tur !== "bos") sesBalon.kapat = setTimeout(() => { if(!sesTanima) panel.hidden = true; }, 6000); };
+    clearTimeout(sesBalon.kapat); if(k.tur !== "yardim" && k.tur !== "bos" && k.tur !== "soru") sesBalon.kapat = setTimeout(() => { if(!sesTanima) panel.hidden = true; }, 6000); };
   sesBalon.querySelector(".ses-form").addEventListener("submit", e => { e.preventDefault(); if(girdi.value.trim()) calistir(girdi.value.trim()); });
   sesBalon.querySelector('[data-ses="yardim"]').addEventListener("click", () => goster(komutUygula({tur:"yardim"})));
   sesBalon.querySelector('[data-ses="kapat"]').addEventListener("click", () => { if(sesTanima) sesTanima.abort(); panel.hidden = true; });
