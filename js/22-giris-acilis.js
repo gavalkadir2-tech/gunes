@@ -67,7 +67,7 @@ async function acilis(){
   bildirimGonder(); puantajBaslat();
 }
 // Otomatik puantaj: güncel veri yüklendikten sonra (internet yokken çalışmaz; başka cihazdaki izin kaydının üstüne yazmasın)
-function puantajBaslat(){ puantajOtoGun = bugun(); if(!cevrimdisi) puantajOtomatik().then(n => { if(n) sessizCiz(); }).catch(() => {}); }
+function puantajBaslat(){ puantajOtoGun = bugun(); if(!cevrimdisi) puantajOtomatik().then(n => { if(n){ bildir("Puantaj: " + n + " gün otomatik “Geldi” işaretlendi"); sessizCiz(); } }).catch(e => console.warn("Otomatik puantaj", e)); }
 let kanal = null, yenileZamanlayici = null;
 function canliBaglan(){
   if(kanal) return;
@@ -113,3 +113,9 @@ document.addEventListener("visibilitychange", () => {
   sb.auth.onAuthStateChange((olay, s) => { oturum = s; if(olay === "SIGNED_OUT" && hazir){ hazir = false; girisEkrani(); } });
   if(oturum) acilis(); else girisEkrani();
 })();
+// Ayarlar → Hesap → "Güncellemeyi zorla": önbellekleri silip en son sürümü yükler (veriler silinmez)
+EYLEM.yenidenYukle = async () => {
+  try{ if(window.caches) for(const k of await caches.keys()) await caches.delete(k); }catch(e){}
+  try{ if(navigator.serviceWorker) for(const r of await navigator.serviceWorker.getRegistrations()) await r.update(); }catch(e){}
+  location.reload();
+};

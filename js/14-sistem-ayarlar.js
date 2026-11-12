@@ -591,6 +591,7 @@ function ayarHesap(){
   return '<div class="kart">' + kartBaslik("Hesap") + '<div style="font-weight:500">' + esc(kullaniciGorunen() || "—") + '</div>' +
     '<div class="alt-bilgi">' + (cevrimici ? (yetki.yonetici ? "Yönetici" : "Usta yetkisi: iş emirleri, aşamalar, notlar, fotoğraflar, ölçü ve katalog.") + " · Bilgiler bulutta; telefon ve bilgisayarda aynı bilgiler görünür." : "Bilgiler sadece bu cihazda saklanıyor.") + '</div>' +
     '<div class="alt-bilgi">Bu cihaz: ' + esc(cihazAdi()) + '</div>' +
+    '<div class="alt-bilgi">Uygulama sürümü: <b>' + UYGULAMA_SURUM + '</b> · <b data-is="yenidenYukle" style="cursor:pointer;color:var(--borc)">Güncellemeyi zorla</b></div>' +
     (cevrimici ? '<button class="buton ikincil" data-is="cikisYap">' + ik("cikis") + 'Çıkış yap</button>' : '') + '</div>';
 }
 function ekranAyarlar(){

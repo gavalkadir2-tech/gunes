@@ -29,9 +29,12 @@ const kolKategorileri = (tur, id) => Array.from(new Set(((kolBul(id) || {})[tur]
 /* --- Liste süzgeci (İş Emirleri, Kasa, Faturalar, Rapor) --- */
 const kolFiltre = () => filtre.kol == null ? "hepsi" : filtre.kol;
 const kolUygun = kol => kolFiltre() === "hepsi" || kolFiltre() === (kol || "");
-const kolSecici = () => !kolVar() ? '' : '<div class="secenekler kol-sec">' + [["hepsi", "Tüm işler"]].concat(isKollari().map(k => [k.id, k.ad])).map(([v, a]) =>
+const kolSecici = () => !kolVar() ? kolUyari() : '<div class="secenekler kol-sec">' + [["hepsi", "Tüm işler"]].concat(isKollari().map(k => [k.id, k.ad])).map(([v, a]) =>
   '<button type="button" class="secenek' + (kolFiltre() === v ? ' secili' : '') + '" data-is="kolFiltre" data-arg="' + esc(v) + '">' + esc(a) + '</button>').join("") + '</div>';
 EYLEM.kolFiltre = (el, v) => { filtre.kol = v; listeFazla.isler = listeFazla.kasa = listeFazla.faturalar = 0; const y = window.scrollY; ciz(); window.scrollTo(0, y); };
+// SQL 16 çalıştırılmadıysa yöneticiye İş Emirleri / Kasa / Faturalar'da hatırlatılır
+const kolUyari = () => cevrimici && !kolHazir() && yetki.yonetici && !yetki.salt && isKollari().length > 1 ?
+  '<div class="uyari">Müteahhitlik iş kolunun görünmesi için Supabase → SQL Editor\'de <b>supabase-guncelleme-16.sql</b> dosyasını (ya da supabase-tum-kurulum.sql\'in tamamını) çalıştırın, sonra sayfayı yenileyin.</div>' : '';
 const kolRozet = kol => kolVar() && kol ? ' <span class="etiket-rozet d-mavi kol-rozet">' + esc(kolAdi(kol)) + '</span>' : '';
 
 /* --- Formlarda iş kolu seçimi --- */
