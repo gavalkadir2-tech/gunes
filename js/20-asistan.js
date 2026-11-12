@@ -71,6 +71,9 @@ const REHBER = [
     a:["Üstteki zil: ortağınızın / ustanın işlemleri ve Yapılacaklar.", "Ayarlar → Bildirimler: türler, ses, sessiz saatler.", "Uygulama kapalıyken bildirim için aynı sayfadaki kurulum adımlarını izleyin."]},
   {id:"sesli-komut", b:"Sesli komut ve asistan", k:"sesli komut mikrofon konus balon asistan yapay zeka", yer:"ana",
     a:["Sağ alttaki balona dokunup konuşun: “kasaya 500 lira nakit girdi”, “İbrahim'den kasaya 3000 aktar”, “takvimi aç”.", "“… nasıl yapılır?” diye sorun: adımları anlatır, “Göster” ile ekranda işaretler.", "Para komutları formu doldurur; kontrol edip Kaydet'e basarsınız."]},
+  {id:"muteahhitlik", b:"Müteahhitlik (inşaat) işleri", k:"muteahhitlik muteahhit insaat santiye taseron hakedis is kolu bolum", yer:"isler", sec:".kol-sec", y:"yonetici",
+    a:["Yeni iş emrinde “İş kolu” olarak Müteahhitlik seçin; aşamalar inşaata göre gelir (hafriyat, kaba inşaat, sıva…).", "Kasada para girer / çıkarken İş kolu seçin; taşeron ödemesi, inşaat malzemesi, hakediş tahsilatı kategorileri çıkar. İş emri seçilirse iş kolu kendiliğinden gelir.",
+      "Hakediş için satış faturası kesin; tahsilatı kasaya işleyin.", "İş Emirleri, Kasa, Faturalar ve Rapor'da üstteki “Tüm işler / Mobilya / Müteahhitlik” ile süzün; Rapor'da iş kollarına göre tablo var.", "İş kollarının adı, aşamaları ve kategorileri: Ayarlar → İş kolları."]},
   {id:"mesaj-sablon", b:"WhatsApp mesaj şablonları", k:"mesaj sablonu whatsapp metin degistir odeme hatirlatma iban hesap sahibi", yer:"ayarlar/mesajlar", y:"yonetici",
     a:["Ayarlar → “Mesaj şablonları”nda her mesajı değiştirin; {ad}, {tutar}, {hesap} gibi alanlar doldurulur.", "IBAN, banka ve hesap sahibi: Ayarlar → Firma bilgileri."]}
 ];

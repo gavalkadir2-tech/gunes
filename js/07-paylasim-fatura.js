@@ -210,7 +210,7 @@ const FATURA_SIRA = {yeni:["Tarih (yeni → eski)", tarihSira], eski:["Tarih (es
   kalan:["Ödenmemiş tutar", kiyas(f => odemeDurumu(f).kalan, true)], cari:["Cari (A–Z)", kiyas(f => cariAdi(f.musteriId))], no:["Fatura no", kiyas(f => f.no, true)]};
 function ekranFaturalar(){
   const ay = veri.faturalar.filter(f => f.tarih.slice(0, 7) === ayGoster);
-  const liste = ay.filter(f => filtre.fatura === "hepsi" || f.tur === filtre.fatura), hz = listeHazirla("faturalar", FATURA_SIRA, liste);
+  const liste = ay.filter(f => (filtre.fatura === "hepsi" || f.tur === filtre.fatura) && kolUygun(faturaKolu(f))), hz = listeHazirla("faturalar", FATURA_SIRA, liste);
   let satis = 0, alis = 0, odenmemis = 0;
   ay.forEach(f => { if(f.tur === "satis") satis += f.toplam; else alis += f.toplam; });
   veri.faturalar.forEach(f => { if(f.tur === "satis") odenmemis += odemeDurumu(f).kalan; });
@@ -218,7 +218,7 @@ function ekranFaturalar(){
       '<div class="kart ozet"><div class="kart-baslik">Bu ay alış faturaları</div><div class="deger t-cikis">' + para(alis) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Tahsil edilmemiş satış</div><div class="deger t-borc">' + para(odenmemis) + '</div></div></div>' +
     '<div class="hizli" style="grid-template-columns:1fr 1fr">' + hizliButon("fatura-form/satis", "r-borc", "fatura", "Satış Faturası") + hizliButon("fatura-form/alis", "r-gri", "fatura", "Alış Faturası") + '</div>' +
-    '<div class="ust-arac">' + aySecici() + filtreButonlari("fatura", [["hepsi","Hepsi"], ["satis","Satış"], ["alis","Alış"]]) + '</div>' + listeArac("faturalar", FATURA_SIRA) +
+    kolSecici() + '<div class="ust-arac">' + aySecici() + filtreButonlari("fatura", [["hepsi","Hepsi"], ["satis","Satış"], ["alis","Alış"]]) + '</div>' + listeArac("faturalar", FATURA_SIRA) +
     '<div class="kart liste-kart">' + (liste.length ? hz.l.map(f => faturaSatir(f)).join("") + dahaFazla("faturalar", hz) : bos("fatura", "Bu ayda fatura yok.")) + '</div>';
   return {baslik:"Faturalar", html};
 }
@@ -275,7 +275,8 @@ function ekranFaturaForm(tur, cariId, ieId){
     '<div class="iki-alan"><div><label class="etiket" for="cari" style="margin-top:0">' + (satis ? "Müşteri" : "Tedarikçi") + '</label>' + cariSecici(cariId, true, satis ? "musteri" : "tedarikci") +
       '<div class="alt-bilgi">Listede yoksa: <b data-git="cari-form/-/' + (satis ? "musteri" : "tedarikci") + '" style="cursor:pointer;color:var(--borc)">+ Yeni ' + (satis ? "müşteri" : "tedarikçi") + '</b></div></div>' +
     '<div><label class="etiket" for="isEmri" style="margin-top:0">İş emri <span class="ist">(isteğe bağlı)</span></label><select id="isEmri" class="kutu">' + isSecenekleri(satis ? cariId : null, ieId) + '</select></div></div>' +
-    (satis ? '' : '<label class="etiket">Ne alındı? (gider türü)</label>' + secenekler("kategori", kategoriler("cikis"), form.kategori)) +
+    kolAlani(varsayilanKol(ie)) +
+    (satis ? '' : '<label class="etiket">Ne alındı? (gider türü)</label>' + secenekler("kategori", kolVar() ? kolKategorileri("cikis", form.kol) : kategoriler("cikis"), form.kategori)) +
     '<div class="iki-alan"><div><label class="etiket" for="no">Fatura no' + (satis ? '' : ' <span class="ist">(tedarikçinin)</span>') + '</label><input id="no" class="kutu" maxlength="40" value="' +
       (satis ? siradakiNo(sistem().satisOnEk + yil + "-", veri.faturalar) : "") + '" placeholder="' + (satis ? "" : "Boşsa otomatik verilir") + '"></div>' +
     '<div class="iki-alan" style="gap:0 8px"><div>' + tarihAlani("tarih", "Tarih", bugun()) + '</div><div>' + tarihAlani("vade", "Vade", "") + '</div></div></div>' +
@@ -291,6 +292,9 @@ function ekranFaturaForm(tur, cariId, ieId){
     '<div class="hata" id="hata"></div><button class="buton" style="background:var(--' + (satis ? "borc" : "cikis") + ')" data-is="faturaKaydet">' + ik("tamam") + 'Faturayı kaydet</button></div>';
   return {baslik: satis ? "Satış faturası" : "Alış faturası", geri:true, html, sonra(){
     secenekBagla(); if(satis) cariIsBagla();
+    kolBagla(kol => { if(satis) return; const g = document.querySelector('.secenekler[data-ad="kategori"]'), l = kolKategorileri("cikis", kol); if(!g) return;
+      if(l.indexOf(form.kategori) < 0) form.kategori = l[0];
+      g.innerHTML = l.map(x => '<button type="button" class="secenek' + (x === form.kategori ? ' secili' : '') + '" data-deger="' + esc(x) + '">' + esc(x) + '</button>').join(""); });
     const kap = document.getElementById("kalemler");
     const oku = e => {
       const d = e.target.closest(".kalem"); if(!d) return;
@@ -325,7 +329,7 @@ EYLEM.faturaKaydet = btn => {
   const no = deger("no") || siradakiNo((form.tur === "satis" ? sistem().satisOnEk : sistem().alisOnEk) + yil + "-", veri.faturalar);
   if(form.tur === "satis" && veri.faturalar.some(f => f.tur === "satis" && f.no === no)) return hataYaz("Bu fatura numarası zaten kullanılmış.");
   const f = {id:yeniId(), no, tur:form.tur, musteriId:cari, isEmriId:deger("isEmri") || null, kategori: form.tur === "satis" ? "Satış" : form.kategori,
-    tarih:deger("tarih") || bugun(), vade:deger("vade") || null, kalemler, araToplam:h.ara, kdvToplam:h.kdv, toplam:h.toplam, aciklama:deger("aciklama"), olusma:Date.now()};
+    tarih:deger("tarih") || bugun(), vade:deger("vade") || null, kalemler, araToplam:h.ara, kdvToplam:h.kdv, toplam:h.toplam, aciklama:deger("aciklama"), olusma:Date.now(), kol:kolVar() ? form.kol || "" : ""};
   islem(btn, async () => {
     await Depo.kaydet("faturalar", f);
     if(onceki.length) await Depo.kaydet("hareketler", onceki.map(x => Object.assign({}, x, {faturaId:f.id})));

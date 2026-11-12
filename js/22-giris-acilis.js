@@ -49,7 +49,7 @@ async function acilis(){
     sessizCiz();
     if(!cevrimdisi) canliBaglan();
     if(!cevrimdisi) copTemizle().then(() => logTemizle()).then(() => gunlukYedekKontrol()).catch(() => {});
-    bildirimGonder();
+    bildirimGonder(); puantajBaslat();
     return;
   }
   try{ await Depo.yukle(); }
@@ -64,8 +64,10 @@ async function acilis(){
   hazir = true; ciz(); kilitGoster(); paylasimKontrol();
   if(cevrimici && !cevrimdisi) canliBaglan();
   if(!cevrimdisi) copTemizle().then(() => logTemizle()).then(() => gunlukYedekKontrol()).catch(() => {});
-  bildirimGonder();
+  bildirimGonder(); puantajBaslat();
 }
+// Otomatik puantaj: güncel veri yüklendikten sonra (internet yokken çalışmaz; başka cihazdaki izin kaydının üstüne yazmasın)
+function puantajBaslat(){ puantajOtoGun = bugun(); if(!cevrimdisi) puantajOtomatik().then(n => { if(n) sessizCiz(); }).catch(() => {}); }
 let kanal = null, yenileZamanlayici = null;
 function canliBaglan(){
   if(kanal) return;

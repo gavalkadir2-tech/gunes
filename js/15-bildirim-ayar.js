@@ -316,4 +316,4 @@ const AYAR_ANAHTAR = {firma:"firma adı telefon e-posta adres il ilçe vergi dai
   belge:"belge yazdır pdf teklif çıktısı logo imza iban fotoğraf alt bilgi başlık", takvim:"takvim randevu saat süre çalışma günü cumartesi pazar hatırlatma",
   yedek:"yedek geri yükle zip otomatik günlük indir ayar aktar depolama kullanım veritabanı durumu", cop:"çöp kutusu silinen geri yükle", gecmis:"işlem geçmişi log kim ne zaman",
   hedef:"hedef ciro kâr dönüşüm aylık", hesap:"hesap çıkış oturum cihaz", kapasite:"atölye kapasite ekip iş süresi teslim montaj gün",
-  anasayfa:"ana sayfa kart sıra gizle düzen", asistan:"asistan yapay zeka yardım rehber nasıl claude soru"};
+  anasayfa:"ana sayfa kart sıra gizle düzen", asistan:"asistan yapay zeka yardım rehber nasıl claude soru", kollar:"iş kolu müteahhitlik inşaat şantiye taşeron hakediş bölüm"};

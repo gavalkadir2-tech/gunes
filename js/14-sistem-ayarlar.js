@@ -299,6 +299,7 @@ const AYAR_BOLUM = [
   ["ortaklar", "Ortaklar", "kisiler", "Samet, İbrahim · pay oranları"],
   ["teklif", "Teklif ve fatura", "fatura", "KDV, numaralar, notlar, kâr"],
   ["is", "İş emirleri", "is", "Aşamalar, keşif listesi, hatırlatmalar"],
+  ["kollar", "İş kolları", "koli", "Mobilya, müteahhitlik"],
   ["liste", "Listeler ve kategoriler", "kalem", "Ödeme şekli, kategori, birim, malzeme"],
   ["personel", "Personel", "kisi", "Çalışma günü, saat, mesai"],
   ["kullanicilar", "Kullanıcılar ve yetkiler", "kisiler", "Yönetici ve usta hesapları"],
@@ -463,7 +464,7 @@ function veritabaniEksikleri(){
     personel:[5, "Personel"], puantaj:[5, "Personel"], personel_hareket:[5, "Personel"], stok_hareket:[7, "Stok, taksit"], taksitler:[7, "Stok, taksit"], cop_kutusu:[9, "Çöp kutusu, işlem geçmişi"],
     islem_kaydi:[9, "Çöp kutusu, işlem geçmişi"], siparisler:[10, "Takvim, kesim, sipariş, çek"], cekler:[10, "Takvim, kesim, sipariş, çek"], arac_kayit:[12, "Otomatik yedek, araç takibi"], yedekler:[12, "Otomatik yedek, araç takibi"], is_emri_fiyat:[13, "Fiyat gizleme, çakışma uyarısı, hızlı açılış"]};
   Object.keys(eksikTablo).forEach(t => { if(T[t]) ekle(T[t][0], T[t][1]); });
-  Object.values(eksikSutun).forEach(no => ekle(no, {4:"Teklif / keşif bilgileri", 10:"Takvim, kesim, sipariş, çek", 11:"Ortaklar ve kişi kasaları"}[no] || ""));
+  Object.values(eksikSutun).forEach(no => ekle(no, {4:"Teklif / keşif bilgileri", 10:"Takvim, kesim, sipariş, çek", 11:"Ortaklar ve kişi kasaları", 14:"Atölye süresi, muhasebeci, bildirim", 16:"İş kolları (müteahhitlik)"}[no] || ""));
   if(!yetki.kurulu) ekle(6, "Kullanıcı yetkileri (usta / yönetici)");
   if(!surumVar) ekle(13, "Fiyat gizleme, çakışma uyarısı, hızlı açılış");
   return l.sort((a, b) => a[0] - b[0]);
@@ -605,7 +606,7 @@ function ekranAyarlar(){
     (yetki.yonetici ? '<button class="baglanti" style="margin:14px 4px" data-git="ayarlar/gecmis">' + ik("gecmis") + ' Ayar değişiklik geçmişi</button>' : '') + '</div>';
   if(!b) return {baslik:"Ayarlar", html:menu};
   const icerik = {hedef:ayarHedef, ortaklar:ayarOrtaklar, firma:ayarFirma, teklif:ayarTeklif, is:ayarIs, liste:ayarListe, personel:() => personelAyarKarti().replace('style="margin-top:12px"', ''), kullanicilar:kullaniciKarti,
-    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, kapasite:ayarKapasite, anasayfa:ayarAnaSayfa, asistan:ayarAsistan, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
+    gorunum:ayarGorunum, bildirim:ayarBildirim, guvenlik:ayarGuvenlik, mesajlar:ayarMesajlar, belge:ayarBelge, takvim:ayarTakvim, kapasite:ayarKapasite, anasayfa:ayarAnaSayfa, asistan:ayarAsistan, kollar:ayarKollar, yedek:ayarYedek, cop:ayarCop, gecmis:ayarGecmis, hesap:ayarHesap}[b]();
   const baslik = bolumler.find(x => x[0] === b)[1];
   const sonra = () => {
     if(b === "gecmis") gecmisYukle(false);

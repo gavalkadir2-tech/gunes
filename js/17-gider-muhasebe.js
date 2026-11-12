@@ -174,8 +174,8 @@ async function muhasebePaketi(ay){
     const hl = veri.hareketler.filter(h => h.tarih.slice(0, 7) === ay && kasaHareketi(h)).sort((a, b) => a.tarih < b.tarih ? -1 : 1);
     const TUR = {giris:"Giriş", cikis:"Çıkış", aktarim:"Aktarım"};
     zip.file("1-KDV-ozeti-ve-faturalar.xlsx", await kdvExcelYap(false));
-    zip.file("2-Kasa-hareketleri.xlsx", await excelIndir([{ad:"Kasa " + ay, genislik:[12, 10, 28, 28, 12, 14, 40, 12], satirlar:[["Tarih", "Tür", "Kategori", "Cari", "Ödeme", "Tutar", "Açıklama", "Kasa"]].concat(
-      hl.map(h => [h.tarih, TUR[h.tur] || h.tur, h.kategori, cariAdi(h.musteriId), h.odeme, (h.tur === "cikis" ? -1 : 1) * yuvarla(h.tutar), h.aciklama || "", h.tur === "aktarim" ? ortakAdi(h.ortak) + " → " + ortakAdi(h.hedef) : ortakAdi(h.ortak)]))}], "", false));
+    zip.file("2-Kasa-hareketleri.xlsx", await excelIndir([{ad:"Kasa " + ay, genislik:[12, 10, 28, 28, 12, 14, 40, 12], satirlar:[["Tarih", "Tür", "Kategori", "Cari", "Ödeme", "Tutar", "Açıklama", "Kasa", "İş kolu"]].concat(
+      hl.map(h => [h.tarih, TUR[h.tur] || h.tur, h.kategori, cariAdi(h.musteriId), h.odeme, (h.tur === "cikis" ? -1 : 1) * yuvarla(h.tutar), h.aciklama || "", h.tur === "aktarim" ? ortakAdi(h.ortak) + " → " + ortakAdi(h.hedef) : ortakAdi(h.ortak), kolAdi(hareketKolu(h))]))}], "", false));
     zip.file("3-Cari-bakiyeler.xlsx", await excelIndir([{ad:"Cariler", genislik:[32, 12, 16, 16, 16], satirlar:[["Cari", "Tür", "Vergi / TC no", "Bakiye", "Durum"]].concat(
       veri.musteriler.map(m => [m, cariBakiye(m.id)]).filter(x => Math.abs(x[1]) >= 0.01).sort((a, b) => b[1] - a[1]).map(([m, b]) => [m.ad, m.tip === "tedarikci" ? "Tedarikçi" : "Müşteri", m.vergiNo || "", yuvarla(b), b > 0 ? "Bize borçlu" : "Biz borçluyuz"]))}], "", false));
     const cl = veri.cekler.filter(c => cekAcik(c) || (c.vade || "").slice(0, 7) === ay);

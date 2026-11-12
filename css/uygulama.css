@@ -624,3 +624,5 @@ body.girissiz .ses-balon{display:none}
 .ses-panel .ses-yazi{max-height:min(60vh,460px);overflow-y:auto}
 .rehber-isaret{outline:3px solid var(--ana)!important;outline-offset:3px;border-radius:10px;animation:rehberNabiz 1s ease-in-out 5;position:relative;z-index:2}
 @keyframes rehberNabiz{50%{outline-color:transparent}}
+/* İş kolları */
+.kol-sec{margin:0 0 10px}.kol-rozet{font-size:11px;vertical-align:1px}

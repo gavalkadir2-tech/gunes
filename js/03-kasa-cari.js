@@ -8,7 +8,8 @@ function ekranPara(tur, cariId, ieId, faturaId){
   const kat = kategoriler(tur);
   const varsayilan = f && !giris && f.kategori ? f.kategori : cariId ? (giris ? "Cari Tahsilat" : "Tedarikçi Ödemesi") : kat[0];
   form = {tur, kategori: varsayilan, odeme:"Nakit", faturaId: f ? f.id : null, ortak:benimOrtak()};
-  let katListe = kat.indexOf(varsayilan) >= 0 ? kat : [varsayilan].concat(kat);
+  const kol0 = varsayilanKol(bul("is_emirleri", ieId)), katKol = kolVar() ? kolKategorileri(tur, kol0) : kat;
+  let katListe = katKol.indexOf(varsayilan) >= 0 ? katKol : [varsayilan].concat(katKol);
   const ortakKat = giris ? ORTAK_SERMAYE : ORTAK_CEKIS;
   if(ortaklar().length && ortakHazir() && katListe.indexOf(ortakKat) < 0) katListe = katListe.concat([ortakKat]);
   const html = '<div class="kart form-kart">' +
@@ -16,6 +17,7 @@ function ekranPara(tur, cariId, ieId, faturaId){
       '<br>Kalan: <b>' + para(odemeDurumu(f).kalan) + '</b></div>' : '') +
     '<label class="etiket" for="tutar" style="margin-top:0">Tutar</label><input id="tutar" class="kutu tutar-kutu" inputmode="decimal" autocomplete="off" placeholder="0 ₺">' +
     '<div class="secenekler" id="tamamiKutu" style="margin-top:8px"></div>' +
+    kolAlani(kol0) +
     '<label class="etiket">' + (giris ? "Ne için geldi?" : "Ne için çıktı?") + '</label>' + secenekler("kategori", katListe, varsayilan) +
     (ortaklar().length ? '<div id="ortakKimKutu" style="display:none"><label class="etiket">Kim?</label>' + secenekler("hedef", ortaklar().map(o => o.ad), "") + '</div>' : '') +
     '<label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit") + ortakSecici(form.ortak) +
@@ -26,7 +28,7 @@ function ekranPara(tur, cariId, ieId, faturaId){
     '<div class="hata" id="hata"></div>' +
     '<button class="buton" style="background:var(--' + tur + ')" data-is="paraKaydet">' + ik("tamam") + 'Kaydet</button></div>';
   return {baslik: giris ? (cariId ? "Tahsilat Al" : "Para Girdi") : (cariId ? "Ödeme Yap" : "Para Çıktı"), geri:true, html, sonra(){
-    secenekBagla(); cariIsBagla();
+    secenekBagla(); cariIsBagla(); paraKolBagla();
     const kim = document.getElementById("ortakKimKutu"), katGrup = document.querySelector('.secenekler[data-ad="kategori"]');
     if(kim && katGrup) katGrup.addEventListener("click", () => setTimeout(() => {
       const o = ortakKategorisi(form.kategori), et = document.getElementById("ortakEtiket");
@@ -52,7 +54,7 @@ EYLEM.paraKaydet = btn => {
   const ortakKim = ortakKategorisi(form.kategori) ? (ortaklar().find(o => o.ad === form.hedef) || {}).id : "";
   if(ortakKategorisi(form.kategori) && !ortakKim) return hataYaz("Kim? Ortağı seçin.");
   const k = {id:yeniId(), tur:form.tur, tutar, kategori:form.kategori, odeme:form.odeme, musteriId:deger("cari") || null,
-    isEmriId:deger("isEmri") || null, faturaId:form.faturaId, aciklama:deger("aciklama"), tarih:deger("tarih") || bugun(), olusma:Date.now(), ortak:form.ortak || "", hedef:ortakKim || ""};
+    isEmriId:deger("isEmri") || null, faturaId:form.faturaId, aciklama:deger("aciklama"), tarih:deger("tarih") || bugun(), olusma:Date.now(), ortak:form.ortak || "", hedef:ortakKim || "", kol:kolVar() ? form.kol || "" : ""};
   const f = bul("faturalar", k.faturaId);
   if(f && k.musteriId !== f.musteriId) k.faturaId = null;   // cari değiştirildiyse faturadan kopar
   islem(btn, async () => { await Depo.kaydet("hareketler", k); bildir("Kaydedildi: " + para(tutar)); geri(); });
@@ -63,7 +65,7 @@ const KASA_SIRA = {yeni:["Tarih (yeni → eski)", tarihSira], eski:["Tarih (eski
   kategori:["Kategori", (a, b) => a.kategori.localeCompare(b.kategori, "tr") || tarihSira(a, b)]};
 function ekranKasa(){
   const k = kasa();
-  const liste = veri.hareketler.filter(h => kasaHareketi(h) && h.tarih.slice(0, 7) === ayGoster && (filtre.kasa === "hepsi" || h.tur === filtre.kasa || (filtre.kasa === "ortak" && (h.tur === "aktarim" || ortakKategorisi(h.kategori)))));
+  const liste = veri.hareketler.filter(h => kasaHareketi(h) && h.tarih.slice(0, 7) === ayGoster && kolUygun(hareketKolu(h)) && (filtre.kasa === "hepsi" || h.tur === filtre.kasa || (filtre.kasa === "ortak" && (h.tur === "aktarim" || ortakKategorisi(h.kategori)))));
   let gir = 0, cik = 0; liste.forEach(h => { if(h.tur === "giris") gir += h.tutar; else if(h.tur === "cikis") cik += h.tutar; });
   let html = '<div class="izgara uc"><div class="kart"><div class="kart-baslik">Kasadaki para (toplam)</div><div class="buyuk-sayi" style="font-size:24px">' + para(k.toplam) + '</div>' +
       '<div class="alt-bilgi">Nakit <b>' + para(k.nakit) + '</b> · Banka <b>' + para(k.banka) + '</b>' + (k.senet ? ' · Çek/Senet <b>' + para(k.senet) + '</b>' : '') + '</div>' + kisiKasaSatiri() + '</div>' +
@@ -72,7 +74,7 @@ function ekranKasa(){
     '<div class="hizli">' + hizliButon("giris", "r-giris", "asagi", "Para Girdi") + hizliButon("cikis", "r-cikis", "yukari", "Para Çıktı") + hizliButon("cekler", "r-borc", "fatura", "Çek / Senet") +
       (ortaklar().length ? '<button data-is="kasaAktarim"><span class="rozet r-ana">' + ik("dondur") + '</span>Kasalar arası aktarım</button>' : '') +
       hizliButon("ekstre", "r-gri", "yukle", "Banka ekstresi") + hizliButon("sabitgiderler", "r-ana", "takvim", "Sabit giderler") + '<button data-is="acilisAc" data-arg="kasa"><span class="rozet r-gri">' + ik("kasa") + '</span>Açılış bakiyesi</button>' + '</div>' +
-    '<div class="ust-arac">' + aySecici() + filtreButonlari("kasa", [["hepsi","Hepsi"], ["giris","Giren"], ["cikis","Çıkan"]].concat(ortaklar().length ? [["ortak", "Ortak hareketleri"]] : [])) + '</div>' +
+    kolSecici() + '<div class="ust-arac">' + aySecici() + filtreButonlari("kasa", [["hepsi","Hepsi"], ["giris","Giren"], ["cikis","Çıkan"]].concat(ortaklar().length ? [["ortak", "Ortak hareketleri"]] : [])) + '</div>' +
     listeArac("kasa", KASA_SIRA);
   if(!liste.length) return {baslik:"Kasa", html: html + '<div class="kart">' + bos("kasa", "Bu ayda kayıt yok.") + '</div>'};
   const hz = listeHazirla("kasa", KASA_SIRA, liste);

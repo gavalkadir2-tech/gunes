@@ -15,7 +15,7 @@ const notEkle = (ieId, metin, tur) => Depo.kaydet("is_notlari", {id:yeniId(), is
 
 function ekranIsler(){
   const f = filtre.is;
-  const liste = veri.is_emirleri.filter(ie => f === "hepsi" || (f === "teslim" ? ie.durum === "Teslim edildi" : f === "acil" ? ac(ie) && ie.oncelik === "Acil" : ac(ie)));
+  const liste = veri.is_emirleri.filter(ie => kolUygun(ie.kol) && (f === "hepsi" || (f === "teslim" ? ie.durum === "Teslim edildi" : f === "acil" ? ac(ie) && ie.oncelik === "Acil" : ac(ie))));
   const sayac = {}; veri.is_emirleri.forEach(ie => { sayac[ie.durum] = (sayac[ie.durum] || 0) + 1; });
   const html = '<div class="izgara dort">' + ["Sipariş alındı", "Üretimde", "Hazır", "Teklif"].map(d =>
       '<div class="kart ozet"><div class="kart-baslik">' + d + '</div><div class="deger">' + (sayac[d] || 0) + '</div></div>').join("") + '</div>' +
@@ -104,12 +104,13 @@ const gunSonra = n => { const d = new Date(); d.setDate(d.getDate() + n); return
 function ekranIsForm(id, cariId, projeId, sonra){
   const ie = bul("is_emirleri", id), m0 = bul("musteriler", ie ? ie.musteriId : cariId);
   const pr = ie ? null : bul("katalog", projeId), prFoto = pr && cevrimici ? projeGorselleri(pr.id).length : 0;
-  const tk = ie ? isTeklif(ie) : {}, mevcut = ie ? ie.asamalar.map(a => a.ad) : ASAMALAR.slice();
+  const kol0 = ie ? ie.kol || "" : varsayilanKol(null);
+  const tk = ie ? isTeklif(ie) : {}, mevcut = ie ? ie.asamalar.map(a => a.ad) : kolAsamalari(kol0);
   form = {durum: ie ? ie.durum : pr || sonra === "kesif" ? "Teklif" : "Sipariş alındı", oncelik: ie ? ie.oncelik : "Normal", odeme:"Nakit", ortak:benimOrtak(), projeId: pr ? pr.id : null,
     sonraKesif: !ie && sonra === "kesif",
     ikalemler: ie && ie.kalemler.length ? ie.kalemler.map(k => Object.assign({}, k)) :
       pr ? [{ad: pr.kategori ? pr.kategori + " — " + pr.baslik : pr.baslik, olcu:pr.olcu, renk:pr.malzeme, adet:1, katalogId:pr.id}] : [bosKalem()],
-    asamaTum: ASAMALAR.concat(mevcut.filter(a => ASAMALAR.indexOf(a) < 0)), asamaSecili: mevcut, _surum: ie ? ie._surum : null};
+    asamaTum: (ie ? kolAsamalari(kol0) : []).concat(mevcut.filter(a => !ie || kolAsamalari(kol0).indexOf(a) < 0)), asamaSecili: mevcut, _surum: ie ? ie._surum : null};
   const kdv = tk.kdv == null ? varsayilanKdv() : tk.kdv, gecerlilik = ie ? tk.gecerlilik || "" : gunSonra(firma().gecerlilik);
   const ustalar = Array.from(new Set(veri.personel.filter(p => calisiyor(p, bugun())).map(p => p.ad).concat(veri.is_emirleri.map(i => i.sorumlu)).filter(Boolean)));
   const html = '<div class="kart form-kart">' +
@@ -120,6 +121,7 @@ function ekranIsForm(id, cariId, projeId, sonra){
     '<div class="iki-alan"><div><label class="etiket" for="baslik">İş başlığı</label><input id="baslik" class="kutu" maxlength="120" value="' + esc(ie ? ie.baslik : pr ? pr.baslik : "") + '" placeholder="Örn: Yatak odası takımı"></div>' +
     '<div><label class="etiket" for="isTuru">İş türü <span class="ist">(kârlılık raporu için)</span></label><select id="isTuru" class="kutu"><option value="">— Seçin —</option>' +
       isTurleri(ie ? ie.kategori : pr ? pr.kategori : "").map(t => '<option' + (t === (ie ? ie.kategori : pr ? pr.kategori : "") ? ' selected' : '') + '>' + esc(t) + '</option>').join("") + '</select></div></div>' +
+    kolAlani(kol0) +
     '<div class="form-bolum">Sipariş kalemleri</div><div id="ikalemler">' + form.ikalemler.map(ikalemHtml).join("") + '</div>' +
     '<div class="buton-sira" style="margin-top:10px"><button type="button" class="buton ikincil kucuk" style="margin:0" data-is="ikalemEkle">' + ik("arti") + 'Ürün ekle</button>' +
       '<button type="button" class="buton ikincil kucuk" style="margin:0" data-is="modulKalemEkle">' + ik("kup") + 'Modülden ekle</button></div>' +
@@ -147,7 +149,7 @@ function ekranIsForm(id, cariId, projeId, sonra){
       '<input id="kapora" class="kutu" inputmode="decimal" placeholder="0 ₺"><label class="etiket">Ödeme şekli</label>' + secenekler("odeme", ODEME, "Nakit") + ortakSecici(form.ortak, true)) +
     '<div class="hata" id="hata"></div><button class="buton" data-is="isKaydet" data-arg="' + (ie ? ie.id : "") + '">' + ik("tamam") + (form.sonraKesif ? 'Kaydet ve ölçüye geç' : 'Kaydet') + '</button></div>';
   return {baslik: ie ? "İş emrini düzenle" : form.sonraKesif ? "Yeni ölçü / keşif" : "Yeni iş emri", geri:true, html, sonra(){
-    secenekBagla();
+    secenekBagla(); isKolBagla(!ie);
     const kap = document.getElementById("ikalemler");
     kap.addEventListener("input", e => {
       const d = e.target.closest(".kalem"); if(!d) return;
@@ -196,7 +198,7 @@ EYLEM.isKaydet = (btn, id) => {
   const eskiAs = eski ? eski.asamalar : [];
   const asamalar = form.asamaTum.filter(a => form.asamaSecili.indexOf(a) >= 0).map(a => ({ad:a, tamam: !!(eskiAs.find(x => x.ad === a) || {}).tamam}));
   const k = Object.assign(isAlanlari({}), eski || {}, {id: id || yeniId(), no: eski ? eski.no : siradakiNo(sistem().isOnEk, veri.is_emirleri), musteriId:cari, baslik, durum:form.durum, oncelik:form.oncelik, kategori:deger("isTuru"),
-    sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar:h.toplam, uretimGun:Math.max(0, sayiOku(deger("uretimGun")) || 0) || null,
+    sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar:h.toplam, kol:kolVar() && form.kol != null ? form.kol : (eski && eski.kol) || "", uretimGun:Math.max(0, sayiOku(deger("uretimGun")) || 0) || null,
     aciklama:deger("aciklama"), teklif, kesif: eski ? eski.kesif : {}, olusma: eski ? eski.olusma : Date.now()});
   islem(btn, async () => {
     await Depo.kaydet("is_emirleri", Object.assign(k, form._surum != null ? {_surum:form._surum} : {}));

@@ -167,7 +167,7 @@ function isSatir(ie, gizleCari){
   const alt = [gizleCari ? "" : cariAdi(ie.musteriId), ie.sorumlu, as.length ? yap + "/" + as.length + " aşama" : "",
     ie.teslimTarihi ? (gec ? "⚠ Gecikti: " : "Teslim: ") + tarihYaz(ie.teslimTarihi, true) : ""].filter(Boolean).join(" · ");
   return '<button class="satir" data-git="is/' + ie.id + '"><span class="rozet r-ana">' + ik("is") + '</span>' +
-    '<span class="orta"><div class="s1">' + esc(ie.no + " · " + ie.baslik) + (ie.oncelik === "Acil" ? ' <span class="etiket-rozet d-kirmizi">Acil</span>' : '') + '</div><div class="s2"' + (gec ? ' style="color:#b91c1c"' : '') + '>' + esc(alt) + '</div></span>' +
+    '<span class="orta"><div class="s1">' + esc(ie.no + " · " + ie.baslik) + (ie.oncelik === "Acil" ? ' <span class="etiket-rozet d-kirmizi">Acil</span>' : '') + kolRozet(ie.kol) + '</div><div class="s2"' + (gec ? ' style="color:#b91c1c"' : '') + '>' + esc(alt) + '</div></span>' +
     '<span class="sag">' + durumRozet(ie.durum) + (ie.tutar && yetki.yonetici ? '<div class="s2" style="margin-top:3px">' + para(ie.tutar) + '</div>' : '') + '</span></button>';
 }
 function aySecici(){

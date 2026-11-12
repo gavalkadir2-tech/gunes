@@ -6,19 +6,19 @@ function ekranRapor(){
   let gir = 0, cik = 0, fSatis = 0, fAlis = 0, kdvS = 0, kdvA = 0;
   const giderler = {}, gelirler = {}, musteriSatis = {};
   veri.hareketler.forEach(h => {
-    if(h.tarih.slice(0, 7) !== ayGoster) return;
+    if(h.tarih.slice(0, 7) !== ayGoster || !kolUygun(hareketKolu(h))) return;
     if(h.tur === "giris"){ gir += h.tutar; gelirler[h.kategori] = (gelirler[h.kategori] || 0) + h.tutar; }
     else if(h.tur === "cikis"){ cik += h.tutar; giderler[h.kategori] = (giderler[h.kategori] || 0) + h.tutar; }
   });
   veri.faturalar.forEach(f => {
-    if(f.tarih.slice(0, 7) !== ayGoster) return;
+    if(f.tarih.slice(0, 7) !== ayGoster || !kolUygun(faturaKolu(f))) return;
     if(f.tur === "satis"){ fSatis += f.toplam; kdvS += f.kdvToplam; const a = cariAdi(f.musteriId); musteriSatis[a] = (musteriSatis[a] || 0) + f.toplam; }
     else { fAlis += f.toplam; kdvA += f.kdvToplam; }
   });
   let alacak = 0, borc = 0; veri.musteriler.forEach(m => { const b = cariBakiye(m.id); if(b > 0) alacak += b; else borc -= b; });
   const html = '<div class="ust-arac">' + aySecici() + '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="karlilik">' + ik("grafik") + 'Proje kârlılığı</button><button class="buton kucuk ikincil" data-git="kdv">' + ik("fatura") + 'KDV özeti</button>' +
     (ortaklar().length ? '<button class="buton kucuk ikincil" data-git="ortakhesap">' + ik("kisiler") + 'Ortak hesabı</button>' : '') +
-    '<button class="buton kucuk" data-is="muhasebePaketi">' + ik("indir") + 'Muhasebeci paketi</button></div></div>' +
+    '<button class="buton kucuk" data-is="muhasebePaketi">' + ik("indir") + 'Muhasebeci paketi</button></div></div>' + kolSecici() + raporKolKarti() +
     '<div class="izgara uc"><div class="kart"><div class="kart-baslik">' + (gir - cik >= 0 ? "Kasada bu ay kalan" : "Bu ay çıkan, girenden fazla") + '</div>' +
       '<div class="buyuk-sayi ' + (gir - cik >= 0 ? "t-giris" : "t-cikis") + '" style="font-size:24px">' + para(gir - cik) + '</div></div>' +
       '<div class="kart ozet"><div class="kart-baslik">Kasaya giren</div><div class="deger t-giris">' + para(gir) + '</div></div>' +
@@ -185,7 +185,15 @@ function personelAyarKarti(){
     '<div class="izgara uc" style="margin:4px 0 0"><div><label class="etiket" for="paHafta">Haftalık çalışma günü</label><input id="paHafta" class="kutu" inputmode="numeric" value="' + a.haftaGun + '"></div>' +
     '<div><label class="etiket" for="paSaat">Günlük çalışma saati</label><input id="paSaat" class="kutu" inputmode="decimal" value="' + sayiYaz(a.gunSaat) + '"></div>' +
     '<div><label class="etiket" for="paKat">Fazla mesai katsayısı</label><input id="paKat" class="kutu" inputmode="decimal" value="' + sayiYaz(a.mesaiKat) + '"></div></div>' +
-    '<button class="buton ikincil" data-is="personelAyarKaydet">' + ik("tamam") + 'Ayarları kaydet</button></div>';
+    '<button class="buton ikincil" data-is="personelAyarKaydet">' + ik("tamam") + 'Ayarları kaydet</button></div>' + puantajOtoKarti();
+}
+function puantajOtoKarti(){
+  const a = puantajOtoAyar();
+  return '<div class="kart" style="margin-top:12px"><div class="kart-baslik" style="font-size:14px;color:var(--yazi);font-weight:600">Otomatik puantaj</div>' +
+    '<label class="satir" style="cursor:pointer"><span class="orta"><div class="s1" style="white-space:normal">Her gün kendiliğinden “Geldi” işaretle</div><div class="s2" style="white-space:normal">İşe girişten bugüne ve bundan sonra her gün; izin, gelmedi gibi elle girdikleriniz değişmez.</div></span>' +
+      '<span class="anahtar"><input type="checkbox" id="poAcik"' + (a.acik ? ' checked' : '') + '><i></i></span></label>' +
+    '<label class="etiket">İşaretlenmeyecek günler</label><div class="secenekler" id="poHaric">' + [1, 2, 3, 4, 5, 6, 0].map(g => '<button type="button" class="secenek' + (a.haric.indexOf(g) >= 0 ? ' secili' : '') + '" data-g="' + g + '">' + GUN_UZUN[g] + '</button>').join("") + '</div>' +
+    '<button class="buton ikincil" data-is="puantajOtoKaydet">' + ik("tamam") + 'Kaydet</button></div>';
 }
 EYLEM.personelAyarKaydet = btn => {
   const d = {haftaGun:Math.round(sayiOku(deger("paHafta"))), gunSaat:sayiOku(deger("paSaat")), mesaiKat:sayiOku(deger("paKat"))};
@@ -376,6 +384,47 @@ function puantajMesai(pid, t, input){
   if(!(m >= 0 && m <= 16)){ input.value = ""; return uyar("Mesai saatini kontrol edin", "0 ile 16 saat arası olmalı."); }
   islem(null, async () => { await puantajYaz(pid, t, {mesai:yuvarla(m)}); bildir("Mesai kaydedildi"); });
 }
+/* --- Otomatik puantaj: Pazar hariç her gün "Geldi" --- */
+// Her çalışan için işe girişinden (yoksa kaydının açıldığı günden) bugüne kadar, işaretlenmemiş günler "Geldi" olarak yazılır;
+// sonra her gün kendiliğinden devam eder. Elle girilen izin / gelmedi vb. kayıtlara dokunulmaz. Hangi güne kadar
+// doldurulduğu "puantajOto" ayarında kişi kişi tutulur; böylece elle kaldırılan bir işaret tekrar yazılmaz.
+const PUANTAJ_OTO = {acik:true, haric:[0], kisiler:{}};   // haric: işaretlenmeyecek günler (0 = Pazar)
+const puantajOtoAyar = () => { const a = veri.ayarlar.find(x => x.anahtar === "puantajOto"); return Object.assign({}, PUANTAJ_OTO, a && a.deger && typeof a.deger === "object" ? a.deger : {}); };
+let puantajOtoCalisiyor = false;
+async function puantajOtomatik(){
+  if(puantajOtoCalisiyor || !hazir || !yetki.yonetici || yetki.salt || personelEksik()) return 0;
+  const a = puantajOtoAyar(); if(!a.acik) return 0;
+  const bg = bugun(), kisiler = Object.assign({}, a.kisiler), yeni = [];
+  const var_ = new Set(veri.puantaj.map(x => x.personelId + "_" + x.tarih));
+  veri.puantaj.forEach(x => var_.add(x.id));
+  for(const p of veri.personel){
+    const ilk = p.giris || tarihStr(new Date(p.olusma || Date.now())), son = p.cikis && p.cikis < bg ? p.cikis : bg;
+    let t = kisiler[p.id] ? gunEkle(kisiler[p.id], 1) : ilk;
+    if(t < ilk) t = ilk;
+    for(let n = 0; t <= son && n < 3700; t = gunEkle(t, 1), n++){
+      if(a.haric.indexOf(tarihOku(t).getDay()) >= 0 || var_.has(p.id + "_" + t)) continue;
+      yeni.push({id:p.id + "_" + t, personelId:p.id, tarih:t, durum:"geldi", mesai:0, not:""});
+    }
+    if(son >= ilk) kisiler[p.id] = son;
+  }
+  if(!yeni.length && JSON.stringify(kisiler) === JSON.stringify(a.kisiler)) return 0;
+  puantajOtoCalisiyor = true; logSessiz++;
+  try{
+    for(let i = 0; i < yeni.length; i += 300) await Depo.kaydet("puantaj", yeni.slice(i, i + 300));
+    await Depo.kaydet("ayarlar", {anahtar:"puantajOto", deger:Object.assign({}, a, {kisiler})});
+  }finally{ logSessiz--; puantajOtoCalisiyor = false; }
+  if(yeni.length) logla("ekle", "puantaj", "", "Otomatik puantaj: " + yeni.length + " gün “Geldi” işaretlendi");
+  return yeni.length;
+}
+// Açılışta ve gün değişince
+let puantajOtoGun = "";
+setInterval(() => { if(hazir && puantajOtoGun !== bugun()){ puantajOtoGun = bugun(); puantajOtomatik().then(n => { if(n && /^(puantaj|personel|maas)/.test(yol()[0] || "")) sessizCiz(); }).catch(() => {}); } }, 60000);
+EYLEM.puantajOtoKaydet = btn => {
+  const acik = document.getElementById("poAcik").checked, haric = Array.from(document.querySelectorAll("#poHaric .secili")).map(b => Number(b.getAttribute("data-g")));
+  islem(btn, async () => { await Depo.kaydet("ayarlar", {anahtar:"puantajOto", deger:Object.assign({}, puantajOtoAyar(), {acik, haric})});
+    const n = acik ? await puantajOtomatik() : 0; bildir(n ? n + " gün “Geldi” işaretlendi" : "Kaydedildi"); ciz(); });
+};
+document.addEventListener("click", e => { const b = e.target.closest("#poHaric [data-g]"); if(b) b.classList.toggle("secili"); });
 EYLEM.puantajHepsi = (btn, t) => {
   const l = veri.personel.filter(p => calisiyor(p, t) && !bul("puantaj", p.id + "_" + t));
   islem(btn, async () => { await Depo.kaydet("puantaj", l.map(p => ({id:p.id + "_" + t, personelId:p.id, tarih:t, durum:"geldi", mesai:0, not:""}))); bildir(l.length + " kişi işaretlendi"); ciz(); });
