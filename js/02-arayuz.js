@@ -19,7 +19,7 @@ let ayGoster = bugun().slice(0, 7);
 const filtre = {tahsilat:"geciken", ekstre:"gelen", kasa:"hepsi", fatura:"hepsi", is:"acik", cari:"hepsi", katalog:"hepsi", personel:"aktif", personelAy:null, stok:"hepsi"};
 let aramaYazi = "";
 let hazir = false;
-const USTA_EKRAN = {ana:1, isler:1, is:1, kesif:1, katalog:1, proje:1, ayarlar:1, hatirlatmalar:1, takvim:1, kesim:1, etiket:1, qr:1, kapasite:1, paylasilan:1};   // ustanın açabildiği sayfalar
+const USTA_EKRAN = {ana:1, isler:1, is:1, kesif:1, katalog:1, proje:1, ayarlar:1, hatirlatmalar:1, takvim:1, kesim:1, etiket:1, qr:1, kapasite:1, paylasilan:1, servis:1};   // ustanın açabildiği sayfalar
 const yol = () => (location.hash || "#ana").slice(1).split("/").map(x => x && x !== "-" ? decodeURIComponent(x) : null);
 
 function ciz(){
@@ -36,7 +36,7 @@ function ciz(){
     personel: () => a ? ekranPersonelKart(a) : ekranPersonel(), "personel-form": () => ekranPersonelForm(a), puantaj: () => ekranPuantaj(a), maas: () => ekranMaas(a, b),
     faturalar: ekranFaturalar, fatura: () => ekranFatura(a), "fatura-form": () => ekranFaturaForm(a, b, c),
     katalog: ekranKatalog, proje: () => ekranProje(a), "proje-form": () => ekranProjeForm(a, b), takvim: () => ekranTakvim(a), karlilik: ekranKarlilik, siparisler: ekranSiparisler, kesim: () => ekranKesim(a), cekler: () => ekranCekler(a), kdv: ekranKdv, fiyat: ekranFiyatGuncelle, araclar: ekranAraclar, etiket: () => ekranEtiket(a), qr: () => ekranQr(a),
-    tahsilat: ekranTahsilat, ekstre: ekranEkstre, fiyatkarsilastir: ekranFiyatKarsilastir, kampanya: ekranKampanya, oncesonra: () => ekranOnceSonra(a), moduller: ekranModuller, kapasite: ekranKapasite, sabitgiderler: ekranSabitGiderler, ortakhesap: ekranOrtakHesap, paylasilan: ekranPaylasilan, acilis: ekranAcilis
+    tahsilat: ekranTahsilat, ekstre: ekranEkstre, fiyatkarsilastir: ekranFiyatKarsilastir, kampanya: ekranKampanya, oncesonra: () => ekranOnceSonra(a), moduller: ekranModuller, kapasite: ekranKapasite, sabitgiderler: ekranSabitGiderler, ortakhesap: ekranOrtakHesap, paylasilan: ekranPaylasilan, acilis: ekranAcilis, hakedis: () => ekranHakedis(a), taseronlar: ekranTaseronlar, servis: ekranServis, nakitakisi: ekranNakitAkisi
   };
   document.body.classList.toggle("usta", !yetki.yonetici);
   document.body.classList.toggle("salt", !!yetki.salt);
@@ -52,7 +52,7 @@ function ciz(){
       (!s.geri ? '<button class="ikon-buton sadece-mobil" data-git="takvim" aria-label="Takvim">' + ik("takvim") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="kasa" aria-label="Kasa">' + ik("kasa") + '</button><button class="ikon-buton sadece-mobil yonetici-ozel" data-git="personel" aria-label="Personel">' + ik("kisi") + '</button><button class="ikon-buton sadece-mobil" data-git="ayarlar" aria-label="Ayarlar">' + ik("ayar") + '</button>' : '') +
     '</header><main class="sayfa">' + (s.baskiLogo === false ? '' : '<div class="baski-logo"><img src="logo.png" alt="Güneş Mobilya"></div>') + cevrimdisiUyari() + s.html + '</main>';
   const sekme = {cari:"cariler", "cari-form":"cariler", is:"isler", "is-form":"isler", fatura:"faturalar", "fatura-form":"faturalar",
-    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler", moduller:"stok", kapasite:"isler", sabitgiderler:"kasa", ortakhesap:"rapor", paylasilan:"isler", acilis:"cariler"}[ekran] || ekran;
+    kayit:"kasa", giris:"kasa", cikis:"kasa", proje:"katalog", "proje-form":"katalog", paylasimlar:"katalog", "paylas-form":"katalog", "katalog-ice":"katalog", kesif:"isler", "personel-form":"personel", puantaj:"personel", maas:"personel", malzemeler:"stok", karlilik:"rapor", siparisler:"stok", kesim:"isler", kdv:"rapor", fiyat:"stok", etiket:"isler", qr:"isler", tahsilat:"cariler", ekstre:"kasa", fiyatkarsilastir:"stok", kampanya:"cariler", oncesonra:"isler", moduller:"stok", kapasite:"isler", sabitgiderler:"kasa", ortakhesap:"rapor", paylasilan:"isler", acilis:"cariler", hakedis:"isler", taseronlar:"isler", servis:"isler", nakitakisi:"kasa"}[ekran] || ekran;
   document.querySelectorAll("#menu button").forEach(x => x.classList.toggle("aktif", x.getAttribute("data-git") === sekme));
   if(s.sonra) s.sonra();
   sesBalonGuncelle();

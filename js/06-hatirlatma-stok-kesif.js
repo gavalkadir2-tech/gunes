@@ -40,6 +40,7 @@ function hatirlatmalar(){
     yazi:(c.tur === "alinan" ? (c.durum === "tahsilde" ? "Tahsildeki " : "Tahsile verin: ") : "Ödenecek ") + belgeAdi(c).toLocaleLowerCase("tr") + " " + ne(c.vade) + ": " + para(c.tutar), alt:(cariAdi(c.musteriId) || c.kesideci) + (c.banka ? " · " + c.banka : "")}));
   if(yetki.yonetici) aracUyarilari().forEach(x => l.push(x));
   sabitHatirlatmalari().forEach(x => l.push(x));
+  servisHatirlatmalari().forEach(x => l.push(x)); teklifOnayHatirlatmalari().forEach(x => l.push(x));
   stokAzalanlar().forEach(m => l.push({seviye:1, tarih:bg, ikon:"koli", yer:"siparisler", yazi:"Stok azaldı: " + m.ad, alt:"Kalan " + miktarYaz(stokMiktar(m.id)) + " " + m.birim + " · asgari " + miktarYaz(m.min)}));
   if(!personelEksik()){
     const aktif = veri.personel.filter(p => calisiyor(p, bg));

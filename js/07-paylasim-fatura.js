@@ -146,6 +146,7 @@ async function vitrinGoster(anahtar){
   let r;
   try{ r = await sb.rpc("vitrin_getir", {anahtar}); }catch(e){ r = {error:e}; }
   if(r.error && /fetch|network|Failed/i.test(r.error.message || "")) return mesaj("İnternet bağlantısı yok gibi görünüyor.", "Bağlantınızı kontrol edip sayfayı yenileyin.");
+  if(!r.error && r.data && r.data.tur === "is") return isSayfasiGoster(r.data, anahtar, el);   // müşteri iş sayfası
   if(r.error || !r.data || !Array.isArray(r.data.projeler)) return mesaj("Bu bağlantı geçersiz veya süresi dolmuş.", "Güncel bağlantı için bizimle iletişime geçebilirsiniz.");
   const v = vitrinVeri = r.data, fr = v.firma || {}, tel = waNumara(fr.telefon);
   v.projeler.forEach(p => p.gorseller.forEach(u => { urlOnbellek[u] = {url:u, bitis:Infinity}; }));
@@ -269,7 +270,7 @@ function ekranFaturaForm(tur, cariId, ieId){
     const hedef = form.kalemler.filter(k => k.fiyat > 0).sort((x, y) => (x.miktar === 1 ? 0 : 1) - (y.miktar === 1 ? 0 : 1))[0];
     if(fark && hedef) hedef.fiyat = yuvarla(hedef.fiyat + fark / hedef.miktar);
   }
-  if(!satis && faturaOnDoldur){ form.kalemler = faturaOnDoldur.kalemler.map(k => Object.assign({}, k)); form.kategori = faturaOnDoldur.kategori; form.siparisId = faturaOnDoldur.siparisId; }
+  if(faturaOnDoldur){ form.kalemler = faturaOnDoldur.kalemler.map(k => Object.assign({}, k)); if(!satis){ form.kategori = faturaOnDoldur.kategori; form.siparisId = faturaOnDoldur.siparisId; } }   // sipariş / hakedişten
   form.onOdeme = satis && ie ? yuvarla(bagsizTahsilatlar(ie.id, cariId).reduce((t, x) => t + x.tutar, 0)) : 0;
   const html = '<div class="kart form-kart">' +
     '<div class="iki-alan"><div><label class="etiket" for="cari" style="margin-top:0">' + (satis ? "Müşteri" : "Tedarikçi") + '</label>' + cariSecici(cariId, true, satis ? "musteri" : "tedarikci") +
@@ -283,7 +284,7 @@ function ekranFaturaForm(tur, cariId, ieId){
     '<div class="form-bolum">Kalemler</div><div id="kalemler">' + form.kalemler.map(kalemHtml).join("") + '</div>' +
     '<button type="button" class="buton ikincil kucuk" style="margin-top:10px" data-is="kalemEkle">' + ik("arti") + 'Kalem ekle</button>' +
     '<div class="toplamlar" id="toplamlar"></div>' +
-    '<label class="etiket" for="aciklama">Açıklama <span class="ist">(isteğe bağlı)</span></label><input id="aciklama" class="kutu" maxlength="300" value="' + esc(!satis && faturaOnDoldur ? faturaOnDoldur.aciklama : "") + '">' +
+    '<label class="etiket" for="aciklama">Açıklama <span class="ist">(isteğe bağlı)</span></label><input id="aciklama" class="kutu" maxlength="300" value="' + esc(faturaOnDoldur ? faturaOnDoldur.aciklama || "" : "") + '">' +
     '<div class="form-bolum">' + (satis ? "Şimdi tahsil edilen" : "Şimdi ödenen") + '</div>' +
     (form.onOdeme > 0 ? '<div class="bilgi-kutu" id="onOdemeBilgi">Bu iş için daha önce alınan <b>' + para(form.onOdeme) + '</b> (kapora vb.) bu faturaya sayılacak.</div>' : '') +
     '<label class="etiket" for="odenen">Tutar <span class="ist">(veresiye ise boş bırakın)</span></label><input id="odenen" class="kutu" inputmode="decimal" placeholder="0 ₺">' +

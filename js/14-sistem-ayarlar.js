@@ -71,7 +71,7 @@ const ISLEM_ADI = {ekle:"Ekledi", guncelle:"Değiştirdi", sil:"Sildi", geri:"Ç
 const ISLEM_RENK = {ekle:"d-yesil", guncelle:"d-mavi", sil:"d-kirmizi", geri:"d-sari", kalici:"d-kirmizi", giris:"d-gri", cikis:"d-gri", yedek:"d-koyu", yedekYukle:"d-koyu", dosya:"d-gri"};
 const TABLO_ADI = {musteriler:"Cari", is_emirleri:"İş emri", is_notlari:"İş notu", dosyalar:"Dosya", faturalar:"Fatura", hareketler:"Kasa", ayarlar:"Ayarlar",
   katalog:"Katalog", katalog_gorseller:"Katalog fotoğrafı", paylasimlar:"Müşteri bağlantısı", personel:"Personel", puantaj:"Puantaj", personel_hareket:"Personel hesabı",
-  stok_hareket:"Stok", taksitler:"Taksit", siparisler:"Malzeme siparişi", cekler:"Çek / senet", arac_kayit:"Araç", kullanicilar:"Kullanıcı", oturum:"Oturum", cop_kutusu:"Çöp kutusu", yedek:"Yedek"};
+  stok_hareket:"Stok", taksitler:"Taksit", siparisler:"Malzeme siparişi", cekler:"Çek / senet", arac_kayit:"Araç", teklif_onay:"Teklif onayı", kullanicilar:"Kullanıcı", oturum:"Oturum", cop_kutusu:"Çöp kutusu", yedek:"Yedek"};
 const AYAR_ADI = {firma:"Firma bilgileri", sistem:"Sistem ayarları", kategoriler:"Gelir / gider kategorileri", katalogKategorileri:"Katalog kategorileri",
   malzemeler:"Malzeme fiyat listesi", personelAyar:"Personel hesaplama ayarları", plakalar:"Plaka ölçüleri (kesim)", araclar:"Araçlar", hatirlatmaGecmisi:"Hatırlatma geçmişi"};
 const ALAN_ADI = {ortak:"Kasa (kimde)", hedef:"Ortak / hedef kasa", ortaklar:"Ortaklar", ad:"Ad", tip:"Tür", telefon:"Telefon", adres:"Adres", vergiNo:"Vergi no", no:"No", musteriId:"Cari", baslik:"Başlık", durum:"Durum", teslimTarihi:"Teslim tarihi",
@@ -462,9 +462,9 @@ function veritabaniEksikleri(){
   const l = [], ekle = (no, ne) => { if(!l.some(x => x[0] === no)) l.push([no, ne]); };
   const T = {is_notlari:[2, "İş notları ve dosyalar"], dosyalar:[2, "İş notları ve dosyalar"], katalog:[3, "Katalog"], katalog_gorseller:[3, "Katalog"], paylasimlar:[4, "Müşteri bağlantısı"],
     personel:[5, "Personel"], puantaj:[5, "Personel"], personel_hareket:[5, "Personel"], stok_hareket:[7, "Stok, taksit"], taksitler:[7, "Stok, taksit"], cop_kutusu:[9, "Çöp kutusu, işlem geçmişi"],
-    islem_kaydi:[9, "Çöp kutusu, işlem geçmişi"], siparisler:[10, "Takvim, kesim, sipariş, çek"], cekler:[10, "Takvim, kesim, sipariş, çek"], arac_kayit:[12, "Otomatik yedek, araç takibi"], yedekler:[12, "Otomatik yedek, araç takibi"], is_emri_fiyat:[13, "Fiyat gizleme, çakışma uyarısı, hızlı açılış"]};
+    islem_kaydi:[9, "Çöp kutusu, işlem geçmişi"], siparisler:[10, "Takvim, kesim, sipariş, çek"], cekler:[10, "Takvim, kesim, sipariş, çek"], arac_kayit:[12, "Otomatik yedek, araç takibi"], yedekler:[12, "Otomatik yedek, araç takibi"], is_emri_fiyat:[13, "Fiyat gizleme, çakışma uyarısı, hızlı açılış"], teklif_onay:[17, "Hakediş, servis, müşteri iş sayfası"]};
   Object.keys(eksikTablo).forEach(t => { if(T[t]) ekle(T[t][0], T[t][1]); });
-  Object.values(eksikSutun).forEach(no => ekle(no, {4:"Teklif / keşif bilgileri", 10:"Takvim, kesim, sipariş, çek", 11:"Ortaklar ve kişi kasaları", 14:"Atölye süresi, muhasebeci, bildirim", 16:"İş kolları (müteahhitlik)"}[no] || ""));
+  Object.values(eksikSutun).forEach(no => ekle(no, {4:"Teklif / keşif bilgileri", 10:"Takvim, kesim, sipariş, çek", 11:"Ortaklar ve kişi kasaları", 14:"Atölye süresi, muhasebeci, bildirim", 16:"İş kolları (müteahhitlik)", 17:"Hakediş, servis, müşteri iş sayfası"}[no] || ""));
   if(!yetki.kurulu) ekle(6, "Kullanıcı yetkileri (usta / yönetici)");
   if(!surumVar) ekle(13, "Fiyat gizleme, çakışma uyarısı, hızlı açılış");
   return l.sort((a, b) => a[0] - b[0]);

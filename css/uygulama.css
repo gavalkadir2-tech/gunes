@@ -626,3 +626,22 @@ body.girissiz .ses-balon{display:none}
 @keyframes rehberNabiz{50%{outline-color:transparent}}
 /* İş kolları */
 .kol-sec{margin:0 0 10px}.kol-rozet{font-size:11px;vertical-align:1px}
+/* Teklif sürümleri */
+details.surum{border-top:1px solid var(--cizgi);padding:8px 0}details.surum:first-of-type{border-top:0}
+details.surum summary{cursor:pointer;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px}
+details.surum .sag-yazi{margin-left:auto;font-weight:600}
+/* Hakediş / sözleşme tablosu */
+.kesim-tablo .sz-ad{min-width:180px}
+/* Müşteri iş sayfası */
+.is-foto{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}.is-foto img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+.is-sayfasi .asama{pointer-events:none}
+/* Nakit akışı grafiği */
+.nakit-grafik{position:relative}.nakit-grafik svg{width:100%;height:auto;display:block;touch-action:pan-y}
+.ng-izgara{stroke:var(--cizgi);stroke-width:1}.ng-eksen{fill:var(--soluk);font-size:11px}
+.ng-sifir{stroke:var(--cikis);stroke-width:1.5;stroke-dasharray:4 4}
+.ng-cizgi{fill:none;stroke:var(--ana);stroke-width:2;stroke-linejoin:round}
+.ng-alan{fill:var(--ana);opacity:.12}
+.ng-nokta{fill:var(--ana);stroke:var(--kart);stroke-width:2}.ng-nokta.eksi{fill:var(--cikis)}
+.ng-imlec{stroke:var(--soluk);stroke-width:1}
+.ng-ipucu{position:absolute;top:8px;width:212px;background:var(--kart);border:1px solid var(--cizgi);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.45;box-shadow:0 6px 18px rgba(0,0,0,.12);pointer-events:none}
+.hk-tablo{width:100%;font-size:13.5px}.hk-tablo td,.hk-tablo th{white-space:nowrap}.hk-tablo td:first-child{white-space:normal;min-width:140px}.hk-tablo .hk-m{width:90px!important}

@@ -69,18 +69,18 @@ const VARSAYILAN_KATALOG = ["Mutfak", "Banyo", "Gardırop", "TV ünitesi"];
 /* ================= VERİ & DEPO ================= */
 // Tablolar yabancı anahtar sırasıyla (önce cari, sonra iş, fatura, hareket).
 const TABLOLAR = ["musteriler", "is_emirleri", "is_notlari", "dosyalar", "faturalar", "hareketler", "ayarlar", "katalog", "katalog_gorseller", "paylasimlar",
-  "personel", "puantaj", "personel_hareket", "stok_hareket", "taksitler", "siparisler", "cekler", "arac_kayit"];
+  "personel", "puantaj", "personel_hareket", "stok_hareket", "taksitler", "siparisler", "cekler", "arac_kayit", "teklif_onay"];
 // Sonradan eklenen tablolar: Supabase'de henüz kurulmadıysa uygulama yine açılır.
-const SONRADAN = {is_notlari:1, dosyalar:1, katalog:1, katalog_gorseller:1, paylasimlar:1, personel:1, puantaj:1, personel_hareket:1, stok_hareket:1, taksitler:1, siparisler:1, cekler:1, arac_kayit:1};
+const SONRADAN = {is_notlari:1, dosyalar:1, katalog:1, katalog_gorseller:1, paylasimlar:1, personel:1, puantaj:1, personel_hareket:1, stok_hareket:1, taksitler:1, siparisler:1, cekler:1, arac_kayit:1, teklif_onay:1};
 const eksikTablo = {};
 // İş emrine sonradan eklenen sütunlar (supabase-guncelleme-4.sql). Kurulmadıysa kayıtta gönderilmez, iş emirleri yine kaydedilir.
-const SONRADAN_SUTUN = {teklif:4, kesif:4, kategori:10, montaj:10, kesim:10, maliyetler:10, uretimGun:14, kol:16};   // sütun → SQL güncelleme no
+const SONRADAN_SUTUN = {teklif:4, kesif:4, kategori:10, montaj:10, kesim:10, maliyetler:10, uretimGun:14, kol:16, ekler:17, servis:17};   // sütun → SQL güncelleme no
 let eksikSutun = {};
 const ALANLAR = {
   musteriler:  {id:"id", ad:"ad", tip:"tip", telefon:"telefon", adres:"adres", vergiNo:"vergi_no", olusma:"olusma"},
   is_emirleri: {id:"id", no:"no", musteriId:"musteri_id", baslik:"baslik", durum:"durum", teslimTarihi:"teslim_tarihi", tutar:"tutar", aciklama:"aciklama", olusma:"olusma",
                 oncelik:"oncelik", sorumlu:"sorumlu", adres:"adres", kalemler:"kalemler", asamalar:"asamalar", teklif:"teklif", kesif:"kesif",
-                kategori:"kategori", montaj:"montaj", kesim:"kesim", maliyetler:"maliyetler", uretimGun:"uretim_gun", kol:"kol"},
+                kategori:"kategori", montaj:"montaj", kesim:"kesim", maliyetler:"maliyetler", uretimGun:"uretim_gun", kol:"kol", ekler:"ekler", servis:"servis"},
   is_notlari:  {id:"id", isEmriId:"is_emri_id", metin:"metin", tur:"tur", yazan:"yazan", olusma:"olusma"},
   dosyalar:    {id:"id", isEmriId:"is_emri_id", ad:"ad", tur:"tur", boyut:"boyut", yol:"yol", yukleyen:"yukleyen", olusma:"olusma"},
   faturalar:   {id:"id", no:"no", tur:"tur", musteriId:"musteri_id", isEmriId:"is_emri_id", kategori:"kategori", tarih:"tarih", vade:"vade",
@@ -100,17 +100,18 @@ const ALANLAR = {
   siparisler:  {id:"id", no:"no", tedarikciId:"tedarikci_id", kalemler:"kalemler", durum:"durum", tarih:"tarih", faturaId:"fatura_id", aciklama:"aciklama", olusma:"olusma"},
   cekler:      {id:"id", tur:"tur", belge:"belge", no:"no", banka:"banka", kesideci:"kesideci", musteriId:"musteri_id", tutar:"tutar", vade:"vade", durum:"durum",
                 ciroId:"ciro_id", hareketId:"hareket_id", gecmis:"gecmis", aciklama:"aciklama", olusma:"olusma"},
+  teklif_onay: {id:"id", paylasimId:"paylasim_id", isEmriId:"is_emri_id", karar:"karar", ad:"ad", not:"notu", zaman:"zaman", islendi:"islendi"},
   arac_kayit:  {id:"id", aracId:"arac_id", tur:"tur", tarih:"tarih", km:"km", litre:"litre", tutar:"tutar", dolu:"dolu", sonraki:"sonraki", sonrakiKm:"sonraki_km",
                 aciklama:"aciklama", isEmriId:"is_emri_id", hareketId:"hareket_id", olusma:"olusma"}
 };
-const SAYISAL = {tutar:1, toplam:1, araToplam:1, kdvToplam:1, olusma:1, boyut:1, fiyat:1, sira:1, bitis:1, ucret:1, mesai:1, izinHakki:1, miktar:1, km:1, litre:1, sonrakiKm:1};
-const JSONLI = {kalemler:1, asamalar:1, teklif:1, kesif:1, icerik:1, montaj:1, kesim:1, maliyetler:1, gecmis:1};
-const JSON_NESNE = {teklif:1, kesif:1, icerik:1, kesim:1};   // boşsa [] değil {} olur
+const SAYISAL = {zaman:1, tutar:1, toplam:1, araToplam:1, kdvToplam:1, olusma:1, boyut:1, fiyat:1, sira:1, bitis:1, ucret:1, mesai:1, izinHakki:1, miktar:1, km:1, litre:1, sonrakiKm:1};
+const JSONLI = {kalemler:1, asamalar:1, teklif:1, kesif:1, icerik:1, montaj:1, kesim:1, maliyetler:1, gecmis:1, ekler:1, servis:1};
+const JSON_NESNE = {teklif:1, kesif:1, icerik:1, kesim:1, ekler:1, servis:1};   // boşsa [] değil {} olur
 const bosJson = a => JSON_NESNE[a] ? {} : [];
 const BOSSA_NULL = {tedarikciId:1, ciroId:1, musteriId:1, isEmriId:1, faturaId:1, teslimTarihi:1, vade:1, odeme:1, deger:1, giris:1, cikis:1, hareketId:1};
 const anahtarAdi = t => t === "ayarlar" ? "anahtar" : "id";
 const bosVeri = () => ({musteriler:[], is_emirleri:[], is_notlari:[], dosyalar:[], faturalar:[], hareketler:[], ayarlar:[], katalog:[], katalog_gorseller:[], paylasimlar:[],
-  personel:[], puantaj:[], personel_hareket:[], stok_hareket:[], taksitler:[], siparisler:[], cekler:[], arac_kayit:[]});
+  personel:[], puantaj:[], personel_hareket:[], stok_hareket:[], taksitler:[], siparisler:[], cekler:[], arac_kayit:[], teklif_onay:[]});
 
 const cevrimici = !!(BULUT.adres && BULUT.anahtar);
 const sb = cevrimici && window.supabase ? window.supabase.createClient(BULUT.adres, BULUT.anahtar) : null;
@@ -132,6 +133,7 @@ function duzenle(v){
 function isAlanlari(i){
   if(!Array.isArray(i.montaj)) i.montaj = []; if(!Array.isArray(i.maliyetler)) i.maliyetler = [];
   if(!i.kesim || typeof i.kesim !== "object" || Array.isArray(i.kesim)) i.kesim = {}; i.kategori = i.kategori || "";
+  ["ekler", "servis"].forEach(a => { if(!i[a] || typeof i[a] !== "object" || Array.isArray(i[a])) i[a] = {}; });
   return i;
 }
 function yerelOku(){ try{ return duzenle(JSON.parse(localStorage.getItem(YEREL_ANAHTAR))); }catch(e){ return bosVeri(); } }
@@ -144,11 +146,12 @@ let fiyatAyri = false, surumVar = false, imlec = 0;
 const KALEM_FIYAT = ["fiyat", "maliyet", "hesap"];
 const fiyatsizKalem = x => { const y = Object.assign({}, x); KALEM_FIYAT.forEach(a => delete y[a]); return y; };
 function fiyatSatiri(k){
-  return {id:k.id, tutar:Number(k.tutar) || 0, teklif:k.teklif || {}, maliyetler:k.maliyetler || [], olusma:k.olusma || 0,
-    kalem_fiyat:(k.kalemler || []).map(x => { const y = {}; KALEM_FIYAT.forEach(a => { if(x[a] != null) y[a] = x[a]; }); return y; })};
+  return Object.assign({id:k.id, tutar:Number(k.tutar) || 0, teklif:k.teklif || {}, maliyetler:k.maliyetler || [], olusma:k.olusma || 0}, eksikSutun.ekler ? {} : {ekler:k.ekler || {}}, {
+    kalem_fiyat:(k.kalemler || []).map(x => { const y = {}; KALEM_FIYAT.forEach(a => { if(x[a] != null) y[a] = x[a]; }); return y; })});
 }
 function fiyatBirlestir(ie, f){
   ie.tutar = Number(f.tutar) || 0; ie.teklif = f.teklif && typeof f.teklif === "object" ? f.teklif : {}; ie.maliyetler = Array.isArray(f.maliyetler) ? f.maliyetler : [];
+  if(f.ekler && typeof f.ekler === "object") ie.ekler = f.ekler;
   (f.kalem_fiyat || []).forEach((x, i) => { if(ie.kalemler[i]) Object.assign(ie.kalemler[i], x); });
 }
 // Sunucudan fiyatsız gelen iş emrine bellekteki fiyatları geri koy
@@ -167,7 +170,7 @@ function bulutaCevir(t, k){
     r[b] = v;
   }
   if(t === "is_emirleri" && fiyatAyri){
-    r.tutar = 0; if("teklif" in r) r.teklif = {}; if("maliyetler" in r) r.maliyetler = [];
+    r.tutar = 0; if("teklif" in r) r.teklif = {}; if("maliyetler" in r) r.maliyetler = []; if("ekler" in r) r.ekler = {};   // fiyatlı ekler fiyat tablosunda
     r.kalemler = (k.kalemler || []).map(fiyatsizKalem);
   }
   return r;
@@ -221,15 +224,16 @@ const Depo = {
     if(yr.error || kr.error) yetki = {yonetici:true, ad:"", liste:[], kurulu:false};
     else { const k = kr.data.find(x => x.eposta.toLowerCase() === ben); yetki = {yonetici:yr.data !== false, ad: k ? k.ad : "", liste:kr.data, kurulu:true}; rolUygula(k); }
     eksikSutun = {};
-    const [s4, s10, s11, s13, f13, s14, s16] = await Promise.all([
+    const [s4, s10, s11, s13, f13, s14, s16, s17] = await Promise.all([
       sb.from("is_emirleri").select(Object.keys(SONRADAN_SUTUN).filter(a => SONRADAN_SUTUN[a] === 4).join(",")).limit(1),
       sb.from("is_emirleri").select(Object.keys(SONRADAN_SUTUN).filter(a => SONRADAN_SUTUN[a] === 10).join(",")).limit(1),
       sb.from("hareketler").select("ortak,hedef").limit(1),
       sb.from("musteriler").select("surum").limit(1),
       sb.from("is_emri_fiyat").select("id").limit(1),
       sb.from("is_emirleri").select("uretim_gun").limit(1),
-      sb.from("hareketler").select("kol").limit(1)]);
-    Object.keys(SONRADAN_SUTUN).forEach(a => { if(({4:s4, 10:s10, 14:s14, 16:s16}[SONRADAN_SUTUN[a]]).error) eksikSutun[a] = SONRADAN_SUTUN[a]; });
+      sb.from("hareketler").select("kol").limit(1),
+      sb.from("is_emirleri").select("ekler,servis").limit(1)]);
+    Object.keys(SONRADAN_SUTUN).forEach(a => { if(({4:s4, 10:s10, 14:s14, 16:s16, 17:s17}[SONRADAN_SUTUN[a]]).error) eksikSutun[a] = SONRADAN_SUTUN[a]; });
     if(s16.error){ eksikSutun["hareketler.kol"] = 16; eksikSutun["faturalar.kol"] = 16; }
     if(s11.error){ eksikSutun["hareketler.ortak"] = 11; eksikSutun["hareketler.hedef"] = 11; }
     surumVar = !s13.error; fiyatAyri = !f13.error;
@@ -295,6 +299,7 @@ const Depo = {
     }
     kayitlar.forEach(k => bellegeYaz(t, k));
     if(!cevrimici) yerelYaz(veri); else anlikKaydet();
+    if(t === "is_emirleri" && typeof isSayfasiGuncelleZamanla === "function") kayitlar.forEach(k => isSayfasiGuncelleZamanla(k.id));   // müşteri iş sayfası
     kayitlar.forEach((k, i) => {   // işlem geçmişi: yeni kayıt veya değişen alanlar
       const e = eskiler[i], f = e ? kayitFarki(t, e.k, k) : {};
       if(e && !e.ayni && !Object.keys(f).length) return;
@@ -431,7 +436,7 @@ function kategoriler(tur){
   return Array.isArray(l) && l.length ? l : VARSAYILAN_KATEGORI[tur];
 }
 // Kasa listelerinde görünen hareketler (veresiye ve cari / personel açılış bakiyesi kasadan geçmez)
-const UYGULAMA_SURUM = "2026.11.12-2";   // Ayarlar → Hesap'ta görünür; yeni sürüm yüklendi mi kontrol için
+const UYGULAMA_SURUM = "2026.11.13-1";   // Ayarlar → Hesap'ta görünür; yeni sürüm yüklendi mi kontrol için
 const kasaHareketi = h => h.tur !== "borc" && !(h.tur === "acilis" && h.musteriId);
 function kasa(){
   const s = {nakit:0, banka:0, senet:0};

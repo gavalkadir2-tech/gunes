@@ -31,6 +31,7 @@ const SES_EKRAN = [
   [/\bpuantaj/, "puantaj"], [/\b(maas|maaslar)/, "maas/ay"], [/\bpersonel/, "personel"], [/\b(cek|senet)/, "cekler"], [/\bkdv/, "kdv"],
   [/\b(karlilik|proje kar)/, "karlilik"], [/\bortak hesab/, "ortakhesap"], [/\brapor/, "rapor"], [/\b(yapilacaklar|hatirlatmalar)/, "hatirlatmalar"],
   [/\b(atolye|kapasite)/, "kapasite"], [/\bsabit gider/, "sabitgiderler"], [/\bmodul/, "moduller"], [/\bacilis bakiye/, "acilis"], [/\btahsilat/, "tahsilat"],
+  [/\bnakit akis/, "nakitakisi"], [/\b(servis|garanti)/, "servis"], [/\btaseron/, "taseronlar"],
   [/\b(arac|araclar)/, "araclar"], [/\bekstre/, "ekstre"], [/\bayarlar\b/, "ayarlar"]
 ];
 const SES_ORNEK = ["kasaya 500 lira nakit girdi", "1500 lira kira çıktı", "İbrahim'den kasaya 3000 lira aktar", "Samet 2000 lira çekti", "İbrahim 500 lira mazot ödedi", "sabit gider nasıl eklenir?", "Ali Osman'dan 2000 lira tahsilat", "yeni iş emri Ayşe Demir", "yeni müşteri Mehmet Kaya",

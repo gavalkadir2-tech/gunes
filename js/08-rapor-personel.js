@@ -18,6 +18,7 @@ function ekranRapor(){
   let alacak = 0, borc = 0; veri.musteriler.forEach(m => { const b = cariBakiye(m.id); if(b > 0) alacak += b; else borc -= b; });
   const html = '<div class="ust-arac">' + aySecici() + '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="karlilik">' + ik("grafik") + 'Proje kârlılığı</button><button class="buton kucuk ikincil" data-git="kdv">' + ik("fatura") + 'KDV özeti</button>' +
     (ortaklar().length ? '<button class="buton kucuk ikincil" data-git="ortakhesap">' + ik("kisiler") + 'Ortak hesabı</button>' : '') +
+    '<button class="buton kucuk ikincil" data-git="nakitakisi">' + ik("grafik") + 'Nakit akışı</button>' +
     '<button class="buton kucuk" data-is="muhasebePaketi">' + ik("indir") + 'Muhasebeci paketi</button></div></div>' + kolSecici() + raporKolKarti() +
     '<div class="izgara uc"><div class="kart"><div class="kart-baslik">' + (gir - cik >= 0 ? "Kasada bu ay kalan" : "Bu ay çıkan, girenden fazla") + '</div>' +
       '<div class="buyuk-sayi ' + (gir - cik >= 0 ? "t-giris" : "t-cikis") + '" style="font-size:24px">' + para(gir - cik) + '</div></div>' +

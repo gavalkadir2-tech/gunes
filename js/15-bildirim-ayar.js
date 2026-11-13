@@ -9,7 +9,7 @@ const TABLO_BILDIRIM = {is_emirleri:"is", is_notlari:"is", dosyalar:"is", hareke
   katalog_gorseller:"katalog", stok_hareket:"stok", siparisler:"stok", personel:"personel", puantaj:"personel", personel_hareket:"personel", arac_kayit:"stok", ayarlar:"sistem", musteriler:"para"};
 const SESSIZ_AYAR = {hatirlatmaGecmisi:1, plakalar:1};   // bildirim üretmeyen ayar kayıtları
 const BILDIRIM_VARSAYILAN = {kategori:{is:true, para:true, stok:true, katalog:true, personel:true, sistem:true}, telefon:true, ses:false, anlik:true, sessizBas:"22:00", sessizBit:"08:00",
-  gunlukOzet:true, hatirlatma:{teslim:true, randevu:true, tahsilat:true, cek:true, stok:true, arac:true, personel:true, teklif:true, sabit:true}};
+  gunlukOzet:true, hatirlatma:{teslim:true, randevu:true, tahsilat:true, cek:true, stok:true, arac:true, personel:true, teklif:true, sabit:true, servis:true}};
 function bildirimAyar(){ const c = cihaz().bildirim || {}; const d = BILDIRIM_VARSAYILAN;
   return Object.assign({}, d, c, {kategori:Object.assign({}, d.kategori, c.kategori || {}), hatirlatma:Object.assign({}, d.hatirlatma, c.hatirlatma || {})}); }
 let bildirimler = [], bildirimHazir = false;
@@ -54,6 +54,7 @@ const BILDIRIM_YER = (t, k) => ({is_emirleri:"is/" + k.id, is_notlari:"is/" + k.
 let toplu = 0;
 // bellegeYaz (sunucudan) her uzak değişiklikte çağırır
 function uzakDegisiklik(t, eski, k){
+  if(hazir && t === "teklif_onay" && !eski && yetki.yonetici) return teklifOnayGeldi(k);   // müşteri giriş yapmadan cevap verir
   if(!hazir || !k || !k._degistiren || !benimEposta() || k._degistiren.toLowerCase() === benimEposta()) return;
   if(eski && eski._surum != null && k._surum != null && k._surum <= eski._surum) return;   // aynı sürüm tekrar geldi
   const tur = TABLO_BILDIRIM[t]; if(!tur) return;
@@ -92,7 +93,7 @@ function bipCal(){
     o.connect(g); g.connect(sesBag.destination); o.start(); o.stop(sesBag.currentTime + .4); }catch(e){}
 }
 // Yapılacaklar: ayarlarda kapatılan türler gösterilmez
-const hatirlatmaTuru = h => /^is\//.test(h.yer) && /Teklif/.test(h.yazi) ? "teklif" : /^is\//.test(h.yer) ? "teslim" : /^takvim/.test(h.yer) ? "randevu" : /^fatura\//.test(h.yer) ? "tahsilat" :
+const hatirlatmaTuru = h => /^Servis/.test(h.yazi) ? "servis" : /^is\//.test(h.yer) && /[Tt]eklif/.test(h.yazi) ? "teklif" : /^is\//.test(h.yer) ? "teslim" : /^takvim/.test(h.yer) ? "randevu" : /^fatura\//.test(h.yer) ? "tahsilat" :
   /^cekler/.test(h.yer) ? "cek" : /^(siparisler|stok)/.test(h.yer) ? "stok" : /^araclar/.test(h.yer) ? "arac" : /^sabitgiderler/.test(h.yer) ? "sabit" : /^(puantaj|maas)/.test(h.yer) ? "personel" : "teslim";
 const okunmamis = () => bildirimler.filter(b => !b.okundu).length;
 function zilSayisi(){ if(!hazir) return 0; return okunmamis() + hatirlatmalar().filter(h => h.seviye === 0).length; }
@@ -263,7 +264,7 @@ function ayarBildirim(){
   const a = bildirimAyar(), izin = window.Notification ? Notification.permission : "yok";
   const anahtar = (yol_, ad, v, alt) => '<label class="satir" style="cursor:pointer"><span class="orta"><div class="s1">' + ad + '</div>' + (alt ? '<div class="s2" style="white-space:normal">' + alt + '</div>' : '') + '</span>' +
     '<span class="anahtar"><input type="checkbox" data-bayar="' + yol_ + '"' + (v ? ' checked' : '') + '><i></i></span></label>';
-  const hatAd = {teslim:"Teslim tarihi yaklaşan / geciken işler", randevu:"Randevu hatırlatma ve çakışmaları", tahsilat:"Tahsilat ve vade", cek:"Çek / senet vadeleri", stok:"Azalan stok", arac:"Araç muayene, sigorta, bakım", personel:"Puantaj ve maaş", teklif:"Süresi dolan teklifler", sabit:"Sabit giderler (kira, fatura, SGK)"};
+  const hatAd = {teslim:"Teslim tarihi yaklaşan / geciken işler", randevu:"Randevu hatırlatma ve çakışmaları", tahsilat:"Tahsilat ve vade", cek:"Çek / senet vadeleri", stok:"Azalan stok", arac:"Araç muayene, sigorta, bakım", personel:"Puantaj ve maaş", teklif:"Süresi dolan teklifler", sabit:"Sabit giderler (kira, fatura, SGK)", servis:"Açık servis kayıtları"};
   return '<div class="kart">' + kartBaslik("Telefon / masaüstü bildirimi") +
       '<div class="alt-bilgi" style="margin:0 0 6px">' + (izin === "granted" ? "Bu cihazda bildirim izni var. Uygulama açıkken (arka planda da olsa) yeni gelişmeler bildirilir." :
         izin === "denied" ? "Bildirimler tarayıcı / telefon ayarlarından engellenmiş; site ayarlarından izin verin." : izin === "yok" ? "Bu tarayıcı bildirim desteklemiyor." : "Bildirim almak için izin verin.") +

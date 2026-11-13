@@ -21,6 +21,8 @@ function ekranIsler(){
       '<div class="kart ozet"><div class="kart-baslik">' + d + '</div><div class="deger">' + (sayac[d] || 0) + '</div></div>').join("") + '</div>' +
     '<div class="ust-arac">' + filtreButonlari("is", [["acik","Açık işler"], ["acil","Acil"], ["teslim","Teslim edilenler"], ["hepsi","Hepsi"]]) +
     '<div class="buton-sira" style="margin:0"><button class="buton kucuk ikincil" data-git="kapasite">' + ik("grafik") + 'Atölye yükü</button>' +
+    '<button class="buton kucuk ikincil" data-git="servis">' + ik("ayar") + 'Servis</button>' +
+    (yetki.yonetici && (kolVar() || veri.is_emirleri.some(x => ((x.ekler || {}).taseronlar || []).length)) ? '<button class="buton kucuk ikincil" data-git="taseronlar">' + ik("kisiler") + 'Taşeronlar</button>' : '') +
     (yetki.yonetici ? '<button class="buton kucuk" data-git="is-form">' + ik("arti") + 'Yeni iş emri</button>' : '') + '</div></div>' +
     listeArac("isler", isSiralari()) +
     (veri.is_emirleri.length > 6 ? '<div class="ara">' + ik("ara") + '<input id="ara" class="kutu" placeholder="İş, müşteri veya numara ara…" value="' + esc(aramaYazi) + '"></div>' : '') +
@@ -200,6 +202,7 @@ EYLEM.isKaydet = (btn, id) => {
   const k = Object.assign(isAlanlari({}), eski || {}, {id: id || yeniId(), no: eski ? eski.no : siradakiNo(sistem().isOnEk, veri.is_emirleri), musteriId:cari, baslik, durum:form.durum, oncelik:form.oncelik, kategori:deger("isTuru"),
     sorumlu:deger("sorumlu"), adres:deger("adres"), kalemler, asamalar, teslimTarihi:deger("teslim") || null, tutar:h.toplam, kol:kolVar() && form.kol != null ? form.kol : (eski && eski.kol) || "", uretimGun:Math.max(0, sayiOku(deger("uretimGun")) || 0) || null,
     aciklama:deger("aciklama"), teklif, kesif: eski ? eski.kesif : {}, olusma: eski ? eski.olusma : Date.now()});
+  teklifSurumEkle(eski, k);   // teklif değiştiyse önceki hâli sürüm olarak saklanır
   islem(btn, async () => {
     await Depo.kaydet("is_emirleri", Object.assign(k, form._surum != null ? {_surum:form._surum} : {}));
     if(!id) await notEkle(k.id, pr ? "Katalogdan teklif açıldı: " + pr.baslik : "İş emri açıldı");
@@ -258,7 +261,7 @@ function ekranIs(id){
     isRandevuKarti(ie) + kesimKarti(ie) + kesifKarti(ie) + (Y ? isMalzemeKarti(id) : '') +
     (as.length ? '<div class="kart"><div class="kart-baslik"><span>Üretim aşamaları</span><span>' + yap + '/' + as.length + '</span></div><div class="ilerleme"><i style="width:' + Math.round(yap / as.length * 100) + '%"></i></div>' +
       as.map((a, i) => '<button class="asama' + (a.tamam ? " tamam" : "") + '" data-is="asamaDegis" data-arg="' + id + '|' + i + '"><span class="kutucuk">' + (a.tamam ? ik("tamam") : "") + '</span><span class="ad">' + esc(a.ad) + '</span></button>').join("") + '</div>' : '') +
-    (Y ? karlilikKarti(ie) : '') +
+    (Y ? karlilikKarti(ie) : '') + teklifSurumKarti(ie) + sozlesmeKarti(ie) + servisKarti(ie) + isSayfasiKarti(ie) +
     '<div class="yazdirma">' + (Y ? '<div class="hizli" style="grid-template-columns:1fr 1fr">' +
       hizliButon("giris/" + cari + "/" + id, "r-giris", "asagi", "Tahsilat Al") + hizliButon("fatura-form/satis/" + cari + "/" + id, "r-borc", "fatura", "Satış Faturası") +
       hizliButon("cikis/-/" + id, "r-cikis", "yukari", "Gider Ekle") + hizliButon("fatura-form/alis/-/" + id, "r-gri", "fatura", "Alış Faturası") + '</div>' : '') +
