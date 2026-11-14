@@ -280,15 +280,15 @@ function ekranIs(id){
       '<input type="file" id="kameraSec" accept="image/*" capture="environment" style="display:none" onchange="dosyaSecildi(this,\'' + id + '\')">' +
       '<input type="file" id="dosyaSec" multiple accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.dwg,.dxf,.txt" style="display:none" onchange="dosyaSecildi(this,\'' + id + '\')">'
       : '<div class="alt-bilgi">Dosya yüklemek için bulut bağlantısı gerekir.</div>') + galeriHtml(id) + '</div>' +
-    '<div class="kart"><div class="kart-baslik"><span>Notlar ve geçmiş</span></div>' +
+    '<div class="kart yazdirma not-kart"><div class="kart-baslik"><span>Notlar ve geçmiş</span></div>' +
       '<div class="yazdirma"><textarea id="yeniNot" class="kutu" style="min-height:64px" maxlength="1000" placeholder="Not yazın (örn: Müşteri kumaşı değiştirmek istedi)"></textarea>' +
       '<div class="buton-sira" style="margin-top:8px"><button class="buton ikincil kucuk" style="margin:0" data-is="notKaydet" data-arg="' + id + '">' + ik("arti") + 'Not ekle</button>' +
       '<button class="buton ikincil kucuk" style="margin:0" data-is="sesleNot">' + ik("mikrofon") + 'Sesle yaz</button></div></div>' +
       (notlar.length ? notlar.map(n => '<div class="not-satir"><span class="nokta-ince' + (n.tur === "not" ? " koyu" : "") + '"></span><div style="flex:1;min-width:0"><div style="white-space:pre-wrap;word-break:break-word' +
         (n.tur === "not" ? '' : ';color:var(--soluk);font-size:14px') + '">' + esc(n.metin) + '</div><div style="color:var(--soluk);font-size:12px">' +
         esc([n.yazan, zamanYaz(n.olusma)].filter(Boolean).join(" · ")) + '</div></div></div>').join("") : '') + '</div>' +
-    (Y ? bolum("Faturalar (" + faturalar.length + ")") + '<div class="kart liste-kart">' + (faturalar.length ? faturalar.map(f => faturaSatir(f)).join("") : bos("fatura", "Bu işe bağlı fatura yok.")) + '</div>' +
-    bolum("Ödemeler ve giderler (" + hareketler.length + ")") + '<div class="kart liste-kart">' + (hareketler.length ? hareketler.map(h => hareketSatir(h)).join("") : bos("kasa", "Bu işe bağlı kasa hareketi yok.")) + '</div>' : '') +
+    (Y ? '<div class="yazdirma">' + bolum("Faturalar (" + faturalar.length + ")") + '<div class="kart liste-kart">' + (faturalar.length ? faturalar.map(f => faturaSatir(f)).join("") : bos("fatura", "Bu işe bağlı fatura yok.")) + '</div>' +
+    bolum("Ödemeler ve giderler (" + hareketler.length + ")") + '<div class="kart liste-kart">' + (hareketler.length ? hareketler.map(h => hareketSatir(h)).join("") : bos("kasa", "Bu işe bağlı kasa hareketi yok.")) + '</div></div>' : '') +
     '</div></div>';
   return {baslik: ie.no + " · " + ie.baslik, geri:true, html, sonra: galeriDoldur};
 }

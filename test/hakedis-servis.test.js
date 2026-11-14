@@ -61,6 +61,9 @@ module.exports = ({test}) => {
     });
     const anahtar = await pg.evaluate(async () => (await isSayfasiYaz(bul("is_emirleri", "i1"), {fiyat:true, odeme:false, foto:false}, null, 90)).id);
     await pg.git("is/i1");
+    await pg.emulateMedia({media:"print"});
+    a.esit(await pg.evaluate(() => [...document.querySelectorAll("main .kart")].filter(k => /Notlar ve geçmiş/.test(k.textContent) && k.offsetParent).length), 0, "Yazdırınca notlar ve geçmiş çıkmaz");
+    await pg.emulateMedia({media:"screen"});
     a.dogru(/Müşteri iş sayfası/.test(await pg.textContent("main")) && /Bağlantı açık/.test(await pg.textContent("main")), "İş emrinde kart");
     // Müşterinin gördüğü sayfa
     await pg.evaluate(k => { sb.rpc = async (ad, x) => ad === "vitrin_getir" ? {data:bul("paylasimlar", x.anahtar).icerik} : (window.__cevap = x, {data:{tamam:true}}); vitrinGoster(k); }, anahtar);
