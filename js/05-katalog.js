@@ -498,7 +498,7 @@ function sunumAc(liste, bas, musteri){
     else if(k === "oto") otoAyarla(!oto); else if(k === "bilgi") bilgi(); else if(k === "tam") tamEkran();
     else if(k === "kapat") kapat();
     else if(k === "teklif"){ const id = liste[i].p.id; kapat(); git("is-form/-/-/" + id); }
-    else if(k === "sor") window.open(vitrinWaLink(musteri.telefon, "“" + liste[i].p.baslik + "” projesi hakkında bilgi almak istiyorum."), "_blank", "noopener");
+    else if(k === "sor") waAc(musteri.telefon, "Merhaba, “" + liste[i].p.baslik + "” projesi hakkında bilgi almak istiyorum.");
   });
   s.addEventListener("touchstart", e => { dokunX = e.touches.length === 1 ? e.touches[0].clientX : null; }, {passive:true});
   s.addEventListener("touchend", e => {

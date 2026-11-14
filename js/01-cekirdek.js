@@ -436,7 +436,7 @@ function kategoriler(tur){
   return Array.isArray(l) && l.length ? l : VARSAYILAN_KATEGORI[tur];
 }
 // Kasa listelerinde görünen hareketler (veresiye ve cari / personel açılış bakiyesi kasadan geçmez)
-const UYGULAMA_SURUM = "2026.11.14-2";   // Ayarlar → Hesap'ta görünür; yeni sürüm yüklendi mi kontrol için
+const UYGULAMA_SURUM = "2026.11.14-3";   // Ayarlar → Hesap'ta görünür; yeni sürüm yüklendi mi kontrol için
 const kasaHareketi = h => h.tur !== "borc" && !(h.tur === "acilis" && h.musteriId);
 function kasa(){
   const s = {nakit:0, banka:0, senet:0};

@@ -55,6 +55,7 @@ module.exports = ({test}) => {
   test("Müşteri iş sayfası: teklif görünür, müşteri onaylar, siparişe çevrilir", async (o, a) => {
     const pg = await o.sayfa({bulut:true});
     await pg.evaluate(async () => {
+      await Depo.kaydet("ayarlar", {anahtar:"firma", deger:Object.assign({}, FIRMA_VARSAYILAN, {telefon:"0532 111 22 33"})});
       await Depo.kaydet("musteriler", {id:"m1", ad:"Ali Osman", tip:"musteri", telefon:"05551112233", adres:"", vergiNo:"", olusma:1});
       await Depo.kaydet("is_emirleri", Object.assign(isAlanlari({}), {id:"i1", no:"İE-0001", musteriId:"m1", baslik:"Mutfak", durum:"Teklif", oncelik:"Normal", sorumlu:"", adres:"", kalemler:[{ad:"Alt dolap", olcu:"", adet:1, fiyat:40000}],
         asamalar:[{ad:"Kesim", tamam:false}], teklif:{kdv:20}, kesif:{}, tutar:48000, aciklama:"", teslimTarihi:null, olusma:1}));
@@ -71,6 +72,10 @@ module.exports = ({test}) => {
     const m = await pg.textContent("main");
     a.dogru(/Genel toplam/.test(m) && /48\.000/.test(m) && /Teklifi onaylıyorum/.test(m), "Teklif ve onay düğmesi");
     a.dogru(!/Durum|Kesim|aşama/.test(m) && await pg.evaluate(k => { const i = bul("paylasimlar", k).icerik; return !("durum" in i) && !("asamalar" in i) && i.teklifMi === true; }, anahtar), "İş durumu ve aşamalar müşteriye gösterilmez");
+    // Telefonda "WhatsApp'tan yazın" uygulamayı açar (whatsapp://), yeni sekme açmaz
+    a.esit(await pg.evaluate(() => { const l = []; waGit = u => l.push(u); window.open = u => (l.push("ac:" + u), {});
+      Object.defineProperty(navigator, "userAgent", {get:() => "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)"});
+      document.querySelector("a.wa-buton") && document.querySelector("a.wa-buton").click(); return l; }).then(l => l.length === 1 && /^whatsapp:\/\/send\?phone=\d+&text=/.test(l[0])), true, "Telefonda WhatsApp uygulaması açılır");
     await pg.click('[data-is="teklifCevap"][data-arg$="|onay"]'); await pg.waitForTimeout(300);
     a.esit(await pg.evaluate(() => [/Onayınız iletildi/.test(document.getElementById("onayKutu").textContent), window.__cevap.karar, window.__cevap.ad]), [true, "onay", "Ali Osman"]);
     // Yönetici tarafı: onay gelince Yapılacaklar ve siparişe çevirme

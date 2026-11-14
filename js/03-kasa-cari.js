@@ -228,6 +228,27 @@ function waNumara(t){
   else if(n.length === 10) n = "90" + n;
   return n;
 }
+// WhatsApp'ı açar. Telefonda doğrudan uygulamayı açar (whatsapp://); yeni sekmede wa.me açmak telefona kurulmuş
+// uygulamada (özellikle iPhone) engelleniyor ya da tarayıcıda kalıyordu. Uygulama açılmazsa wa.me'ye düşer.
+const telefonMu = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+let waGit = u => { location.href = u; };   // testte değiştirilebilsin
+function waAc(tel, metin){
+  const t = waNumara(tel), web = "https://wa.me/" + t + "?text=" + encodeURIComponent(metin || "");
+  if(!telefonMu()){ window.open(web, "_blank", "noopener"); return; }
+  const uyg = "whatsapp://send?" + (t ? "phone=" + t + "&" : "") + "text=" + encodeURIComponent(metin || "");
+  let gitti = false; const bak = () => { if(document.hidden) gitti = true; };
+  document.addEventListener("visibilitychange", bak);
+  window.addEventListener("blur", bak);
+  waGit(uyg);
+  setTimeout(() => { document.removeEventListener("visibilitychange", bak); window.removeEventListener("blur", bak);
+    if(!gitti && !document.hidden){ const w = window.open(web, "_blank"); if(!w) waGit(web); } }, 1600);
+}
+// wa.me bağlantılarına (müşteri sayfası, vitrin) tıklanınca telefonda da uygulama açılsın
+document.addEventListener("click", e => {
+  const a = e.target.closest && e.target.closest('a[href^="https://wa.me/"]'); if(!a) return;
+  e.preventDefault();
+  const u = new URL(a.href); waAc(u.pathname.slice(1), u.searchParams.get("text") || "");
+});
 // Mesajı düzenlenebilir şekilde gösterir; "WhatsApp'ta aç" ile uygulamayı/WhatsApp Web'i açar.
 function waPencere(o){
   const tel = waNumara(o.tel), p = document.createElement("div");
@@ -253,7 +274,7 @@ function waPencere(o){
     const girilen = p.querySelector("#waTel") ? p.querySelector("#waTel").value.trim() : "";
     const t = tel || waNumara(girilen);
     if(girilen && t.length < 11) { p.querySelector("#waHata").textContent = "Telefon numarası eksik görünüyor."; return; }
-    window.open("https://wa.me/" + t + "?text=" + encodeURIComponent(metin.value), "_blank", "noopener");
+    waAc(t, metin.value);
     if(o.isEmriId) notEkle(o.isEmriId, "WhatsApp mesajı hazırlandı").catch(() => {});
     if(o.gonderildi) o.gonderildi();
     p.remove();

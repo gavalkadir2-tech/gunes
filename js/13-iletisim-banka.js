@@ -22,7 +22,7 @@ function siraliWhatsapp(baslik, l, o = {}){
     const b = e.target.closest("[data-c]"); if(!b) return;
     const c = b.getAttribute("data-c");
     if(c === "bitir"){ p.remove(); if(o.bitti) o.bitti(gonderilen); return; }
-    if(c === "gonder"){ window.open("https://wa.me/" + waNumara(l[i].tel) + "?text=" + encodeURIComponent(p.querySelector("#swMetin").value), "_blank", "noopener"); gonderilen++; if(o.gonderildi) o.gonderildi(l[i].kimlik); }
+    if(c === "gonder"){ waAc(l[i].tel, p.querySelector("#swMetin").value); gonderilen++; if(o.gonderildi) o.gonderildi(l[i].kimlik); }
     sonraki();
   });
   ciz_(); document.body.appendChild(p);
