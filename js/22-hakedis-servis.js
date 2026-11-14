@@ -346,14 +346,13 @@ EYLEM.garantiVarsayilan = () => {
 };
 
 /* ================= MÜŞTERİ İŞ SAYFASI VE TEKLİF ONAYI ================= */
-// Paylaşım bağlantısı (paylasimlar) içerik türü "is": müşteri giriş yapmadan #vitrin/<anahtar> adresinden işinin durumunu görür,
+// Paylaşım bağlantısı (paylasimlar) içerik türü "is": müşteri giriş yapmadan #vitrin/<anahtar> adresinden işini görür (iş durumu / aşamalar gösterilmez),
 // teklifse "Onaylıyorum / Değişiklik istiyorum" der (teklif_onayla işlevi, supabase-guncelleme-17.sql).
 const isSayfasi = ie => veri.paylasimlar.filter(k => k.icerik && k.icerik.tur === "is" && k.icerik.isEmriId === ie.id && !paylasimBitti(k)).sort((a, b) => b.olusma - a.olusma)[0];
 function isSayfasiIcerik(ie, ayar, gorseller){
   const fr = firma(), o = isOzet(ie.id), h = isHesap(ie.kalemler, isTeklif(ie)), bg = bugun();
-  return {tur:"is", isEmriId:ie.id, baslik:ie.baslik, no:ie.no, durum:ie.durum, musteri:cariAdi(ie.musteriId), teslim:ie.teslimTarihi || "", guncelleme:Date.now(), ayar,
+  return {tur:"is", isEmriId:ie.id, baslik:ie.baslik, no:ie.no, teklifMi:ie.durum === "Teklif", musteri:cariAdi(ie.musteriId), teslim:ie.teslimTarihi || "", guncelleme:Date.now(), ayar,
     firma:{ad:FIRMA, telefon:fr.telefon, adres:fr.adres}, hesap:ayar.odeme ? odemeHesabi().trim() : "",
-    asamalar:(ie.asamalar || []).map(a => ({ad:a.ad, tamam:!!a.tamam})),
     randevular:(ie.montaj || []).filter(r => !r.tamam && r.tarih >= bg).map(r => ({tarih:r.tarih, saat:r.saat || "", tur:r.tur})),
     kalemler:(ie.kalemler || []).map(k => Object.assign({ad:k.ad, olcu:k.olcu || "", renk:k.renk || "", adet:k.adet}, ayar.fiyat && k.fiyat ? {fiyat:k.fiyat} : {})),
     teklif:ayar.fiyat && h.ara > 0 ? {ara:h.ara, indirim:h.indirim, kdvOran:h.kdvOran, kdv:h.kdv, toplam:h.toplam, gecerlilik:(ie.teklif || {}).gecerlilik || ""} : null,
@@ -363,7 +362,7 @@ function isSayfasiIcerik(ie, ayar, gorseller){
 EYLEM.isSayfasiOlustur = (el, id) => {
   const ie = bul("is_emirleri", id), var_ = isSayfasi(ie), a = var_ ? var_.icerik.ayar || {} : {fiyat:ie.durum === "Teklif", odeme:ie.durum !== "Teklif", foto:true};
   const p = document.createElement("div"); p.className = "perde";
-  p.innerHTML = '<div class="pencere" style="max-width:460px"><p>Müşteri iş sayfası</p><div class="alt-bilgi">Müşteri giriş yapmadan işinin durumunu, aşamaları, randevuları ve seçtiklerinizi görür' + (ie.durum === "Teklif" ? '; teklifi telefondan onaylayabilir' : '') + '.</div>' +
+  p.innerHTML = '<div class="pencere" style="max-width:460px"><p>Müşteri iş sayfası</p><div class="alt-bilgi">Müşteri giriş yapmadan işini, teslim tarihini, randevuları ve seçtiklerinizi görür (iş durumu ve aşamalar gösterilmez)' + (ie.durum === "Teklif" ? '; teklifi telefondan onaylayabilir' : '') + '.</div>' +
     [["isFiyat", "Teklif kalemleri ve fiyatlar", a.fiyat], ["isOdeme", "Ödeme durumu (toplam, ödenen, kalan) ve IBAN", a.odeme], ["isFoto", "Fotoğraflar (son 30)", a.foto]].map(([i, t, v]) =>
       '<label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px"><input type="checkbox" id="' + i + '"' + (v ? ' checked' : '') + '> ' + t + '</label>').join("") +
     (var_ ? '' : '<label class="etiket">Bağlantı ne kadar açık kalsın?</label><div class="secenekler" id="isSure">' + [["90", "3 ay"], ["365", "1 yıl"], ["0", "Süresiz"]].map(([v, t], i) => '<button type="button" class="secenek' + (i === 1 ? ' secili' : '') + '" data-s="' + v + '">' + t + '</button>').join("") + '</div>') +
@@ -375,7 +374,7 @@ EYLEM.isSayfasiOlustur = (el, id) => {
     const gun = var_ ? null : Number(p.querySelector("#isSure .secili").getAttribute("data-s"));
     islem(b, async () => { const k = await isSayfasiYaz(ie, ayar, var_, gun); p.remove(); ciz();
       const m = bul("musteriler", ie.musteriId) || {};
-      waPencere({tel:m.telefon, ad:m.ad, isEmriId:id, sablonlar:[{ad:"İş sayfası", metin:"Merhaba " + (m.ad || "") + ", " + (ie.durum === "Teklif" ? "“" + ie.baslik + "” teklifimizi inceleyip onaylayabilirsiniz" : "“" + ie.baslik + "” siparişinizin durumunu takip edebilirsiniz") + ":\n" + paylasimLinki(k) + "\n\n" + FIRMA}]}); });
+      waPencere({tel:m.telefon, ad:m.ad, isEmriId:id, sablonlar:[{ad:"İş sayfası", metin:"Merhaba " + (m.ad || "") + ", " + (ie.durum === "Teklif" ? "“" + ie.baslik + "” teklifimizi inceleyip onaylayabilirsiniz" : "“" + ie.baslik + "” siparişinizin bilgilerini görebilirsiniz") + ":\n" + paylasimLinki(k) + "\n\n" + FIRMA}]}); });
   });
   document.body.appendChild(p);
 };
@@ -417,7 +416,7 @@ function isSayfasiKarti(ie){
     (k ? '<div class="alt-bilgi" style="margin:0 0 8px">Bağlantı açık' + (k.bitis ? ' · ' + tarihYaz(tarihStr(new Date(k.bitis)), true) + "'e kadar" : '') + ' · iş değiştikçe sayfa kendiliğinden güncellenir.</div>' +
       '<div class="buton-sira"><button class="buton ikincil kucuk" style="margin:0" data-is="isSayfasiOlustur" data-arg="' + ie.id + '">' + ik("mesaj") + 'Fotoğrafları güncelle / gönder</button>' +
       '<button class="buton ikincil kucuk" style="margin:0" onclick="window.open(\'' + paylasimLinki(k) + '\')">' + ik("sag") + 'Sayfayı gör</button></div>' :
-      '<div class="alt-bilgi" style="margin:0 0 8px">Müşteriye işinin durumunu ' + (ie.durum === "Teklif" ? "ve teklifi gösteren, telefondan onaylayabileceği" : "gösteren") + ' bir bağlantı gönderin.</div>' +
+      '<div class="alt-bilgi" style="margin:0 0 8px">Müşteriye ' + (ie.durum === "Teklif" ? "teklifi gösteren, telefondan onaylayabileceği" : "siparişini ve teslim bilgilerini gösteren") + ' bir bağlantı gönderin.</div>' +
       '<button class="buton ikincil kucuk" style="margin:0" data-is="isSayfasiOlustur" data-arg="' + ie.id + '">' + ik("mesaj") + 'Bağlantı oluştur</button>') + '</div>';
 }
 EYLEM.onayIsle = (el, arg) => {
@@ -440,21 +439,19 @@ function teklifOnayGeldi(k){
 }
 // Müşterinin gördüğü sayfa (vitrinGoster "is" türünde bunu çağırır)
 function isSayfasiGoster(v, anahtar, el){
-  const fr = v.firma || {}, tel = waNumara(fr.telefon), yap = v.asamalar.filter(a => a.tamam).length, cevap = (() => { try{ return localStorage.getItem("gunes_onay_" + anahtar); }catch(e){ return null; } })();
+  const fr = v.firma || {}, tel = waNumara(fr.telefon), teklifMi = v.teklifMi != null ? v.teklifMi : v.durum === "Teklif", cevap = (() => { try{ return localStorage.getItem("gunes_onay_" + anahtar); }catch(e){ return null; } })();
   document.title = v.baslik + " — " + (fr.ad || FIRMA);
   el.innerHTML = '<main class="sayfa is-sayfasi" style="max-width:760px">' +
     '<div class="vitrin"><div class="marka"><img src="logo-beyaz.png" alt="' + esc(fr.ad || FIRMA) + '"></div><h1 style="font-size:22px;margin:14px 0 4px;position:relative">' + esc(v.baslik) + '</h1>' +
       '<div class="alt">' + esc([v.no, v.musteri].filter(Boolean).join(" · ")) + '</div></div>' +
-    '<div class="kart"><div class="kart-baslik"><span>Durum</span>' + durumRozet(v.durum) + '</div>' +
-      (v.asamalar.length ? '<div class="ilerleme"><i style="width:' + Math.round(yap / v.asamalar.length * 100) + '%"></i></div><div class="alt-bilgi">' + yap + ' / ' + v.asamalar.length + ' aşama tamamlandı</div>' +
-        v.asamalar.map(a => '<div class="asama' + (a.tamam ? ' tamam' : '') + '" style="cursor:default"><span class="kutucuk">' + (a.tamam ? ik("tamam") : '') + '</span><span class="ad">' + esc(a.ad) + '</span></div>').join("") : '') +
+    (v.teslim || v.randevular.length ? '<div class="kart">' + kartBaslik("Teslim ve randevular") +
       (v.teslim ? bilgiSatir("Tahmini teslim", tarihYaz(v.teslim)) : '') +
-      v.randevular.map(r => bilgiSatir(esc(r.tur), tarihYaz(r.tarih) + (r.saat ? " " + esc(r.saat) : ""))).join("") + '</div>' +
-    (v.kalemler.length ? '<div class="kart">' + kartBaslik(v.durum === "Teklif" ? "Teklif" : "Sipariş") + v.kalemler.map(k => bilgiSatir(esc(k.ad) + (k.olcu || k.renk ? ' <span class="ist">' + esc([k.olcu, k.renk].filter(Boolean).join(" · ")) + '</span>' : ''),
+      v.randevular.map(r => bilgiSatir(esc(r.tur), tarihYaz(r.tarih) + (r.saat ? " " + esc(r.saat) : ""))).join("") + '</div>' : '') +
+    (v.kalemler.length ? '<div class="kart">' + kartBaslik(teklifMi ? "Teklif" : "Sipariş") + v.kalemler.map(k => bilgiSatir(esc(k.ad) + (k.olcu || k.renk ? ' <span class="ist">' + esc([k.olcu, k.renk].filter(Boolean).join(" · ")) + '</span>' : ''),
         k.fiyat ? k.adet + ' × ' + para(k.fiyat) : '× ' + k.adet)).join("") +
       (v.teklif ? '<div class="toplamlar">' + bilgiSatir("Ara toplam", para(v.teklif.ara)) + (v.teklif.indirim ? bilgiSatir("İndirim", "−" + para(v.teklif.indirim)) : '') + bilgiSatir(kdvYazi(v.teklif.kdvOran), para(v.teklif.kdv)) +
         '<div class="bilgi-satir genel"><span style="color:var(--yazi)">Genel toplam</span><b>' + para(v.teklif.toplam) + '</b></div>' + (v.teklif.gecerlilik ? '<div class="alt-bilgi">Teklif geçerlilik: ' + tarihYaz(v.teklif.gecerlilik) + '</div>' : '') + '</div>' : '') + '</div>' : '') +
-    (v.durum === "Teklif" ? '<div class="kart" id="onayKutu">' + (cevap ? '<div class="bilgi-kutu" style="margin:0">Cevabınız iletildi, teşekkür ederiz. ' + esc(fr.ad || FIRMA) + ' sizinle iletişime geçecek.</div>' :
+    (teklifMi ? '<div class="kart" id="onayKutu">' + (cevap ? '<div class="bilgi-kutu" style="margin:0">Cevabınız iletildi, teşekkür ederiz. ' + esc(fr.ad || FIRMA) + ' sizinle iletişime geçecek.</div>' :
       kartBaslik("Teklifi onaylıyor musunuz?") + '<label class="etiket" for="onAd">Adınız</label><input id="onAd" class="kutu" maxlength="80" value="' + esc(v.musteri || "") + '">' +
       '<label class="etiket" for="onNot">Notunuz <span class="ist">(isteğe bağlı)</span></label><textarea id="onNot" class="kutu" maxlength="1000" style="min-height:64px"></textarea><div class="hata" id="onHata"></div>' +
       '<div class="buton-sira"><button class="buton ikincil" data-is="teklifCevap" data-arg="' + anahtar + '|revize">Değişiklik istiyorum</button><button class="buton" data-is="teklifCevap" data-arg="' + anahtar + '|onay">' + ik("tamam") + 'Teklifi onaylıyorum</button></div>') + '</div>' : '') +

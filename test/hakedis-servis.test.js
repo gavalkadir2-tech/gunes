@@ -67,6 +67,7 @@ module.exports = ({test}) => {
     await pg.waitForTimeout(300);
     const m = await pg.textContent("main");
     a.dogru(/Genel toplam/.test(m) && /48\.000/.test(m) && /Teklifi onaylıyorum/.test(m), "Teklif ve onay düğmesi");
+    a.dogru(!/Durum|Kesim|aşama/.test(m) && await pg.evaluate(k => { const i = bul("paylasimlar", k).icerik; return !("durum" in i) && !("asamalar" in i) && i.teklifMi === true; }, anahtar), "İş durumu ve aşamalar müşteriye gösterilmez");
     await pg.click('[data-is="teklifCevap"][data-arg$="|onay"]'); await pg.waitForTimeout(300);
     a.esit(await pg.evaluate(() => [/Onayınız iletildi/.test(document.getElementById("onayKutu").textContent), window.__cevap.karar, window.__cevap.ad]), [true, "onay", "Ali Osman"]);
     // Yönetici tarafı: onay gelince Yapılacaklar ve siparişe çevirme
